@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "tsBuildInfoFile": "./tsconfig.build.tsbuildinfo",
+    "sourceMap": false,
+    "declaration": false,
+    "declarationMap": false,
+    "types": []
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/test",
+    "tests",
+    "coverage",
+    "vitest.config.ts",
+    "eslint.config.mjs",
+    "nodemon.json",
+    ".eslintrc.js"
+  ]
+}

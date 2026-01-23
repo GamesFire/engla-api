@@ -1,0 +1,12 @@
+node_modules
+ci
+dist
+coverage
+docs
+logs
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+tmp/**
+*.yml
+README.md

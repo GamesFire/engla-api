@@ -50,7 +50,8 @@
     "./tests/**/*",
     "./database",
     "vitest.config.ts",
-    "eslint.config.mjs"
+    "eslint.config.mjs",
+    "release.config.cjs"
   ],
-  "exclude": ["node_modules", "./node_modules", "./node_modules/*", "coverage", "dist"]
+  "exclude": ["node_modules", "./node_modules", "./node_modules/*", "coverage", "dist", "**/.*/"]
 }

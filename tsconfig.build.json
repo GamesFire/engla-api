@@ -13,13 +13,17 @@
   "exclude": [
     "node_modules",
     "dist",
+    "logs",
+    "tmp",
     "**/*.test.ts",
     "**/*.spec.ts",
     "src/test",
     "tests",
     "coverage",
+    "database",
     "vitest.config.ts",
     "eslint.config.mjs",
+    "release.config.cjs",
     "nodemon.json",
     ".eslintrc.js"
   ]

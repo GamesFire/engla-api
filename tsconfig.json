@@ -14,9 +14,10 @@
     "paths": {
       "@app/*": ["./src/*"],
       "@lib/*": ["./src/lib/*"],
+      "@utils/*": ["./src/lib/utils/*"],
       "@models/*": ["./src/lib/db/models/*"],
       "@modules/*": ["./src/modules/*"],
-      "@config/*": ["./src/config/*"],
+      "@routes/*": ["./src/routes/*"],
       "@ioc/*": ["./src/ioc/*"]
     },
     "experimentalDecorators": true,
@@ -46,7 +47,7 @@
   },
   "include": [
     "./src/**/*",
-    "./src/types/global.d.ts",
+    "src/types/types.d.ts",
     "./tests/**/*",
     "./database",
     "vitest.config.ts",

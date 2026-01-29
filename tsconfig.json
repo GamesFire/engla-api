@@ -48,6 +48,7 @@
   "include": [
     "./src/**/*",
     "src/types/types.d.ts",
+    "src/types/environment.d.ts",
     "./tests/**/*",
     "./database",
     "vitest.config.ts",

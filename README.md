@@ -8,15 +8,17 @@
 
 ## 📋 Table of Contents
 
-- [Introduction](#introduction)
-- [Tech Stack](#tech-stack)
-- [Architecture & Design Patterns](#architecture--design-patterns)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Environment Configuration](#environment-configuration)
-- [Database Management (CLI)](#database-management-cli)
-- [Project Structure](#project-structure)
-- [Scripts](#scripts)
+- [📖 Introduction](#-introduction)
+- [🛠 Tech Stack](#-tech-stack)
+- [🏗 Architecture & Design Patterns](#-architecture--design-patterns)
+- [✅ Prerequisites](#-prerequisites)
+- [🚀 Getting Started](#-getting-started)
+- [⚙ Environment Configuration](#-environment-configuration)
+- [💻 Database Management (CLI)](#-database-management-cli)
+- [📂 Project Structure](#-project-structure)
+- [📜 Scripts](#-scripts)
+- [🤝 Contributing](#-contributing)
+- [📝 License](#-license)
 
 ---
 
@@ -118,13 +120,14 @@ npm start
 
 ---
 
-## ⚙️ Environment Configuration
+## ⚙ Environment Configuration
 
 | Variable | Description | Default |
 | --- | --- | --- |
 | `NODE_ENV` | Environment mode (`development`, `production`, `test`, `staging`) | `development` |
 | `PORT` | API Port | `4000` |
 | `APP_TYPE` | Type of instance (`api`, `worker`) | `api` |
+| `CORS_ORIGIN` | Allowed Origin for CORS | - |
 | `LOG_LEVEL` | Logging level (`debug`, `info`, `error`, `warn`, `http`) | `info` |
 | `LOG_DIR` | Directory for log files | `logs` |
 | `DB_HOST` | PostgreSQL Host | `localhost` |
@@ -170,10 +173,12 @@ src/
 │   ├── configs/        # Configuration schemas (AppConfig, KnexConfig)
 │   ├── constants/      # Global constants (Enums, static data)
 │   ├── db/             # Database clients (Knex, Redis), Models (Objection.js) & Admin utils
+|   ├── errors/         # Custom Error classes (HttpError, etc.)
 │   ├── health/         # Infrastructure health check logic
+│   ├── middlewares/    # Express middlewares (Auth, Logger, Error Handler, Security etc.)
 │   └── utils/          # Helpers (Data parsing, Graceful Shutdown etc.)
 ├── modules/            # Domain Modules (Business Logic / Services)
-├── routes/             # API Routes & Controllers
+├── routes/             # API Routes (System & V1), Controllers
 ├── types/              # Global TypeScript type definitions
 ├── server.ts           # HTTP Server setup (Express app configuration)
 └── entrypoint.ts       # Main application entry point

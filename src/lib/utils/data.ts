@@ -3,8 +3,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs/promises';
 import path from 'path';
+import { ulid } from 'ulid';
 
-import type { PackageJson } from '@app/interfaces/packageJson.interface.js';
+import type { PackageJson } from '@app/interfaces/package-json.interface.js';
 
 /**
  * Safely parse a JSON string.
@@ -43,4 +44,11 @@ export async function getPackageInfo(): Promise<PackageJson> {
       description: 'Fallback description (could not read package.json)',
     };
   }
+}
+
+/**
+ * Generate a unique trace ID using ulid.
+ */
+export function generateTraceID(): string {
+  return ulid();
 }

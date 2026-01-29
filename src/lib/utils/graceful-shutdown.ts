@@ -49,7 +49,16 @@ export class GracefulShutdownHandler {
     );
 
     try {
-      await Promise.all(GracefulShutdownHandler.shutdownTasks.map((task) => task(signal, err)));
+      const results = await Promise.allSettled(
+        GracefulShutdownHandler.shutdownTasks.map((task) => task(signal, err)),
+      );
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          logger.error(`[GracefulShutdown] Task ${index + 1} failed:`, result.reason);
+        }
+      });
+
       logger.info('[GracefulShutdown] All tasks completed. Exiting.');
     } catch (error) {
       logger.error('Error during shutdown tasks:', error);

@@ -4,21 +4,28 @@ import { z } from 'zod';
 import { AppType, LogLevel, NodeEnv } from '../constants/app.js';
 
 export type AppConfig = {
+  // --- System params ---
   NODE_ENV: NodeEnv;
   PORT: number;
   APP_TYPE: AppType;
+  // --- Security params ---
+  CORS_ORIGIN: string;
+  // --- Logger params ---
   LOG_LEVEL: LogLevel;
   LOG_DIR: string;
+  // --- Database params ---
   DB_HOST: string;
   DB_PORT: number;
   DB_USER: string;
   DB_PASS: string;
   DB_NAME: string;
   DB_DEFAULT_NAME: string;
+  // --- Redis params ---
   REDIS_HOST: string;
   REDIS_PORT: number;
   REDIS_PASS: Undefinable<string>;
   REDIS_DB: number;
+  // --- Flags ---
   isDev: boolean;
   isProd: boolean;
   isTest: boolean;
@@ -31,6 +38,7 @@ const envAppSchema = z.object({
   NODE_ENV: z.enum(NodeEnv).default(NodeEnv.DEVELOPMENT),
   PORT: z.coerce.number().default(4000),
   APP_TYPE: z.enum(AppType).default(AppType.API),
+  CORS_ORIGIN: z.string(),
   LOG_LEVEL: z.enum(LogLevel).default(LogLevel.INFO),
   LOG_DIR: z.string().default('logs'),
   DB_HOST: z.string().default('localhost'),
@@ -45,23 +53,7 @@ const envAppSchema = z.object({
   REDIS_DB: z.coerce.number().default(0),
 });
 
-const _envApp = envAppSchema.safeParse({
-  NODE_ENV: process.env.NODE_ENV,
-  PORT: process.env.PORT,
-  APP_TYPE: process.env.APP_TYPE,
-  LOG_LEVEL: process.env.LOG_LEVEL,
-  LOG_DIR: process.env.LOG_DIR,
-  DB_HOST: process.env.DB_HOST,
-  DB_PORT: process.env.DB_PORT,
-  DB_USER: process.env.DB_USER,
-  DB_PASS: process.env.DB_PASS,
-  DB_NAME: process.env.DB_NAME,
-  DB_DEFAULT_NAME: process.env.DB_DEFAULT_NAME,
-  REDIS_HOST: process.env.REDIS_HOST,
-  REDIS_PORT: process.env.REDIS_PORT,
-  REDIS_PASS: process.env.REDIS_PASS,
-  REDIS_DB: process.env.REDIS_DB,
-});
+const _envApp = envAppSchema.safeParse(process.env);
 
 if (!_envApp.success) {
   const formattedErrors = _envApp.error.issues.map((issue) => ({

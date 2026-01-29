@@ -3,11 +3,11 @@ import 'reflect-metadata';
 
 import { appConfig } from '@app/lib/configs/app.config.js';
 import { constructIOC } from '@ioc/container.js';
+import { bootstrapInfrastructure } from '@lib/bootstrap-infrastructure.js';
 import { AppType } from '@lib/constants/app.js';
 import { logger } from '@lib/logger.js';
 import { GracefulShutdownHandler } from '@utils/graceful-shutdown.js';
 
-import { bootstrapInfrastructure } from './lib/bootstrapInfrastructure.js';
 import { createServer } from './server.js';
 
 GracefulShutdownHandler.setup();
@@ -38,10 +38,16 @@ async function boot() {
 
       GracefulShutdownHandler.registerTask(async () => {
         return new Promise<void>((resolve) => {
-          server.close(() => {
-            logger.info('[HttpServer] Closed');
+          server.close((err) => {
+            if (err) {
+              logger.error('[HttpServer] Error while closing', err);
+            } else {
+              logger.info('[HttpServer] Closed successfully');
+            }
             resolve();
           });
+
+          server.closeAllConnections();
         });
       });
       break;

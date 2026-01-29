@@ -5,6 +5,7 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 
 import { appConfig } from './configs/app.config.js';
 import { getPackageInfo } from './utils/data.js';
+import { HttpContext } from './utils/http.context.js';
 
 if (!appConfig.isTest && !fs.existsSync(appConfig.LOG_DIR)) {
   fs.mkdirSync(appConfig.LOG_DIR);
@@ -78,3 +79,12 @@ export const logger = winston.createLogger({
   transports,
   exitOnError: false,
 });
+
+/**
+ * Smart logger getter.
+ * If we are inside an HTTP request -> returns Child Logger with TraceID.
+ * If we are at the start of the application or in CRON -> returns Global Logger.
+ */
+export function getLogger() {
+  return HttpContext.getLogger() || logger;
+}

@@ -15,6 +15,7 @@
 - [🚀 Getting Started](#-getting-started)
 - [⚙ Environment Configuration](#-environment-configuration)
 - [💻 Database Management (CLI)](#-database-management-cli)
+- [🧪 Testing](#-testing)
 - [📂 Project Structure](#-project-structure)
 - [📜 Scripts](#-scripts)
 - [🤝 Contributing](#-contributing)
@@ -115,7 +116,7 @@ npm run dev
 
 # Production build & start
 npm run build
-npm start
+npm run start
 ```
 
 ---
@@ -161,6 +162,28 @@ We use a custom CLI tool built with `Commander.js` to manage database operations
 
 ---
 
+## 🧪 Testing
+
+We use **Vitest** and **Supertest** for unit and integration testing.
+
+### Test Configuration (`.env.test`)
+
+Tests run in an isolated environment. When running `npm test`, the system automatically loads variables from a dedicated `.env.test` file (or CI secrets) instead of the standard `.env`.
+
+* **Isolation:** Ensures tests do not affect your local development database.
+* **Validation:** The application config validator treats `NODE_ENV=test` specifically to allow mock credentials in CI environments to pass Zod validation without needing real production secrets.
+
+**Note:** Ensure you have a `.env.test` file created locally (or secrets configured in CI) with valid (dummy) database credentials to pass the configuration validation step.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm run test
+```
+
+---
+
 ## 📂 Project Structure
 
 ```text
@@ -192,11 +215,11 @@ tests/                  # Unit & Integration tests
 - `npm run dev`: Starts the application in development mode with `nodemon`.
 - `npm run cli`: Runs the custom CLI tool (use `npm run cli -- --help` to see commands).
 - `npm run build`: Compiles TypeScript to JavaScript (`dist` folder).
-- `npm start`: Runs the compiled application (Production mode).
+- `npm run start`: Runs the compiled application (Production mode).
 - `npm run clean`: Removes the `dist` directory.
 - `npm run lint`: Lint code with ESLint.
 - `npm run format`: Format code with Prettier.
-- `npm test`: Run unit tests with Vitest.
+- `npm run test`: Run unit tests with Vitest.
 - `npm run typecheck`: Runs TypeScript type checking without emitting files.
 - `npm run prepare`: Sets up Husky git hooks.
 

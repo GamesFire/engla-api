@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import path from 'path';
 import { z } from 'zod';
 
 import { AppType, LogLevel, NodeEnv } from '../constants/app.js';
@@ -32,7 +33,12 @@ export type AppConfig = {
   isStaging: boolean;
 };
 
-dotenv.config();
+dotenv.config({
+  path:
+    process.env.NODE_ENV === NodeEnv.TEST
+      ? path.resolve(process.cwd(), '.env.test')
+      : path.resolve(process.cwd(), '.env'),
+});
 
 const envAppSchema = z.object({
   NODE_ENV: z.enum(NodeEnv).default(NodeEnv.DEVELOPMENT),

@@ -11,6 +11,6 @@ export function buildProviderModule(): ContainerModule {
   });
 }
 
-function resolve(metadata: TProvide, bind: Bind): BindWhenOnFluentSyntax<unknown> | unknown {
+function resolve(metadata: TProvide, bind: Bind): Unknowable<BindWhenOnFluentSyntax<unknown>> {
   return metadata.constraint(bind, metadata.implementationType);
 }

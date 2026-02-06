@@ -52,3 +52,33 @@ export async function getPackageInfo(): Promise<PackageJson> {
 export function generateTraceID(): string {
   return ulid();
 }
+
+/**
+ * Creates a shallow copy of the object excluding keys with `undefined` values.
+ * Useful for PATCH operations where `undefined` means "do not update",
+ * while `null` means "set to null".
+ *
+ * @template T - The type of the input object.
+ * @param {T} obj - The source object.
+ * @returns {T} A new object with `undefined` properties removed.
+ *
+ * @example
+ * const input = { name: 'John', age: undefined, bio: null };
+ * const result = skipUndefinedFields(input);
+ * // result is { name: 'John', bio: null }
+ */
+export function skipUndefinedFields<T extends object>(obj: T): T {
+  const result = {} as T;
+
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = obj[key];
+
+      if (value !== undefined) {
+        result[key] = value;
+      }
+    }
+  }
+
+  return result;
+}

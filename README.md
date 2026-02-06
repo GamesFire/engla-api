@@ -129,6 +129,8 @@ npm run start
 | `PORT` | API Port | `4000` |
 | `APP_TYPE` | Type of instance (`api`, `worker`) | `api` |
 | `CORS_ORIGIN` | Allowed Origin for CORS | - |
+| `AUTH0_ISSUER_BASE_URL` | Auth0 Tenant Domain | - |
+| `AUTH0_AUDIENCE` | Auth0 API Identifier / Namespace | - |
 | `LOG_LEVEL` | Logging level (`debug`, `info`, `error`, `warn`, `http`) | `info` |
 | `LOG_DIR` | Directory for log files | `logs` |
 | `DB_HOST` | PostgreSQL Host | `localhost` |

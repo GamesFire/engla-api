@@ -15,7 +15,7 @@ GracefulShutdownHandler.setup();
 async function boot() {
   logger.info(`[Boot] Starting EngLa API in ${appConfig.NODE_ENV} mode...`);
 
-  const ioc = constructIOC();
+  const ioc = (global.ioc = constructIOC());
   logger.info('[Boot] IOC container initialized');
 
   await bootstrapInfrastructure(ioc);
@@ -29,7 +29,7 @@ async function boot() {
 
     case AppType.API:
     default: {
-      const app = await createServer(ioc);
+      const app = await createServer();
       const server = http.createServer(app);
 
       server.listen(appConfig.PORT, () => {

@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 
-import { ErrorMessage } from '@lib/constants/error-codes.js';
+import { ErrorMessage } from '@lib/constants/errors.js';
 import { HttpHeader } from '@lib/constants/http.js';
 import { HttpError } from '@lib/errors/http.error.js';
 

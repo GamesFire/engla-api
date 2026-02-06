@@ -1,4 +1,9 @@
 import type { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
+import {
+  InsufficientScopeError,
+  InvalidTokenError,
+  UnauthorizedError,
+} from 'express-oauth2-jwt-bearer';
 import multer from 'multer';
 import { ZodError } from 'zod';
 
@@ -9,7 +14,7 @@ import type {
 } from '@app/interfaces/errors.interface.js';
 import { appConfig } from '@lib/configs/app.config.js';
 import { LogLevel } from '@lib/constants/app.js';
-import { ErrorCode, ErrorMessage } from '@lib/constants/error-codes.js';
+import { ErrorCode, ErrorMessage } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
 import { logger } from '@lib/logger.js';
 import { generateTraceID } from '@utils/data.js';
@@ -47,6 +52,18 @@ export const errorMiddleware: ErrorRequestHandler = (
       message: issue.message,
     }));
     internalDetails = { validationRaw: err.issues };
+  } else if (
+    err instanceof InvalidTokenError ||
+    err instanceof UnauthorizedError ||
+    err instanceof InsufficientScopeError
+  ) {
+    statusCode = err.status || 401;
+    message = err.message || ErrorMessage.UNAUTHORIZED;
+    errorCode = ErrorCode.UNAUTHORIZED;
+
+    if (err.headers) {
+      res.set(err.headers);
+    }
   } else if (err instanceof multer.MulterError) {
     statusCode = 400;
     errorCode = ErrorCode.UPLOAD_ERROR;

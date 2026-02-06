@@ -3,10 +3,9 @@ import express, { type Express, type Request as ExpressRequest } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import hpp from 'hpp';
-import type { Container } from 'inversify';
 
 import { appConfig } from '@lib/configs/app.config.js';
-import { ErrorCode, ErrorMessage } from '@lib/constants/error-codes.js';
+import { ErrorCode, ErrorMessage } from '@lib/constants/errors.js';
 import { HttpHeader, HttpMethod } from '@lib/constants/http.js';
 import { RequestLimit } from '@lib/constants/limits.js';
 import { ApiPrefix, ApiRoutes, SystemRoutes } from '@lib/constants/routes.js';
@@ -16,7 +15,7 @@ import { requestLoggerMiddleware } from '@lib/middlewares/request-logger.middlew
 import { createSystemRouter, createV1Router } from '@routes/index.js';
 import { buildApiPath } from '@utils/build-api-path.js';
 
-export async function createServer(ioc: Container): Promise<Express> {
+export async function createServer(): Promise<Express> {
   const app = express();
 
   if (appConfig.isProd) {
@@ -75,7 +74,7 @@ export async function createServer(ioc: Container): Promise<Express> {
   app.use(SystemRoutes.ROOT, createSystemRouter());
 
   const v1Path = buildApiPath(ApiPrefix.V1, ApiRoutes.ROOT);
-  app.use(v1Path, createV1Router(ioc));
+  app.use(v1Path, createV1Router());
 
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);

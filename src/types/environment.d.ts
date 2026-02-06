@@ -5,6 +5,8 @@ declare global {
       PORT: string;
       APP_TYPE: string;
       CORS_ORIGIN: string;
+      AUTH0_ISSUER_BASE_URL: string;
+      AUTH0_AUDIENCE: string;
       LOG_LEVEL: string;
       LOG_DIR: string;
       DB_HOST: string;

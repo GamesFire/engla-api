@@ -5,8 +5,8 @@ export const ApiPrefix = {
 
 export const ApiRoutes = {
   ROOT: '/',
-  DOCS: '/docs',
   STRIPE_WEBHOOK: '/webhooks/stripe', // Important for raw body
+  AUTHENTICATION: '/authentication',
 } as const;
 
 export const SystemRoutes = {

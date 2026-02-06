@@ -1,16 +1,20 @@
 import { Router } from 'express';
-import type { Container } from 'inversify';
 
 import { ApiRoutes } from '@lib/constants/routes.js';
+import { authenticationMiddleware } from '@lib/middlewares/authentication.middleware.js';
 
-export function createV1Router(_ioc: Container): Router {
+import { createPublicAuthenticationRouter } from './authentications/authentication.router.js';
+
+export function createV1Router(): Router {
   const router = Router();
 
-  router.get(ApiRoutes.ROOT, (_req, res) => {
-    res.json({
-      message: 'EngLa API v1 is running',
-    });
-  });
+  // --- PUBLIC / SEMI-PUBLIC ROUTES ---
+  router.use(ApiRoutes.AUTHENTICATION, createPublicAuthenticationRouter());
+
+  // --- GLOBAL BARRIER ---
+  router.use(authenticationMiddleware());
+
+  // --- PROTECTED ROUTES ---
 
   return router;
 }

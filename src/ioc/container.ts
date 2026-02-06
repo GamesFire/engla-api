@@ -2,8 +2,8 @@ import { Container } from 'inversify';
 import { Redis } from 'ioredis';
 import type { Knex } from 'knex';
 
-import { getKnexClient } from '@app/lib/db/knex.client.js';
-import { getRedisClient } from '@app/lib/db/redis.client.js';
+import { getKnexClient } from '@lib/db/knex.client.js';
+import { getRedisClient } from '@lib/db/redis.client.js';
 
 import { DI } from './constants.js';
 import { buildProviderModule } from './loader.js';

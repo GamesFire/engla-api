@@ -26,12 +26,12 @@ export const knexConfig: Knex.Config = {
   migrations: {
     directory: migrationsDir,
     extension: 'ts',
-    loadExtensions: ['.js'],
+    loadExtensions: ['.ts', '.js'],
   },
   seeds: {
     directory: seedsDir,
     extension: 'ts',
-    loadExtensions: ['.js'],
+    loadExtensions: ['.ts', '.js'],
   },
   debug: appConfig.isDev && process.env.DB_DEBUG === 'true',
 };

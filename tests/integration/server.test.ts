@@ -1,17 +1,18 @@
 import type { Express } from 'express';
-import { Container } from 'inversify';
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { createServer } from '@app/server.js';
+import { constructIOC } from '@ioc/container.js';
 
 describe('Server Setup', () => {
   let app: Express;
-  let ioc: Container;
 
   beforeAll(async () => {
-    ioc = new Container();
-    app = await createServer(ioc);
+    const container = constructIOC();
+    global.ioc = container;
+
+    app = await createServer();
   });
 
   it('should create a valid Express app', () => {
@@ -19,18 +20,10 @@ describe('Server Setup', () => {
     expect(typeof app).toBe('function');
   });
 
-  it('should return 200 for v1 root endpoint', async () => {
-    const response = await request(app).get('/api/v1/');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toContain('EngLa API v1');
-  });
-
   it('should return 404 for non-existent route', async () => {
     const response = await request(app).get('/api/v1/non-existent-route');
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('status', 'error');
   });
 

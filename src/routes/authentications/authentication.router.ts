@@ -6,7 +6,7 @@ import { checkJwt } from '@utils/jwt.js';
 import { AuthenticationController } from './authentication.controller.js';
 import { loginBodySchema } from './authentication.validation.js';
 
-const AuthenticationRoutes = {
+const PublicAuthenticationRoutes = {
   LOGIN: '/login',
 } as const;
 
@@ -15,7 +15,7 @@ export function createPublicAuthenticationRouter(): Router {
   const authenticationController = ioc.get(AuthenticationController);
 
   router.post(
-    AuthenticationRoutes.LOGIN,
+    PublicAuthenticationRoutes.LOGIN,
     checkJwt,
     validateRequest({ body: loginBodySchema }),
     authenticationController.login,

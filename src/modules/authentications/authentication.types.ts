@@ -4,7 +4,7 @@ import type { LoginBodyDto } from '@routes/authentications/authentication.valida
 
 export type TSyncUserParams = {
   auth0Id: string;
-  dto: LoginBodyDto;
+  syncUserDto: LoginBodyDto;
   isEmailVerified: boolean;
 };
 

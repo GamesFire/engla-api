@@ -2,7 +2,7 @@ import { BaseSystemModel } from './base-system.model.js';
 
 export interface IPropertyImage {
   id: number;
-  propertyId: number;
+  propertyId: number; // FK to PropertyModel (id)
   url: string;
   publicId: Nullable<string>;
   isMain: boolean; // Default false

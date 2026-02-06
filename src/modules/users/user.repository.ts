@@ -1,8 +1,9 @@
 import { type Page } from 'objection';
 
-import type { IPaginationParams } from '@app/interfaces/pagination.types.js';
-import { UserModel } from '@app/lib/db/models/users/user.model.js';
+import type { IPaginationParams } from '@app/interfaces/pagination.interface.js';
 import { provide } from '@ioc/decorators.js';
+import { UserModel } from '@models/users/user.model.js';
+import { UserModifier } from '@models/users/user.modifiers.js';
 import { skipUndefinedFields } from '@utils/data.js';
 
 import type {
@@ -21,7 +22,8 @@ export class UserRepository {
     options: TFindUserOptions = {},
   ): Promise<Undefinable<UserModel>> {
     const query = UserModel.query().findById(userId);
-    const modifiersToApply = options.modifiers === undefined ? 'safeView' : options.modifiers;
+    const modifiersToApply =
+      options.modifiers === undefined ? UserModifier.SAFE_VIEW : options.modifiers;
 
     if (modifiersToApply) {
       query.modify(modifiersToApply);
@@ -45,7 +47,7 @@ export class UserRepository {
   public async getAllActiveUsers(params: IPaginationParams): Promise<Page<UserModel>> {
     const query = UserModel.query()
       .whereNull('deletedAt')
-      .modify('safeView')
+      .modify(UserModifier.SAFE_VIEW)
       .orderBy(params.orderBy || 'createdAt', params.order || 'desc');
 
     if (!params.limit) {
@@ -68,7 +70,7 @@ export class UserRepository {
   ): Promise<UserModel> {
     const cleanData = skipUndefinedFields(data);
 
-    return UserModel.query().patchAndFetchById(userId, cleanData).modify('safeView');
+    return UserModel.query().patchAndFetchById(userId, cleanData).modify(UserModifier.SAFE_VIEW);
   }
 
   public async updateSystemData(userId: number, data: TUpdateSystemData): Promise<UserModel> {

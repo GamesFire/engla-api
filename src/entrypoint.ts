@@ -1,9 +1,9 @@
 import http from 'http';
 import 'reflect-metadata';
 
-import { appConfig } from '@app/lib/configs/app.config.js';
 import { constructIOC } from '@ioc/container.js';
 import { bootstrapInfrastructure } from '@lib/bootstrap-infrastructure.js';
+import { appConfig } from '@lib/configs/app.config.js';
 import { AppType } from '@lib/constants/app.js';
 import { logger } from '@lib/logger.js';
 import { GracefulShutdownHandler } from '@utils/graceful-shutdown.js';

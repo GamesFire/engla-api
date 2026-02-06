@@ -1,4 +1,4 @@
-import type { IUser } from '@app/lib/db/models/users/user.model.js';
+import type { IUser } from '@lib/db/models/users/user.model.js';
 import type { TUserModifierNames } from '@models/users/user.modifiers.js';
 
 export type TFindUserOptions = {

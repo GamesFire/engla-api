@@ -1,7 +1,7 @@
 import { inject } from 'inversify';
 
-import { ErrorCode, ErrorMessage } from '@app/lib/constants/errors.js';
 import { provide } from '@ioc/decorators.js';
+import { ErrorCode, ErrorMessage } from '@lib/constants/errors.js';
 import { UserModel } from '@lib/db/models/users/user.model.js';
 import { HttpError } from '@lib/errors/http.error.js';
 import { UserRepository } from '@modules/users/user.repository.js';
@@ -13,7 +13,7 @@ export class AuthenticationService {
   constructor(@inject(UserRepository) private readonly _userRepository: UserRepository) {}
 
   public async syncUser(params: TSyncUserParams): Promise<UserModel> {
-    const { auth0Id, dto, isEmailVerified } = params;
+    const { auth0Id, syncUserDto, isEmailVerified } = params;
 
     const existingUser = await this._userRepository.findByAuth0Id(auth0Id);
 
@@ -25,22 +25,22 @@ export class AuthenticationService {
       }
 
       const hasChanges =
-        (dto.firstName && existingUser.firstName !== dto.firstName) ||
-        (dto.lastName && existingUser.lastName !== dto.lastName) ||
-        (dto.avatarUrl && existingUser.avatarUrl !== dto.avatarUrl);
+        (syncUserDto.firstName && existingUser.firstName !== syncUserDto.firstName) ||
+        (syncUserDto.lastName && existingUser.lastName !== syncUserDto.lastName) ||
+        (syncUserDto.avatarUrl && existingUser.avatarUrl !== syncUserDto.avatarUrl);
 
       if (hasChanges) {
         return this._userRepository.updateProfileAndFetch(existingUser.id, {
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          avatarUrl: dto.avatarUrl,
+          firstName: syncUserDto.firstName,
+          lastName: syncUserDto.lastName,
+          avatarUrl: syncUserDto.avatarUrl,
         });
       }
 
       return existingUser;
     }
 
-    const userByEmail = await this._userRepository.findByEmail(dto.email);
+    const userByEmail = await this._userRepository.findByEmail(syncUserDto.email);
 
     if (userByEmail) {
       if (!isEmailVerified) {
@@ -60,18 +60,18 @@ export class AuthenticationService {
       });
 
       return this._userRepository.updateProfileAndFetch(userByEmail.id, {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        avatarUrl: dto.avatarUrl,
+        firstName: syncUserDto.firstName,
+        lastName: syncUserDto.lastName,
+        avatarUrl: syncUserDto.avatarUrl,
       });
     }
 
     return this._userRepository.createAndFetch({
       auth0Id,
-      email: dto.email,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
-      avatarUrl: dto.avatarUrl,
+      email: syncUserDto.email,
+      firstName: syncUserDto.firstName,
+      lastName: syncUserDto.lastName,
+      avatarUrl: syncUserDto.avatarUrl,
       isVerified: isEmailVerified,
     });
   }

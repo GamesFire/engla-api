@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from 'express';
 
-import { ErrorCode, ErrorMessage } from '@app/lib/constants/errors.js';
+import { ErrorCode, ErrorMessage } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
 import { UserRepository } from '@modules/users/user.repository.js';
 import { checkJwt } from '@utils/jwt.js';

@@ -24,4 +24,9 @@ export const userModifiers = {
   },
 } satisfies Modifiers;
 
+export const UserModifier = {
+  SAFE_VIEW: 'safeView',
+  SHORT_PROFILE: 'shortProfile',
+} as const;
+
 export type TUserModifierNames = keyof typeof userModifiers;

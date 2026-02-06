@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express';
 import { inject } from 'inversify';
 
-import { ErrorCode, ErrorMessage } from '@app/lib/constants/errors.js';
 import { provide } from '@ioc/decorators.js';
 import { appConfig } from '@lib/configs/app.config.js';
+import { ErrorCode, ErrorMessage } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
 import { AuthenticationService } from '@modules/authentications/authentication.service.js';
 import type { TAuth0Payload } from '@modules/authentications/authentication.types.js';
@@ -38,7 +38,7 @@ export class AuthenticationController {
 
     const user = await this._authenticationService.syncUser({
       auth0Id: payload.sub,
-      dto: { email, firstName, lastName, avatarUrl },
+      syncUserDto: { email, firstName, lastName, avatarUrl },
       isEmailVerified,
     });
 

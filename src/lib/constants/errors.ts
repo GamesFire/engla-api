@@ -28,6 +28,6 @@ export const ErrorMessage = {
   USER_PROFILE_NOT_FOUND: 'User profile not found. Please complete registration',
   USER_DEACTIVATED: 'User account is deactivated. Please contact support',
   ACCOUNT_LINKING_REQUIRES_VERIFIED_EMAIL:
-    'Please verify your email address before logging in to link your account.',
+    'Please verify your email address before logging in to link your account',
   ROUTE_NOT_FOUND: 'Route not found',
 } as const;

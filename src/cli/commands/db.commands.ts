@@ -2,8 +2,8 @@ import { Command } from 'commander';
 import { Container } from 'inversify';
 import type { Knex } from 'knex';
 
-import { createDatabase, dropDatabase } from '@app/lib/db/db.admin.js';
 import { DI } from '@ioc/constants.js';
+import { createDatabase, dropDatabase } from '@lib/db/db.admin.js';
 import { logger } from '@lib/logger.js';
 
 export function createDatabaseCommands(program: Command, ioc: Container) {

@@ -6,9 +6,11 @@
   "useTabs": false,
   "trailingComma": "all",
   "bracketSpacing": true,
+  "bracketSameLine": true,
   "endOfLine": "lf",
-  "plugins": ["@trivago/prettier-plugin-sort-imports"],
-  "importOrder": ["<THIRD_PARTY_MODULES>", "^@(app|lib|models|modules|config|ioc)/(.*)$", "^[./]"],
+  "importOrder": ["<THIRD_PARTY_MODULES>", "^@(app|lib|utils|models|modules|routes|ioc)/(.*)$", "^[./]"],
   "importOrderSeparation": true,
-  "importOrderSortSpecifiers": true
+  "importOrderSortSpecifiers": true,
+  "importOrderParserPlugins": ["typescript", "decorators-legacy", "classProperties"],
+  "plugins": ["@trivago/prettier-plugin-sort-imports"]
 }

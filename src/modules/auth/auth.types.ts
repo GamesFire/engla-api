@@ -1,14 +1,14 @@
 import type { JWTPayload } from 'express-oauth2-jwt-bearer';
 
-import type { LoginBodyDto } from '@routes/authentications/authentication.validation.js';
+import type { LoginBodyDto } from '@routes/auth/auth.validation.js';
 
-export type TSyncUserParams = {
+export type SyncUserParams = {
   auth0Id: string;
   syncUserDto: LoginBodyDto;
   isEmailVerified: boolean;
 };
 
-export type TAuth0Payload = JWTPayload & {
+export type Auth0Payload = JWTPayload & {
   iss: string;
   sub: string;
   aud: string[];

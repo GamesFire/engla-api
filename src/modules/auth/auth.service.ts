@@ -1,25 +1,25 @@
 import { inject } from 'inversify';
 
 import { provide } from '@ioc/decorators.js';
-import { ErrorCode, ErrorMessage } from '@lib/constants/errors.js';
-import { UserModel } from '@lib/db/models/users/user.model.js';
+import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
+import { type User } from '@models/users/user.model.js';
 import { UserRepository } from '@modules/users/user.repository.js';
 
-import type { TSyncUserParams } from './authentication.types.js';
+import type { SyncUserParams } from './auth.types.js';
 
 @provide()
-export class AuthenticationService {
+export class AuthService {
   constructor(@inject(UserRepository) private readonly _userRepository: UserRepository) {}
 
-  public async syncUser(params: TSyncUserParams): Promise<UserModel> {
+  public async syncUser(params: SyncUserParams): Promise<User> {
     const { auth0Id, syncUserDto, isEmailVerified } = params;
 
     const existingUser = await this._userRepository.findByAuth0Id(auth0Id);
 
     if (existingUser) {
       if (existingUser.isVerified !== isEmailVerified) {
-        await this._userRepository.updateSystemData(existingUser.id, {
+        await this._userRepository.updateSystemDataAndFetchById(existingUser.id, {
           isVerified: isEmailVerified,
         });
       }
@@ -30,7 +30,7 @@ export class AuthenticationService {
         (syncUserDto.avatarUrl && existingUser.avatarUrl !== syncUserDto.avatarUrl);
 
       if (hasChanges) {
-        return this._userRepository.updateProfileAndFetch(existingUser.id, {
+        return this._userRepository.updateProfileAndFetchById(existingUser.id, {
           firstName: syncUserDto.firstName,
           lastName: syncUserDto.lastName,
           avatarUrl: syncUserDto.avatarUrl,
@@ -46,27 +46,27 @@ export class AuthenticationService {
       if (!isEmailVerified) {
         throw new HttpError({
           statusCode: 403,
-          message: ErrorMessage.ACCOUNT_LINKING_REQUIRES_VERIFIED_EMAIL,
+          message: ErrorMessages.ACCOUNT_LINKING_REQUIRES_VERIFIED_EMAIL,
           internalPayload: {
-            code: ErrorCode.HTTP_FORBIDDEN,
+            code: ErrorCodes.HTTP_FORBIDDEN,
             reason: 'Account linking requires verified email',
           },
         });
       }
 
-      await this._userRepository.updateSystemData(userByEmail.id, {
+      await this._userRepository.updateSystemDataAndFetchById(userByEmail.id, {
         auth0Id: auth0Id,
         isVerified: true,
       });
 
-      return this._userRepository.updateProfileAndFetch(userByEmail.id, {
+      return this._userRepository.updateProfileAndFetchById(userByEmail.id, {
         firstName: syncUserDto.firstName,
         lastName: syncUserDto.lastName,
         avatarUrl: syncUserDto.avatarUrl,
       });
     }
 
-    return this._userRepository.createAndFetch({
+    return this._userRepository.createUserAndFetch({
       auth0Id,
       email: syncUserDto.email,
       firstName: syncUserDto.firstName,

@@ -1,6 +1,6 @@
 import { BaseSystemModel } from './base-system.model.js';
 
-export interface IAmenity {
+export interface Amenity {
   id: number;
   name: string;
   iconKey: Nullable<string>;
@@ -9,7 +9,7 @@ export interface IAmenity {
   updatedAt: Date;
 }
 
-export class AmenityModel extends BaseSystemModel implements IAmenity {
+export class AmenityModel extends BaseSystemModel implements Amenity {
   static tableName = 'amenities';
 
   id!: number;

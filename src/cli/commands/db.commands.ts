@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { Container } from 'inversify';
 import type { Knex } from 'knex';
 
-import { DI } from '@ioc/constants.js';
+import { InjectionToken } from '@ioc/constants.js';
 import { createDatabase, dropDatabase } from '@lib/db/db.admin.js';
 import { logger } from '@lib/logger.js';
 
@@ -37,7 +37,7 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
     .command('db:migrate')
     .description('Run pending migrations (up)')
     .action(async () => {
-      const knex = ioc.get<Knex>(DI.KnexClient);
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       try {
         const [batchNo, log] = await knex.migrate.latest();
         if (log.length === 0) {
@@ -56,7 +56,7 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
     .command('db:rollback')
     .description('Rollback the last batch of migrations')
     .action(async () => {
-      const knex = ioc.get<Knex>(DI.KnexClient);
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       try {
         const [batchNo, log] = await knex.migrate.rollback();
         if (log.length === 0) {
@@ -75,7 +75,7 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
     .command('db:make:migration <name>')
     .description('Create a new migration file')
     .action(async (name) => {
-      const knex = ioc.get<Knex>(DI.KnexClient);
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       try {
         const res = await knex.migrate.make(name);
         logger.info(`[Migration] Created: ${res}`);
@@ -91,7 +91,7 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
     .command('db:seed')
     .description('Run database seeds')
     .action(async () => {
-      const knex = ioc.get<Knex>(DI.KnexClient);
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       try {
         const [log] = await knex.seed.run();
         if (log.length === 0) {

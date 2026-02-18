@@ -1,6 +1,6 @@
 import { BaseSystemModel } from './base-system.model.js';
 
-export interface IPropertyImage {
+export interface PropertyImage {
   id: number;
   propertyId: number; // FK to PropertyModel (id)
   url: string;
@@ -11,7 +11,7 @@ export interface IPropertyImage {
   updatedAt: Date;
 }
 
-export class PropertyImageModel extends BaseSystemModel implements IPropertyImage {
+export class PropertyImageModel extends BaseSystemModel implements PropertyImage {
   static tableName = 'property_images';
 
   id!: number;

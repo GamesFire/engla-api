@@ -1,4 +1,4 @@
-import type { ApiEndpoint, ApiVersion } from '@app/types/api.types.js';
+import type { ApiEndpoint, ApiVersion } from '@app-types/api.types.js';
 
 import { ApiPrefix } from '../constants/routes.js';
 

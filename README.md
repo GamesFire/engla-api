@@ -4,7 +4,7 @@
 
 ![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
-![License](https://img.shields.io/badge/license-ISC-grey.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## 📋 Table of Contents
 
@@ -18,6 +18,7 @@
 - [🧪 Testing](#-testing)
 - [📂 Project Structure](#-project-structure)
 - [📜 Scripts](#-scripts)
+- [🏷 Versioning & Commits](#-versioning--commits)
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
 
@@ -227,16 +228,53 @@ tests/                  # Unit & Integration tests
 
 ---
 
+## 🏷 Versioning & Commits
+
+This project follows **Semantic Versioning (SemVer)** and enforces the **Conventional Commits** specification. This ensures a readable Git history and allows for automated releases and CHANGELOG generation.
+
+### Commit Standards
+
+We use `commitlint` (configured with `@commitlint/config-conventional`) and Husky hooks to validate commit messages before they are created. 
+
+Your commit message must follow this structure:
+`<type>[optional scope]: <description>`
+
+**Allowed Types:**
+* `feat`: A new feature (correlates with a MINOR release).
+* `fix`: A bug fix (correlates with a PATCH release).
+* `docs`: Documentation only changes.
+* `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc).
+* `refactor`: A code change that neither fixes a bug nor adds a feature.
+* `perf`: A code change that improves performance.
+* `test`: Adding missing tests or correcting existing tests.
+* `ci`: Changes to our CI configuration files and scripts (e.g., GitHub Actions, semantic-release).
+* `chore`: Changes to the build process or auxiliary tools and libraries.
+
+**Example of a valid commit:**
+`feat(users): add admin middleware for user management`
+
+### Automated Releases
+
+We use `semantic-release` to fully automate the version management and package publishing process.
+When code is merged into the main branch, the CI/CD pipeline will automatically:
+1. Analyze the commit messages.
+2. Determine the next semantic version number (Major, Minor, or Patch).
+3. Generate and update the `CHANGELOG.md` file.
+4. Create a new Git tag and GitHub Release.
+
+---
+
 ## 🤝 Contributing
 
 1.  Fork the repository.
-2.  Create your feature branch (`git checkout -b feat/amazing_feature`).
-3.  Commit your changes (`git commit -m 'Add some amazing_feature'`).
-4.  Push to the branch (`git push origin feat/amazing_feature`).
+2.  Create your feature branch (`git checkout -b feat/amazing-feature`).
+3.  Commit your changes following the **Conventional Commits** standard: 
+    `git commit -m 'feat: add some amazing feature'`
+4.  Push to the branch (`git push origin feat/amazing-feature`).
 5.  Open a Pull Request.
 
 ---
 
 ## 📝 License
 
-Distributed under the ISC License. See `LICENSE` for more information.
+Distributed under the **MIT License**. See `LICENSE` for more information.

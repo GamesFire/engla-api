@@ -2,7 +2,7 @@ import type { Modifiers, QueryBuilder } from 'objection';
 
 import type { UserModel } from './user.model.js';
 
-export const userModifiers = {
+export const UserModifiers = {
   safeView(builder: QueryBuilder<UserModel>) {
     builder.select(
       'id',
@@ -10,12 +10,15 @@ export const userModifiers = {
       'first_name',
       'last_name',
       'avatar_url',
+      'phone',
       'role',
       'is_verified',
       'language',
       'currency',
       'stripe_onboarding_completed',
       'created_at',
+      'updated_at',
+      'deleted_at',
     );
   },
 
@@ -29,4 +32,4 @@ export const UserModifier = {
   SHORT_PROFILE: 'shortProfile',
 } as const;
 
-export type TUserModifierNames = keyof typeof userModifiers;
+export type UserModifierName = keyof typeof UserModifiers;

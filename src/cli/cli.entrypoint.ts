@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import type { Knex } from 'knex';
 import 'reflect-metadata';
 
-import { DI } from '@ioc/constants.js';
+import { InjectionToken } from '@ioc/constants.js';
 import { constructIOC } from '@ioc/container.js';
 import { logger } from '@lib/logger.js';
 import { getPackageInfo } from '@utils/data.js';
@@ -28,8 +28,8 @@ async function bootstrap() {
   try {
     await program.parseAsync(process.argv);
 
-    if (ioc.isBound(DI.KnexClient)) {
-      const knex = ioc.get<Knex>(DI.KnexClient);
+    if (ioc.isBound(InjectionToken.KnexClient)) {
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       await knex.destroy();
     }
 

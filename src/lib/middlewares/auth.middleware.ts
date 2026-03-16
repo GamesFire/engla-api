@@ -1,11 +1,11 @@
 import { type NextFunction, type Request, type Response } from 'express';
 
-import { ErrorCode, ErrorMessage } from '@lib/constants/errors.js';
+import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
 import { UserRepository } from '@modules/users/user.repository.js';
 import { checkJwt } from '@utils/jwt.js';
 
-export function authenticationMiddleware() {
+export const authMiddleware = () => {
   return (req: Request, res: Response, next: NextFunction) => {
     checkJwt(req, res, async (err) => {
       if (err) {
@@ -13,13 +13,13 @@ export function authenticationMiddleware() {
       }
 
       try {
-        const auth0Id = req.auth?.payload.sub;
+        const auth0Id = req.auth?.payload?.sub;
 
         if (!auth0Id) {
           throw new HttpError({
             statusCode: 401,
-            message: ErrorMessage.UNAUTHORIZED,
-            internalPayload: { code: ErrorCode.MISSING_TOKEN_SUBJECT },
+            message: ErrorMessages.UNAUTHORIZED,
+            internalPayload: { code: ErrorCodes.MISSING_TOKEN_SUBJECT },
           });
         }
 
@@ -30,16 +30,16 @@ export function authenticationMiddleware() {
         if (!user) {
           throw new HttpError({
             statusCode: 401,
-            message: ErrorMessage.USER_PROFILE_NOT_FOUND,
-            internalPayload: { code: ErrorCode.USER_NOT_FOUND },
+            message: ErrorMessages.USER_PROFILE_NOT_FOUND,
+            internalPayload: { code: ErrorCodes.USER_NOT_FOUND },
           });
         }
 
         if (user.deletedAt) {
           throw new HttpError({
             statusCode: 403,
-            message: ErrorMessage.USER_DEACTIVATED,
-            internalPayload: { code: ErrorCode.USER_BLOCKED },
+            message: ErrorMessages.USER_DEACTIVATED,
+            internalPayload: { code: ErrorCodes.USER_BLOCKED },
           });
         }
 
@@ -50,4 +50,4 @@ export function authenticationMiddleware() {
       }
     });
   };
-}
+};

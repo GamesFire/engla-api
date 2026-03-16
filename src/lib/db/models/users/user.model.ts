@@ -1,5 +1,5 @@
 import { BaseSystemModel } from '../base-system.model.js';
-import { userModifiers } from './user.modifiers.js';
+import { UserModifiers } from './user.modifiers.js';
 
 export enum UserRole {
   CLIENT = 'client',
@@ -11,7 +11,7 @@ export enum Locale {
   EN = 'en',
 }
 
-export interface IUser {
+export interface User {
   id: number;
   auth0Id: string;
   email: string;
@@ -30,7 +30,7 @@ export interface IUser {
   deletedAt?: Nullable<Date>;
 }
 
-export class UserModel extends BaseSystemModel implements IUser {
+export class UserModel extends BaseSystemModel implements User {
   static tableName = 'users';
 
   id!: number;
@@ -47,7 +47,7 @@ export class UserModel extends BaseSystemModel implements IUser {
   stripeAccountId!: Nullable<string>;
   stripeOnboardingCompleted!: boolean;
 
-  static modifiers = userModifiers;
+  static modifiers = UserModifiers;
 
   get fullName() {
     return `${this.firstName || ''} ${this.lastName || ''}`.trim();

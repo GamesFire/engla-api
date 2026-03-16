@@ -12,7 +12,7 @@ declare global {
       log: import('winston').Logger;
       startTime: [number, number]; // process.hrtime tuple
       rawBody?: string;
-      currentUser?: import('@models/users/user.model.js').UserModel;
+      currentUser?: import('@models/users/user.model.js').User;
     }
   }
 

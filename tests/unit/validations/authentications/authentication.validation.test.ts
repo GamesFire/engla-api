@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { loginBodySchema } from '@routes/authentications/authentication.validation.js';
+import { loginBodySchema } from '@routes/auth/auth.validation.js';
 
 describe('loginBodySchema', () => {
   it('parses and normalizes a minimal valid payload', () => {

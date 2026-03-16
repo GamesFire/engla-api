@@ -26,7 +26,7 @@ export enum PropertyStatus {
   ARCHIVED = 'archived',
 }
 
-export interface IProperty {
+export interface Property {
   id: number;
   hostId: number; // FK to UserModel (id)
   title: string;
@@ -54,7 +54,7 @@ export interface IProperty {
   deletedAt?: Nullable<Date>;
 }
 
-export class PropertyModel extends BaseSystemModel implements IProperty {
+export class PropertyModel extends BaseSystemModel implements Property {
   static tableName = 'properties';
 
   id!: number;

@@ -23,7 +23,16 @@ async function boot() {
   switch (appConfig.APP_TYPE) {
     case AppType.WORKER: {
       logger.info('[Worker] Starting worker process...');
-      // Implementation pending
+
+      /*
+       * ---------------------------------------------------------------------------
+       * @TODO: Implement Background Worker Logic
+       * ---------------------------------------------------------------------------
+       * This section is reserved for initializing background job processors
+       * (e.g., BullMQ queues, cron schedules, or event stream consumers).
+       * It runs completely decoupled from the HTTP server.
+       */
+
       break;
     }
 
@@ -33,7 +42,7 @@ async function boot() {
       const server = http.createServer(app);
 
       server.listen(appConfig.PORT, () => {
-        logger.info(`[Server] Running at http://localhost:${appConfig.PORT}`);
+        logger.info(`[Server] HTTP server is successfully listening on port ${appConfig.PORT}`);
       });
 
       GracefulShutdownHandler.registerTask(async () => {

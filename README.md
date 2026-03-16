@@ -4,7 +4,7 @@
 
 ![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
-![License](https://img.shields.io/badge/license-ISC-grey.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## 📋 Table of Contents
 
@@ -15,9 +15,11 @@
 - [🚀 Getting Started](#-getting-started)
 - [⚙ Environment Configuration](#-environment-configuration)
 - [💻 Database Management (CLI)](#-database-management-cli)
+- [🔌 Integrations](#-integrations)
 - [🧪 Testing](#-testing)
 - [📂 Project Structure](#-project-structure)
 - [📜 Scripts](#-scripts)
+- [🏷 Versioning & Commits](#-versioning--commits)
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
 
@@ -131,6 +133,8 @@ npm run start
 | `CORS_ORIGIN` | Allowed Origin for CORS | - |
 | `AUTH0_ISSUER_BASE_URL` | Auth0 Tenant Domain | - |
 | `AUTH0_AUDIENCE` | Auth0 API Identifier / Namespace | - |
+| `AUTH0_M2M_CLIENT_ID` | Auth0 Machine-to-Machine Client ID | - |
+| `AUTH0_M2M_CLIENT_SECRET` | Auth0 Machine-to-Machine Client Secret | - |
 | `LOG_LEVEL` | Logging level (`debug`, `info`, `error`, `warn`, `http`) | `info` |
 | `LOG_DIR` | Directory for log files | `logs` |
 | `DB_HOST` | PostgreSQL Host | `localhost` |
@@ -164,6 +168,15 @@ We use a custom CLI tool built with `Commander.js` to manage database operations
 
 ---
 
+## 🔌 Integrations
+
+This project is designed to easily integrate with third-party providers. All external services are isolated within the `src/lib/integrations` directory to keep the core domain logic clean.
+
+* **[Auth0](https://auth0.com/):** Used for robust identity management, authentication, and authorization. We utilize the Auth0 Management API (via M2M App) for secure backend actions like synchronous user account deletion.
+* *(More integrations like Stripe will be listed here as the project grows).*
+
+---
+
 ## 🧪 Testing
 
 We use **Vitest** and **Supertest** for unit and integration testing.
@@ -189,25 +202,29 @@ npm run test
 ## 📂 Project Structure
 
 ```text
+.github/                # GitHub Actions CI/CD workflows
+.husky/                 # Git hooks (pre-commit, commit-msg)
 database/               # Database migrations & seeds (Knex)
+tests/                  # Unit & Integration tests (Vitest)
 src/
+├── @types/             # Global TypeScript type definitions
 ├── cli/                # Custom CLI tool implementation (Commands, Entrypoint)
-├── interfaces/         # Shared interfaces
+├── interfaces/         # Shared TypeScript interfaces
 ├── ioc/                # Dependency Injection (Container, Bindings, Decorators)
 ├── lib/                # Core libraries & Shared infrastructure
 │   ├── configs/        # Configuration schemas (AppConfig, KnexConfig)
-│   ├── constants/      # Global constants (Enums, static data)
-│   ├── db/             # Database clients (Knex, Redis), Models (Objection.js) & Admin utils
-|   ├── errors/         # Custom Error classes (HttpError, etc.)
+│   ├── constants/      # Global constants (Enums, Time, Limits)
+│   ├── db/             # Database clients (Knex, Redis), Models (Objection.js)
+│   ├── errors/         # Custom Error classes (HttpError, etc.)
 │   ├── health/         # Infrastructure health check logic
-│   ├── middlewares/    # Express middlewares (Auth, Logger, Error Handler, Security etc.)
-│   └── utils/          # Helpers (Data parsing, Graceful Shutdown etc.)
-├── modules/            # Domain Modules (Business Logic / Services)
-├── routes/             # API Routes (System & V1), Controllers
-├── types/              # Global TypeScript type definitions
+│   ├── integrations/   # Third-party service providers (Auth0, Stripe, etc.)
+│   ├── middlewares/    # Express middlewares (Auth, Logger, Rate Limiters, etc.)
+│   ├── utils/          # Helpers (Graceful Shutdown, Data parsing, etc.)
+│   └── validations/    # Global Zod validation schemas
+├── modules/            # Domain Modules / Business Logic (Services, Repositories)
+├── routes/             # API Routes & Controllers (System, V1)
 ├── server.ts           # HTTP Server setup (Express app configuration)
 └── entrypoint.ts       # Main application entry point
-tests/                  # Unit & Integration tests
 ```
 
 ---
@@ -227,11 +244,48 @@ tests/                  # Unit & Integration tests
 
 ---
 
+## 🏷 Versioning & Commits
+
+This project follows **Semantic Versioning (SemVer)** and enforces the **Conventional Commits** specification. This ensures a readable Git history and allows for automated releases and CHANGELOG generation.
+
+### Commit Standards
+
+We use `commitlint` (configured with `@commitlint/config-conventional`) and Husky hooks to validate commit messages before they are created. 
+
+Your commit message must follow this structure:
+`<type>[optional scope]: <description>`
+
+**Allowed Types:**
+* `feat`: A new feature (correlates with a MINOR release).
+* `fix`: A bug fix (correlates with a PATCH release).
+* `docs`: Documentation only changes.
+* `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc).
+* `refactor`: A code change that neither fixes a bug nor adds a feature.
+* `perf`: A code change that improves performance.
+* `test`: Adding missing tests or correcting existing tests.
+* `ci`: Changes to our CI configuration files and scripts (e.g., GitHub Actions, semantic-release).
+* `chore`: Changes to the build process or auxiliary tools and libraries.
+
+**Example of a valid commit:**
+`feat(users): add admin middleware for user management`
+
+### Automated Releases
+
+We use `semantic-release` to fully automate the version management and package publishing process.
+When code is merged into the main branch, the CI/CD pipeline will automatically:
+1. Analyze the commit messages.
+2. Determine the next semantic version number (Major, Minor, or Patch).
+3. Generate and update the `CHANGELOG.md` file.
+4. Create a new Git tag and GitHub Release.
+
+---
+
 ## 🤝 Contributing
 
 1.  Fork the repository.
 2.  Create your feature branch (`git checkout -b feat/amazing_feature`).
-3.  Commit your changes (`git commit -m 'Add some amazing_feature'`).
+3.  Commit your changes following the **Conventional Commits** standard: 
+    `git commit -m 'feat: add some amazing feature'`
 4.  Push to the branch (`git push origin feat/amazing_feature`).
 5.  Open a Pull Request.
 
@@ -239,4 +293,4 @@ tests/                  # Unit & Integration tests
 
 ## 📝 License
 
-Distributed under the ISC License. See `LICENSE` for more information.
+Distributed under the **MIT License**. See `LICENSE` for more information.

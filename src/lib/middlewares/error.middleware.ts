@@ -14,7 +14,7 @@ import type {
 } from '@app/interfaces/errors.interface.js';
 import { appConfig } from '@lib/configs/app.config.js';
 import { LogLevel } from '@lib/constants/app.js';
-import { ErrorCode, ErrorMessage } from '@lib/constants/errors.js';
+import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
 import { logger } from '@lib/logger.js';
 import { generateTraceID } from '@utils/data.js';
@@ -29,8 +29,8 @@ export const errorMiddleware: ErrorRequestHandler = (
   const traceID = req.traceID || generateTraceID();
 
   let statusCode = 500;
-  let message: string = ErrorMessage.INTERNAL_SERVER_ERROR;
-  let errorCode: string = ErrorCode.INTERNAL_ERROR;
+  let message: string = ErrorMessages.INTERNAL_SERVER_ERROR;
+  let errorCode: string = ErrorCodes.INTERNAL_ERROR;
   let validationErrors: Undefinable<ValidationErrorDetail[]> = undefined;
 
   let internalDetails: Record<string, unknown> = {};
@@ -45,8 +45,8 @@ export const errorMiddleware: ErrorRequestHandler = (
     };
   } else if (err instanceof ZodError) {
     statusCode = 400;
-    message = ErrorMessage.VALIDATION_FAILED;
-    errorCode = ErrorCode.VALIDATION_ERROR;
+    message = ErrorMessages.VALIDATION_FAILED;
+    errorCode = ErrorCodes.VALIDATION_ERROR;
     validationErrors = err.issues.map((issue) => ({
       path: issue.path.join('.'),
       message: issue.message,
@@ -58,38 +58,44 @@ export const errorMiddleware: ErrorRequestHandler = (
     err instanceof InsufficientScopeError
   ) {
     statusCode = err.status || 401;
-    message = err.message || ErrorMessage.UNAUTHORIZED;
-    errorCode = ErrorCode.UNAUTHORIZED;
+    errorCode = ErrorCodes.UNAUTHORIZED;
+
+    message = ErrorMessages.UNAUTHORIZED;
+
+    internalDetails = {
+      authErrorDetail: err.message,
+      authErrorName: err.name,
+    };
 
     if (err.headers) {
       res.set(err.headers);
     }
   } else if (err instanceof multer.MulterError) {
     statusCode = 400;
-    errorCode = ErrorCode.UPLOAD_ERROR;
+    errorCode = ErrorCodes.UPLOAD_ERROR;
 
     switch (err.code) {
       case 'LIMIT_FILE_SIZE': {
-        message = ErrorMessage.FILE_TOO_LARGE;
+        message = ErrorMessages.FILE_TOO_LARGE;
         statusCode = 413;
         break;
       }
       case 'LIMIT_FILE_COUNT': {
-        message = ErrorMessage.TOO_MANY_FILES;
+        message = ErrorMessages.TOO_MANY_FILES;
         break;
       }
       case 'LIMIT_UNEXPECTED_FILE': {
-        message = ErrorMessage.UNEXPECTED_FILE;
+        message = ErrorMessages.UNEXPECTED_FILE;
         break;
       }
       default: {
-        message = `${ErrorMessage.GENERIC_UPLOAD_ERROR}: ${err.message}`;
+        message = `${ErrorMessages.GENERIC_UPLOAD_ERROR}: ${err.message}`;
       }
     }
   } else if (isBodyParserError(err)) {
     statusCode = 400;
-    message = ErrorMessage.JSON_INVALID;
-    errorCode = ErrorCode.JSON_PARSE_ERROR;
+    message = ErrorMessages.JSON_INVALID;
+    errorCode = ErrorCodes.JSON_PARSE_ERROR;
   } else if (err instanceof Error) {
     internalDetails = {
       stack: err.stack,
@@ -98,7 +104,7 @@ export const errorMiddleware: ErrorRequestHandler = (
     };
 
     if (appConfig.isProd) {
-      message = ErrorMessage.GENERIC_PROD_ERROR;
+      message = ErrorMessages.GENERIC_PROD_ERROR;
     } else {
       message = err.message;
     }

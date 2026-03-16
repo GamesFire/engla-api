@@ -58,8 +58,14 @@ export const errorMiddleware: ErrorRequestHandler = (
     err instanceof InsufficientScopeError
   ) {
     statusCode = err.status || 401;
-    message = err.message || ErrorMessages.UNAUTHORIZED;
     errorCode = ErrorCodes.UNAUTHORIZED;
+
+    message = ErrorMessages.UNAUTHORIZED;
+
+    internalDetails = {
+      authErrorDetail: err.message,
+      authErrorName: err.name,
+    };
 
     if (err.headers) {
       res.set(err.headers);

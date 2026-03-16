@@ -19,8 +19,9 @@ export class AuthService {
 
     if (existingUser) {
       if (existingUser.isVerified !== isEmailVerified) {
-        await this._userRepository.updateSystemDataAndFetchById(existingUser.id, {
-          isVerified: isEmailVerified,
+        await this._userRepository.updateSystemDataAndFetchById({
+          userId: existingUser.id,
+          data: { isVerified: isEmailVerified },
         });
       }
 
@@ -30,10 +31,13 @@ export class AuthService {
         (syncUserDto.avatarUrl && existingUser.avatarUrl !== syncUserDto.avatarUrl);
 
       if (hasChanges) {
-        return this._userRepository.updateProfileAndFetchById(existingUser.id, {
-          firstName: syncUserDto.firstName,
-          lastName: syncUserDto.lastName,
-          avatarUrl: syncUserDto.avatarUrl,
+        return this._userRepository.updateProfileAndFetchById({
+          userId: existingUser.id,
+          data: {
+            firstName: syncUserDto.firstName,
+            lastName: syncUserDto.lastName,
+            avatarUrl: syncUserDto.avatarUrl,
+          },
         });
       }
 
@@ -54,15 +58,21 @@ export class AuthService {
         });
       }
 
-      await this._userRepository.updateSystemDataAndFetchById(userByEmail.id, {
-        auth0Id: auth0Id,
-        isVerified: true,
+      await this._userRepository.updateSystemDataAndFetchById({
+        userId: userByEmail.id,
+        data: {
+          auth0Id: auth0Id,
+          isVerified: true,
+        },
       });
 
-      return this._userRepository.updateProfileAndFetchById(userByEmail.id, {
-        firstName: syncUserDto.firstName,
-        lastName: syncUserDto.lastName,
-        avatarUrl: syncUserDto.avatarUrl,
+      return this._userRepository.updateProfileAndFetchById({
+        userId: userByEmail.id,
+        data: {
+          firstName: syncUserDto.firstName,
+          lastName: syncUserDto.lastName,
+          avatarUrl: syncUserDto.avatarUrl,
+        },
       });
     }
 

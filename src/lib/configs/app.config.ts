@@ -13,6 +13,8 @@ export type AppConfig = {
   CORS_ORIGIN: string;
   AUTH0_ISSUER_BASE_URL: string;
   AUTH0_AUDIENCE: string;
+  AUTH0_M2M_CLIENT_ID: string;
+  AUTH0_M2M_CLIENT_SECRET: string;
   // --- Logger params ---
   LOG_LEVEL: LogLevel;
   LOG_DIR: string;
@@ -49,6 +51,8 @@ const envAppSchema = z.object({
   CORS_ORIGIN: z.string(),
   AUTH0_ISSUER_BASE_URL: z.string(),
   AUTH0_AUDIENCE: z.string(),
+  AUTH0_M2M_CLIENT_ID: z.string(),
+  AUTH0_M2M_CLIENT_SECRET: z.string(),
   LOG_LEVEL: z.enum(LogLevel).default(LogLevel.INFO),
   LOG_DIR: z.string().default('logs'),
   DB_HOST: z.string().default('localhost'),

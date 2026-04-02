@@ -7,11 +7,12 @@ updates:
       day: "monday"
 
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "chore"
       include: "scope"
 
     labels:
       - "dependencies"
+      - "chore"
 
     groups:
       safe-updates:

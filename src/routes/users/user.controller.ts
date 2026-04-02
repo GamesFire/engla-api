@@ -5,8 +5,8 @@ import { provide } from '@ioc/decorators.js';
 import { UserService } from '@modules/users/user.service.js';
 
 import {
+  adminGetAllUsersQuerySchema,
   adminUpdateUserBodySchema,
-  getAllUsersQuerySchema,
   updateUserBodySchema,
   userIdParamSchema,
 } from './user.validation.js';
@@ -18,11 +18,13 @@ export class UserController {
     this.updateMe = this.updateMe.bind(this);
     this.deleteMe = this.deleteMe.bind(this);
 
-    this.getAllUsers = this.getAllUsers.bind(this);
-    this.getUserById = this.getUserById.bind(this);
-    this.updateUser = this.updateUser.bind(this);
-    this.deleteUser = this.deleteUser.bind(this);
+    this.adminGetUserById = this.adminGetUserById.bind(this);
+    this.adminGetAllUsers = this.adminGetAllUsers.bind(this);
+    this.adminUpdateUser = this.adminUpdateUser.bind(this);
+    this.adminDeleteUser = this.adminDeleteUser.bind(this);
   }
+
+  // --- PROTECTED ENDPOINTS (Users/Hosts) ---
 
   public getMe(req: Request, res: Response) {
     const user = req.currentUser!;
@@ -46,21 +48,23 @@ export class UserController {
     res.status(204).send();
   }
 
-  public async getUserById(req: Request, res: Response) {
+  // --- ADMIN ENDPOINTS ---
+
+  public async adminGetUserById(req: Request, res: Response) {
     const { id: userId } = userIdParamSchema.parse(req.params);
     const user = await this._userService.getUserById(userId);
 
     res.status(200).json(user);
   }
 
-  public async getAllUsers(req: Request, res: Response) {
-    const getAllUsersQueryDto = getAllUsersQuerySchema.parse(req.query);
-    const users = await this._userService.getUsers(getAllUsersQueryDto);
+  public async adminGetAllUsers(req: Request, res: Response) {
+    const adminGetAllUsersQueryDto = adminGetAllUsersQuerySchema.parse(req.query);
+    const users = await this._userService.getUsers(adminGetAllUsersQueryDto);
 
     res.status(200).json(users);
   }
 
-  public async updateUser(req: Request, res: Response) {
+  public async adminUpdateUser(req: Request, res: Response) {
     const { id: userId } = userIdParamSchema.parse(req.params);
     const adminUpdateUserBodyDto = adminUpdateUserBodySchema.parse(req.body);
 
@@ -69,7 +73,7 @@ export class UserController {
     res.status(200).json(updatedUser);
   }
 
-  public async deleteUser(req: Request, res: Response) {
+  public async adminDeleteUser(req: Request, res: Response) {
     const { id: userId } = userIdParamSchema.parse(req.params);
     await this._userService.deleteUserByAdmin(userId);
 

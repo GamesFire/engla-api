@@ -1,0 +1,213 @@
+import { z } from 'zod';
+
+import { EnglandCounties } from '@lib/constants/geography.js';
+import { ValidationLimits, ValidationPatterns } from '@lib/constants/validation.js';
+import { idParamSchema } from '@lib/validations/params/id.param.js';
+import { basePaginationSchema } from '@lib/validations/queries/pagination.query.js';
+import {
+  CancellationPolicy,
+  PropertyStatus,
+  PropertyType,
+  RoomType,
+} from '@models/properties/property.model.js';
+
+// --- PROPERTY SHARED SCHEMAS ---
+
+export const propertyIdParamSchema = idParamSchema.clone();
+
+export const basePropertyFieldsSchema = z
+  .object({
+    propertyType: z.enum(PropertyType, { message: 'Invalid property type' }),
+    roomType: z.enum(RoomType, { message: 'Invalid room type' }),
+
+    title: z
+      .string()
+      .trim()
+      .min(ValidationLimits.PROPERTY_TITLE_MIN)
+      .max(ValidationLimits.PROPERTY_TITLE_MAX),
+    description: z
+      .string()
+      .trim()
+      .min(ValidationLimits.PROPERTY_DESC_MIN)
+      .max(ValidationLimits.PROPERTY_DESC_MAX),
+
+    addressLine1: z
+      .string()
+      .trim()
+      .min(ValidationLimits.PROPERTY_ADDRESS_MIN)
+      .max(ValidationLimits.PROPERTY_ADDRESS_MAX),
+
+    addressLine2: z.string().trim().min(1).max(ValidationLimits.PROPERTY_ADDRESS_MAX).optional(),
+
+    city: z
+      .string()
+      .trim()
+      .min(ValidationLimits.PROPERTY_CITY_MIN)
+      .max(ValidationLimits.PROPERTY_CITY_MAX)
+      .regex(ValidationPatterns.CITY, { message: 'City name contains invalid characters' }),
+
+    county: z.enum(EnglandCounties, { message: 'Invalid county' }),
+
+    postcode: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(ValidationPatterns.UK_POSTCODE, { message: 'Invalid Postcode format' }),
+
+    latitude: z
+      .number()
+      .min(ValidationLimits.ENGLAND_LAT_MIN)
+      .max(ValidationLimits.ENGLAND_LAT_MAX)
+      .optional(),
+
+    longitude: z
+      .number()
+      .min(ValidationLimits.ENGLAND_LNG_MIN)
+      .max(ValidationLimits.ENGLAND_LNG_MAX)
+      .optional(),
+
+    maxGuests: z.number().int().positive().max(ValidationLimits.MAX_GUESTS),
+    bedrooms: z.number().int().nonnegative().max(ValidationLimits.MAX_ROOMS),
+    beds: z.number().int().nonnegative().max(ValidationLimits.MAX_ROOMS),
+    bathrooms: z.number().int().nonnegative().max(ValidationLimits.MAX_ROOMS),
+    areaSqM: z.number().positive().max(ValidationLimits.MAX_AREA_SQM).optional(),
+
+    checkInTime: z
+      .string()
+      .regex(ValidationPatterns.TIME_HH_MM, { message: 'Invalid time format (HH:MM)' }),
+
+    checkOutTime: z
+      .string()
+      .regex(ValidationPatterns.TIME_HH_MM, { message: 'Invalid time format (HH:MM)' }),
+
+    isPetsAllowed: z.boolean({ message: 'isPetsAllowed must be a boolean' }).default(false),
+    houseRules: z.string().trim().max(ValidationLimits.PROPERTY_RULES_MAX).optional(),
+    cancellationPolicy: z.enum(CancellationPolicy, { message: 'Invalid cancellation policy' }),
+    pricePerNight: z.number().int().positive().max(ValidationLimits.MAX_PRICE_PENCE),
+
+    cleaningFee: z
+      .number()
+      .int()
+      .nonnegative()
+      .max(ValidationLimits.MAX_CLEANING_FEE_PENCE)
+      .default(0),
+
+    licenseNumber: z.string().trim().max(ValidationLimits.PROPERTY_LICENSE_MAX).optional(),
+  })
+  .strict();
+
+// --- PROPERTY PROTECTED SCHEMAS (For Hosts) ---
+
+export const createPropertyBodySchema = z
+  .object({
+    propertyType: z.enum(PropertyType, { message: 'Invalid property type' }),
+  })
+  .strict();
+
+export const updatePropertyBodySchema = basePropertyFieldsSchema
+  .partial()
+  .strict()
+  .superRefine((data, ctx) => {
+    if (data.propertyType === PropertyType.HOTEL && !data.licenseNumber) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Hotels must provide a valid business license number',
+        path: ['licenseNumber'],
+      });
+    }
+
+    if (
+      data.roomType === RoomType.SHARED_ROOM &&
+      data.bedrooms !== undefined &&
+      data.bedrooms > 1
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'A shared room cannot have more than 1 bedroom',
+        path: ['bedrooms'],
+      });
+    }
+
+    if (data.maxGuests !== undefined && data.beds !== undefined && data.beds > 0) {
+      if (data.maxGuests > data.beds * 3) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'The maximum number of guests exceeds a reasonable capacity for the given beds',
+          path: ['maxGuests'],
+        });
+      }
+    }
+
+    if (data.checkInTime && data.checkOutTime) {
+      const inHourStr = data.checkInTime.split(':')[0];
+      const outHourStr = data.checkOutTime.split(':')[0];
+
+      if (inHourStr && outHourStr) {
+        const checkInHour = parseInt(inHourStr, 10);
+        const checkOutHour = parseInt(outHourStr, 10);
+
+        if (checkOutHour >= checkInHour) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Check-out time must be before check-in time',
+            path: ['checkOutTime'],
+          });
+        }
+      }
+    }
+  });
+
+// --- PROPERTY PUBLIC SCHEMAS (Search) ---
+
+export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
+  orderBy: z
+    .enum(['createdAt', 'pricePerNight', 'title'] as const, {
+      message: 'Invalid orderBy field for properties',
+    })
+    .default('createdAt'),
+
+  city: z
+    .string()
+    .trim()
+    .min(ValidationLimits.PROPERTY_CITY_MIN)
+    .max(ValidationLimits.PROPERTY_CITY_MAX)
+    .optional(),
+
+  county: z.enum(EnglandCounties, { message: 'Invalid county' }).optional(),
+  propertyType: z.enum(PropertyType, { message: 'Invalid property type' }).optional(),
+  roomType: z.enum(RoomType, { message: 'Invalid room type' }).optional(),
+
+  cancellationPolicy: z
+    .enum(CancellationPolicy, { message: 'Invalid cancellation policy' })
+    .optional(),
+
+  minPrice: z.coerce.number().int().nonnegative().optional(),
+  maxPrice: z.coerce.number().int().positive().max(ValidationLimits.MAX_PRICE_PENCE).optional(),
+  minGuests: z.coerce.number().int().positive().max(ValidationLimits.MAX_GUESTS).optional(),
+  minBedrooms: z.coerce.number().int().positive().max(ValidationLimits.MAX_ROOMS).optional(),
+  minBeds: z.coerce.number().int().positive().max(ValidationLimits.MAX_ROOMS).optional(),
+  minBathrooms: z.coerce.number().int().positive().max(ValidationLimits.MAX_ROOMS).optional(),
+  isPetsAllowed: z.coerce.boolean({ message: 'isPetsAllowed must be a boolean' }).optional(),
+});
+
+// --- PROPERTY ADMIN SCHEMAS ---
+
+export const adminGetAllPropertiesQuerySchema = getAllPropertiesQuerySchema.extend({
+  status: z.enum(PropertyStatus, { message: 'Invalid property status' }).optional(),
+  hostId: z.coerce.number().int().positive().optional(),
+  licenseNumber: z.string().trim().max(ValidationLimits.PROPERTY_LICENSE_MAX).optional(),
+  includeDeleted: z.coerce.boolean({ message: 'includeDeleted must be a boolean' }).default(false),
+});
+
+export const adminUpdatePropertyBodySchema = updatePropertyBodySchema
+  .extend({
+    status: z.enum(PropertyStatus, { message: 'Invalid property status' }).optional(),
+  })
+  .strict();
+
+export type PropertyIdParamDto = z.infer<typeof propertyIdParamSchema>;
+export type CreatePropertyBodyDto = z.infer<typeof createPropertyBodySchema>;
+export type UpdatePropertyBodyDto = z.infer<typeof updatePropertyBodySchema>;
+export type GetAllPropertiesQueryDto = z.infer<typeof getAllPropertiesQuerySchema>;
+export type AdminGetAllPropertiesQueryDto = z.infer<typeof adminGetAllPropertiesQuerySchema>;
+export type AdminUpdatePropertyBodyDto = z.infer<typeof adminUpdatePropertyBodySchema>;

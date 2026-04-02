@@ -50,9 +50,9 @@ export class AuthService {
       if (!isEmailVerified) {
         throw new HttpError({
           statusCode: 403,
-          message: ErrorMessages.ACCOUNT_LINKING_REQUIRES_VERIFIED_EMAIL,
+          message: ErrorMessages.AUTH.LINKING_REQUIRES_VERIFIED_EMAIL,
           internalPayload: {
-            code: ErrorCodes.HTTP_FORBIDDEN,
+            code: ErrorCodes.AUTH.FORBIDDEN,
             reason: 'Account linking requires verified email',
           },
         });
@@ -76,7 +76,7 @@ export class AuthService {
       });
     }
 
-    return this._userRepository.createUserAndFetch({
+    return this._userRepository.createAndFetch({
       auth0Id,
       email: syncUserDto.email,
       firstName: syncUserDto.firstName,

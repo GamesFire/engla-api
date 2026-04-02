@@ -1,10 +1,10 @@
 import type { User } from '@models/users/user.model.js';
 import type { UserModifierName } from '@models/users/user.modifiers.js';
-import type { GetAllUsersQueryDto } from '@routes/users/user.validation.js';
+import type { AdminGetAllUsersQueryDto } from '@routes/users/user.validation.js';
 
 export type UserQueryOptions = {
   /**
-   * Modifiers to apply to the query result.
+   * User modifiers to apply to the query result.
    * Behaviors:
    * - `undefined`: Defaults to **'safeView'** (SECURE - hides sensitive fields).
    * - `null`: Returns **raw model** (UNSAFE - returns all fields).
@@ -14,7 +14,7 @@ export type UserQueryOptions = {
   modifiers?: Nullable<UserModifierName | UserModifierName[]>;
 
   /**
-   * Whether to include soft-deleted users (where `deletedAt` is not null).
+   * Whether to include soft-deleted users.
    * @default false
    */
   includeDeleted?: boolean;
@@ -22,7 +22,7 @@ export type UserQueryOptions = {
 
 export type FindUserOptions = UserQueryOptions;
 
-export type GetUsersParams = GetAllUsersQueryDto;
+export type GetUsersParams = AdminGetAllUsersQueryDto;
 
 export type CreateUserData = Pick<User, 'auth0Id' | 'email' | 'isVerified'> &
   Partial<Pick<User, 'firstName' | 'lastName' | 'avatarUrl' | 'language' | 'currency'>>;

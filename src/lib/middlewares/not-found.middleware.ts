@@ -7,7 +7,7 @@ import { HttpError } from '@lib/errors/http.error.js';
 export const notFoundMiddleware: RequestHandler = (req, _res, next) => {
   const error = new HttpError({
     statusCode: 404,
-    message: ErrorMessages.ROUTE_NOT_FOUND,
+    message: ErrorMessages.SYSTEM.ROUTE_NOT_FOUND,
     internalPayload: {
       url: req.originalUrl,
       method: req.method,

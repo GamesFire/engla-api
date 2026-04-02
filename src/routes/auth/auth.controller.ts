@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
 import { inject } from 'inversify';
 
-import { AuthService } from '@app/modules/auth/auth.service.js';
-import type { Auth0Payload } from '@app/modules/auth/auth.types.js';
 import { provide } from '@ioc/decorators.js';
 import { appConfig } from '@lib/configs/app.config.js';
 import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
+import { AuthService } from '@modules/auth/auth.service.js';
+import type { Auth0Payload } from '@modules/auth/auth.types.js';
 
 import { loginBodySchema } from './auth.validation.js';
 
@@ -25,8 +25,8 @@ export class AuthController {
     if (!payload?.sub) {
       throw new HttpError({
         statusCode: 401,
-        message: ErrorMessages.UNAUTHORIZED,
-        internalPayload: { code: ErrorCodes.MISSING_TOKEN_SUBJECT },
+        message: ErrorMessages.AUTH.UNAUTHORIZED,
+        internalPayload: { code: ErrorCodes.AUTH.MISSING_TOKEN_SUBJECT },
       });
     }
 

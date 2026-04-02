@@ -29,8 +29,8 @@ export const errorMiddleware: ErrorRequestHandler = (
   const traceID = req.traceID || generateTraceID();
 
   let statusCode = 500;
-  let message: string = ErrorMessages.INTERNAL_SERVER_ERROR;
-  let errorCode: string = ErrorCodes.INTERNAL_ERROR;
+  let message: string = ErrorMessages.SYSTEM.INTERNAL_SERVER_ERROR;
+  let errorCode: string = ErrorCodes.SYSTEM.INTERNAL_ERROR;
   let validationErrors: Undefinable<ValidationErrorDetail[]> = undefined;
 
   let internalDetails: Record<string, unknown> = {};
@@ -45,8 +45,8 @@ export const errorMiddleware: ErrorRequestHandler = (
     };
   } else if (err instanceof ZodError) {
     statusCode = 400;
-    message = ErrorMessages.VALIDATION_FAILED;
-    errorCode = ErrorCodes.VALIDATION_ERROR;
+    message = ErrorMessages.VALIDATION.FAILED;
+    errorCode = ErrorCodes.HTTP.VALIDATION_ERROR;
     validationErrors = err.issues.map((issue) => ({
       path: issue.path.join('.'),
       message: issue.message,
@@ -58,9 +58,9 @@ export const errorMiddleware: ErrorRequestHandler = (
     err instanceof InsufficientScopeError
   ) {
     statusCode = err.status || 401;
-    errorCode = ErrorCodes.UNAUTHORIZED;
+    errorCode = ErrorCodes.AUTH.UNAUTHORIZED;
 
-    message = ErrorMessages.UNAUTHORIZED;
+    message = ErrorMessages.AUTH.UNAUTHORIZED;
 
     internalDetails = {
       authErrorDetail: err.message,
@@ -72,30 +72,30 @@ export const errorMiddleware: ErrorRequestHandler = (
     }
   } else if (err instanceof multer.MulterError) {
     statusCode = 400;
-    errorCode = ErrorCodes.UPLOAD_ERROR;
+    errorCode = ErrorCodes.SYSTEM.UPLOAD_ERROR;
 
     switch (err.code) {
       case 'LIMIT_FILE_SIZE': {
-        message = ErrorMessages.FILE_TOO_LARGE;
+        message = ErrorMessages.UPLOAD.FILE_TOO_LARGE;
         statusCode = 413;
         break;
       }
       case 'LIMIT_FILE_COUNT': {
-        message = ErrorMessages.TOO_MANY_FILES;
+        message = ErrorMessages.UPLOAD.TOO_MANY_FILES;
         break;
       }
       case 'LIMIT_UNEXPECTED_FILE': {
-        message = ErrorMessages.UNEXPECTED_FILE;
+        message = ErrorMessages.UPLOAD.UNEXPECTED_FILE;
         break;
       }
       default: {
-        message = `${ErrorMessages.GENERIC_UPLOAD_ERROR}: ${err.message}`;
+        message = `${ErrorMessages.UPLOAD.GENERIC_ERROR}: ${err.message}`;
       }
     }
   } else if (isBodyParserError(err)) {
     statusCode = 400;
-    message = ErrorMessages.JSON_INVALID;
-    errorCode = ErrorCodes.JSON_PARSE_ERROR;
+    message = ErrorMessages.SYSTEM.JSON_INVALID;
+    errorCode = ErrorCodes.SYSTEM.JSON_PARSE_ERROR;
   } else if (err instanceof Error) {
     internalDetails = {
       stack: err.stack,
@@ -104,7 +104,7 @@ export const errorMiddleware: ErrorRequestHandler = (
     };
 
     if (appConfig.isProd) {
-      message = ErrorMessages.GENERIC_PROD_ERROR;
+      message = ErrorMessages.SYSTEM.GENERIC_PROD_ERROR;
     } else {
       message = err.message;
     }

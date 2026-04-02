@@ -1,9 +1,10 @@
 import { Model, type Pojo, type RelationMappings } from 'objection';
 
-import { AmenityModel } from './amenity.model.js';
-import { BaseSystemModel } from './base-system.model.js';
-import { PropertyImageModel } from './property-image.model.js';
-import { UserModel } from './users/user.model.js';
+import { AmenityModel } from '../amenity.model.js';
+import { BaseSystemModel } from '../base-system.model.js';
+import { PropertyImageModel } from '../property-image.model.js';
+import { UserModel } from '../users/user.model.js';
+import { PropertyModifiers } from './property.modifiers.js';
 
 export enum PropertyType {
   APARTMENT = 'apartment',
@@ -22,33 +23,60 @@ export enum PropertyStatus {
   DRAFT = 'draft',
   PENDING = 'pending',
   ACTIVE = 'active',
+  INACTIVE = 'inactive',
   REJECTED = 'rejected',
   ARCHIVED = 'archived',
 }
 
+export enum CancellationPolicy {
+  FLEXIBLE = 'flexible',
+  MODERATE = 'moderate',
+  STRICT = 'strict',
+}
+
 export interface Property {
+  // --- System & Relations ---
   id: number;
   hostId: number; // FK to UserModel (id)
-  title: string;
-  description: string;
-  addressLine1: string;
+  status: PropertyStatus;
+
+  // --- Basic Info ---
+  propertyType: PropertyType;
+  roomType: Nullable<RoomType>;
+  title: Nullable<string>;
+  description: Nullable<string>;
+
+  // --- Location ---
+  addressLine1: Nullable<string>;
   addressLine2: Nullable<string>;
-  city: string;
+  city: Nullable<string>;
   county: Nullable<string>;
-  postcode: string;
+  postcode: Nullable<string>;
   latitude: Nullable<number>;
   longitude: Nullable<number>;
-  pricePerNight: number;
-  cleaningFee: number; // Default 0
-  propertyType: PropertyType;
-  roomType: RoomType;
-  maxGuests: number;
-  bedrooms: number;
-  beds: number;
-  bathrooms: number;
+
+  // --- Details & Capacity ---
+  maxGuests: Nullable<number>;
+  bedrooms: Nullable<number>;
+  beds: Nullable<number>;
+  bathrooms: Nullable<number>;
   areaSqM: Nullable<number>;
-  isPetsAllowed: boolean; // Default false
-  status: PropertyStatus;
+
+  // --- Rules & Policies ---
+  checkInTime: Nullable<string>;
+  checkOutTime: Nullable<string>;
+  isPetsAllowed: Nullable<boolean>; // Default false
+  houseRules: Nullable<string>;
+  cancellationPolicy: Nullable<CancellationPolicy>;
+
+  // --- Pricing ---
+  pricePerNight: Nullable<number>;
+  cleaningFee: Nullable<number>; // Default 0
+
+  // --- Legal ---
+  licenseNumber: Nullable<string>;
+
+  // --- Timestamps ---
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Nullable<Date>;
@@ -59,31 +87,38 @@ export class PropertyModel extends BaseSystemModel implements Property {
 
   id!: number;
   hostId!: number;
-  title!: string;
-  description!: string;
-  addressLine1!: string;
+  status!: PropertyStatus;
+  propertyType!: PropertyType;
+  roomType!: Nullable<RoomType>;
+  title!: Nullable<string>;
+  description!: Nullable<string>;
+  addressLine1!: Nullable<string>;
   addressLine2!: Nullable<string>;
-  city!: string;
+  city!: Nullable<string>;
   county!: Nullable<string>;
-  postcode!: string;
+  postcode!: Nullable<string>;
   latitude!: Nullable<number>; // !Important: pg returns decimal as string
   longitude!: Nullable<number>; // !Important: pg returns decimal as string
-  pricePerNight!: number; // !Important: DB stores integer (in pence)
-  cleaningFee!: number; // !Important: DB stores integer (in pence)
-  propertyType!: PropertyType;
-  roomType!: RoomType;
-  maxGuests!: number;
-  bedrooms!: number;
-  beds!: number;
-  bathrooms!: number;
+  maxGuests!: Nullable<number>;
+  bedrooms!: Nullable<number>;
+  beds!: Nullable<number>;
+  bathrooms!: Nullable<number>;
   areaSqM!: Nullable<number>;
-  isPetsAllowed!: boolean;
-  status!: PropertyStatus;
+  checkInTime!: Nullable<string>;
+  checkOutTime!: Nullable<string>;
+  isPetsAllowed!: Nullable<boolean>;
+  houseRules!: Nullable<string>;
+  cancellationPolicy!: Nullable<CancellationPolicy>;
+  pricePerNight!: Nullable<number>; // !Important: DB stores integer (in pence)
+  cleaningFee!: Nullable<number>; // !Important: DB stores integer (in pence)
+  licenseNumber!: Nullable<string>;
 
   // --- Relations ---
   host?: UserModel;
   images?: PropertyImageModel[];
   amenities?: AmenityModel[];
+
+  static modifiers = PropertyModifiers;
 
   // --- Relation Mappings (For Objection) ---
   static get relationMappings(): RelationMappings {

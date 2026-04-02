@@ -10,6 +10,7 @@ export const ApiRoutes = {
   AUTH: '/auth',
   ADMIN: '/admin',
   USERS: '/users',
+  PROPERTIES: '/properties',
 } as const;
 
 export const SystemRoutes = {

@@ -18,8 +18,8 @@ export const authMiddleware = () => {
         if (!auth0Id) {
           throw new HttpError({
             statusCode: 401,
-            message: ErrorMessages.UNAUTHORIZED,
-            internalPayload: { code: ErrorCodes.MISSING_TOKEN_SUBJECT },
+            message: ErrorMessages.AUTH.UNAUTHORIZED,
+            internalPayload: { code: ErrorCodes.AUTH.MISSING_TOKEN_SUBJECT },
           });
         }
 
@@ -30,16 +30,16 @@ export const authMiddleware = () => {
         if (!user) {
           throw new HttpError({
             statusCode: 401,
-            message: ErrorMessages.USER_PROFILE_NOT_FOUND,
-            internalPayload: { code: ErrorCodes.USER_NOT_FOUND },
+            message: ErrorMessages.USERS.NOT_FOUND,
+            internalPayload: { code: ErrorCodes.USERS.NOT_FOUND },
           });
         }
 
         if (user.deletedAt) {
           throw new HttpError({
             statusCode: 403,
-            message: ErrorMessages.USER_DEACTIVATED,
-            internalPayload: { code: ErrorCodes.USER_BLOCKED },
+            message: ErrorMessages.USERS.DEACTIVATED,
+            internalPayload: { code: ErrorCodes.USERS.BLOCKED },
           });
         }
 

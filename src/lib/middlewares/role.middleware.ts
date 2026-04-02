@@ -12,8 +12,8 @@ export const roleMiddleware = (allowedRoles: UserRole[]) => {
       return next(
         new HttpError({
           statusCode: 401,
-          message: ErrorMessages.UNAUTHORIZED,
-          internalPayload: { code: ErrorCodes.UNAUTHORIZED },
+          message: ErrorMessages.AUTH.UNAUTHORIZED,
+          internalPayload: { code: ErrorCodes.AUTH.UNAUTHORIZED },
         }),
       );
     }
@@ -22,9 +22,9 @@ export const roleMiddleware = (allowedRoles: UserRole[]) => {
       return next(
         new HttpError({
           statusCode: 403,
-          message: 'You do not have permission to perform this action',
+          message: ErrorMessages.AUTH.FORBIDDEN,
           internalPayload: {
-            code: ErrorCodes.FORBIDDEN,
+            code: ErrorCodes.AUTH.FORBIDDEN,
             details: `Requires one of roles: ${allowedRoles.join(', ')}`,
           },
         }),

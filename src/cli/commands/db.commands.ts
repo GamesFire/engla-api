@@ -1,8 +1,11 @@
 import { Command } from 'commander';
+import fs from 'fs';
 import { Container } from 'inversify';
 import type { Knex } from 'knex';
+import path from 'path';
 
 import { InjectionToken } from '@ioc/constants.js';
+import { knexConfig } from '@lib/configs/knex.config.js';
 import { createDatabase, dropDatabase } from '@lib/db/db.admin.js';
 import { logger } from '@lib/logger.js';
 
@@ -39,7 +42,7 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
     .action(async () => {
       const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       try {
-        const [batchNo, log] = await knex.migrate.latest();
+        const [batchNo, log]: [number, string[]] = await knex.migrate.latest();
         if (log.length === 0) {
           logger.info('[Migrate] Already up to date');
         } else {
@@ -58,7 +61,7 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
     .action(async () => {
       const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       try {
-        const [batchNo, log] = await knex.migrate.rollback();
+        const [batchNo, log]: [number, string[]] = await knex.migrate.rollback();
         if (log.length === 0) {
           logger.info('[Rollback] Already at the base');
         } else {
@@ -73,7 +76,7 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
 
   program
     .command('db:make:migration <name>')
-    .description('Create a new migration file')
+    .description('Create a new migration file (e.g., create_users)')
     .action(async (name) => {
       const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       try {
@@ -81,6 +84,70 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
         logger.info(`[Migration] Created: ${res}`);
       } catch (error) {
         logger.error('[Migration] Create failed', { error });
+        process.exit(1);
+      }
+    });
+
+  program
+    .command('db:delete:migration <name>')
+    .description(
+      'Physically delete a migration file from the disk (e.g., 20260130150428_create_users.ts)',
+    )
+    .action(async (name) => {
+      try {
+        const rawMigrationDir = knexConfig.migrations?.directory;
+
+        if (!rawMigrationDir) {
+          throw new Error('Migrations directory is not defined in knexConfig');
+        }
+
+        const migrationDir =
+          typeof rawMigrationDir === 'string' ? rawMigrationDir : rawMigrationDir[0];
+
+        if (!migrationDir) {
+          throw new Error('Resolved migrations directory is invalid or empty in knexConfig');
+        }
+
+        const filePath = path.join(migrationDir, name);
+
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          logger.info(`[Delete] Successfully deleted migration file: ${name}`);
+        } else {
+          logger.warn(`[Delete] File not found at path: ${filePath}`);
+        }
+      } catch (error) {
+        logger.error(`[Delete] Failed to delete migration ${name}`, { error });
+        process.exit(1);
+      }
+    });
+
+  program
+    .command('db:run:migration <name>')
+    .description(
+      'Run a specific pending migration file (up) (e.g., 20260130150428_create_users.ts)',
+    )
+    .action(async (name) => {
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
+      try {
+        await knex.migrate.up({ name });
+        logger.info(`[Migrate] Successfully ran specific migration: ${name}`);
+      } catch (error) {
+        logger.error(`[Migrate] Failed to run migration ${name}`, { error });
+        process.exit(1);
+      }
+    });
+
+  program
+    .command('db:rollback:migration <name>')
+    .description('Rollback a specific migration file (e.g., 20260130150428_create_users.ts)')
+    .action(async (name) => {
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
+      try {
+        await knex.migrate.down({ name });
+        logger.info(`[Rollback] Successfully reverted specific migration: ${name}`);
+      } catch (error) {
+        logger.error(`[Rollback] Failed to revert migration ${name}`, { error });
         process.exit(1);
       }
     });

@@ -9,7 +9,7 @@ import { RequestConfig } from '@lib/constants/limits.js';
 import { ApiPrefix, ApiRoutes, SystemRoutes } from '@lib/constants/routes.js';
 import { errorMiddleware } from '@lib/middlewares/error.middleware.js';
 import { notFoundMiddleware } from '@lib/middlewares/not-found.middleware.js';
-import { createRateLimiter } from '@lib/middlewares/rate-limit.middleware.js';
+import { RateLimiters } from '@lib/middlewares/rate-limit/rate-limiters.js';
 import { requestLoggerMiddleware } from '@lib/middlewares/request-logger.middleware.js';
 import { createSystemRouter, createV1Router } from '@routes/index.js';
 import { buildApiPath } from '@utils/build-api-path.js';
@@ -39,13 +39,7 @@ export async function createServer(): Promise<Express> {
     }),
   );
 
-  app.use(
-    ApiPrefix.API,
-    createRateLimiter({
-      windowMs: RequestConfig.RATE_LIMIT.GLOBAL.WINDOW_MS,
-      max: RequestConfig.RATE_LIMIT.GLOBAL.MAX_REQUESTS,
-    }),
-  );
+  app.use(ApiPrefix.API, RateLimiters.GLOBAL);
 
   app.use(
     express.json({

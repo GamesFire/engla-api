@@ -1,8 +1,6 @@
 import { Router } from 'express';
 
-import { ErrorCodes } from '@lib/constants/errors.js';
-import { RequestConfig } from '@lib/constants/limits.js';
-import { createRateLimiter } from '@lib/middlewares/rate-limit.middleware.js';
+import { RateLimiters } from '@lib/middlewares/rate-limit/rate-limiters.js';
 
 import { UserController } from './user.controller.js';
 
@@ -20,19 +18,8 @@ export function createProtectedUserRouter(): Router {
   const userController = ioc.get(UserController);
 
   router.get(ProtectedUserRoutes.ME, userController.getMe);
-
-  router.patch(ProtectedUserRoutes.ME, userController.updateMe);
-
-  router.delete(
-    ProtectedUserRoutes.ME,
-    createRateLimiter({
-      windowMs: RequestConfig.RATE_LIMIT.STRICT.WINDOW_MS,
-      max: RequestConfig.RATE_LIMIT.STRICT.MAX_REQUESTS,
-      errorCode: ErrorCodes.TOO_MANY_STRICT_REQUESTS,
-      message: 'Too many account deletion attempts. Please try again in an hour',
-    }),
-    userController.deleteMe,
-  );
+  router.patch(ProtectedUserRoutes.ME, RateLimiters.USERS.UPDATE, userController.updateMe);
+  router.delete(ProtectedUserRoutes.ME, RateLimiters.USERS.DELETION, userController.deleteMe);
 
   return router;
 }
@@ -41,13 +28,10 @@ export function createAdminUserRouter(): Router {
   const router = Router({ mergeParams: true });
   const userController = ioc.get(UserController);
 
-  router.get(AdminUserRoutes.ROOT, userController.getAllUsers);
-
-  router.get(AdminUserRoutes.BY_ID, userController.getUserById);
-
-  router.patch(AdminUserRoutes.BY_ID, userController.updateUser);
-
-  router.delete(AdminUserRoutes.BY_ID, userController.deleteUser);
+  router.get(AdminUserRoutes.ROOT, userController.adminGetAllUsers);
+  router.get(AdminUserRoutes.BY_ID, userController.adminGetUserById);
+  router.patch(AdminUserRoutes.BY_ID, userController.adminUpdateUser);
+  router.delete(AdminUserRoutes.BY_ID, userController.adminDeleteUser);
 
   return router;
 }

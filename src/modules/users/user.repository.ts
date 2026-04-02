@@ -6,6 +6,7 @@ import { type User, UserModel } from '@models/users/user.model.js';
 import { UserModifier } from '@models/users/user.modifiers.js';
 import { skipUndefinedFields } from '@utils/data.js';
 
+import { UserAnonymization } from './user.constants.js';
 import type {
   CreateUserData,
   FindUserOptions,
@@ -118,22 +119,16 @@ export class UserRepository {
     const query = UserModel.query().modify(UserModifier.SAFE_VIEW);
 
     this._applyFilters(query, params);
-
     query.orderBy(orderBy, orderDirection);
 
     const { results, total } = await query.page(page - 1, limit);
-
     return { results, total };
   }
 
   // --- WRITE METHODS ---
 
-  public async createUserAndFetch(
-    data: CreateUserData,
-    options: FindUserOptions = {},
-  ): Promise<User> {
+  public async createAndFetch(data: CreateUserData, options: FindUserOptions = {}): Promise<User> {
     const insertedUser = await UserModel.query().insert(data);
-
     return this.findById(insertedUser.id, options) as Promise<User>;
   }
 
@@ -164,7 +159,7 @@ export class UserRepository {
     return this.findById(userId, options) as Promise<User>;
   }
 
-  public async removeUserAndFetchById(userId: number): Promise<User> {
+  public async softDeleteAndFetchById(userId: number): Promise<User> {
     const timestamp = Date.now();
     const anonymizedString = `deleted_${userId}_${timestamp}`;
 
@@ -173,16 +168,19 @@ export class UserRepository {
       .patch({
         deletedAt: new Date(),
 
-        email: `${anonymizedString}@deleted.engla.com`,
+        email: `${anonymizedString}${UserAnonymization.EMAIL_DOMAIN}`,
         auth0Id: anonymizedString,
 
         stripeAccountId: null,
-        firstName: 'Deleted',
-        lastName: 'User',
+        firstName: UserAnonymization.FIRST_NAME,
+        lastName: UserAnonymization.LAST_NAME,
         phone: null,
         avatarUrl: null,
       });
 
-    return this.findById(userId, { includeDeleted: true }) as Promise<User>;
+    return this.findById(userId, {
+      includeDeleted: true,
+      modifiers: null,
+    }) as Promise<User>;
   }
 }

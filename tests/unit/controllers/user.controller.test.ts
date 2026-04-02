@@ -12,7 +12,7 @@ describe('UserController', () => {
     const req = { query: { page: 'not-a-number' } } as any;
     const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as any;
 
-    await expect(controller.getAllUsers(req, res)).rejects.toThrow(ZodError);
+    await expect(controller.adminGetAllUsers(req, res)).rejects.toThrow(ZodError);
 
     expect(mockUserService.getUsers).not.toHaveBeenCalled();
   });
@@ -24,7 +24,7 @@ describe('UserController', () => {
     const req = { query: { page: '1', limit: '10' } } as any;
     const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as any;
 
-    await controller.getAllUsers(req, res);
+    await controller.adminGetAllUsers(req, res);
 
     expect(mockUserService.getUsers).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1, limit: 10 }),

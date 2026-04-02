@@ -9,7 +9,7 @@ import { type User } from '@models/users/user.model.js';
 import { UserRepository } from '@modules/users/user.repository.js';
 import type { AdminUpdateUserBodyDto, UpdateUserBodyDto } from '@routes/users/user.validation.js';
 
-import type { GetUsersParams } from './user.types.js';
+import type { FindUserOptions, GetUsersParams } from './user.types.js';
 
 @provide()
 export class UserService {
@@ -18,18 +18,22 @@ export class UserService {
     @inject(Auth0Service) private readonly _auth0Service: Auth0Service,
   ) {}
 
-  public async getUserById(userId: number): Promise<User> {
-    const user = await this._userRepository.findById(userId);
+  private async _getExistingUser(userId: number, options?: FindUserOptions): Promise<User> {
+    const user = await this._userRepository.findById(userId, options);
 
     if (!user) {
       throw new HttpError({
         statusCode: 404,
-        message: ErrorMessages.USER_PROFILE_NOT_FOUND,
-        internalPayload: { code: ErrorCodes.USER_NOT_FOUND },
+        message: ErrorMessages.USERS.NOT_FOUND,
+        internalPayload: { code: ErrorCodes.USERS.NOT_FOUND },
       });
     }
 
     return user;
+  }
+
+  public async getUserById(userId: number): Promise<User> {
+    return this._getExistingUser(userId);
   }
 
   public async getUsers(params: GetUsersParams): Promise<PaginatedResponse<User>> {
@@ -41,15 +45,7 @@ export class UserService {
   }
 
   public async updateUserByAdmin(userId: number, dto: AdminUpdateUserBodyDto): Promise<User> {
-    const user = await this._userRepository.findById(userId, { includeDeleted: true });
-
-    if (!user) {
-      throw new HttpError({
-        statusCode: 404,
-        message: ErrorMessages.USER_PROFILE_NOT_FOUND,
-        internalPayload: { code: ErrorCodes.USER_NOT_FOUND },
-      });
-    }
+    const user = await this._getExistingUser(userId, { includeDeleted: true });
 
     if (Object.keys(dto).length === 0) {
       return user;
@@ -65,34 +61,18 @@ export class UserService {
   }
 
   public async deleteUserAccount(userId: number): Promise<void> {
-    const user = await this._userRepository.findById(userId, { modifiers: null });
-
-    if (!user) {
-      throw new HttpError({
-        statusCode: 404,
-        message: ErrorMessages.USER_PROFILE_NOT_FOUND,
-      });
-    }
+    const user = await this._getExistingUser(userId, { modifiers: null });
 
     // TODO: Before deleting the account, verify that the user has no active bookings.
 
     await this._auth0Service.deleteUser(user.auth0Id);
-
-    await this._userRepository.removeUserAndFetchById(userId);
+    await this._userRepository.softDeleteAndFetchById(userId);
   }
 
   public async deleteUserByAdmin(userId: number): Promise<void> {
-    const user = await this._userRepository.findById(userId, { modifiers: null });
-
-    if (!user) {
-      throw new HttpError({
-        statusCode: 404,
-        message: ErrorMessages.USER_PROFILE_NOT_FOUND,
-      });
-    }
+    const user = await this._getExistingUser(userId, { modifiers: null });
 
     await this._auth0Service.deleteUser(user.auth0Id);
-
-    await this._userRepository.removeUserAndFetchById(userId);
+    await this._userRepository.softDeleteAndFetchById(userId);
   }
 }

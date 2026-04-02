@@ -1,4 +1,4 @@
-# EngLa API 🇬🇧
+# EngLa API 🏴󠁧󠁢󠁥󠁮󠁧󠁿
 
 > Production-ready RESTful API for **EngLa** — a short-term rental marketplace in England. Built with Node.js, Express, TypeScript, PostgreSQL, and Clean Architecture principles.
 
@@ -142,7 +142,7 @@ npm run start
 | `DB_USER` | PostgreSQL User | - |
 | `DB_PASS` | PostgreSQL Password | - |
 | `DB_NAME` | Database Name | - |
-| `DB_DEFAULT_NAME` | Default Database Name | - |
+| `DB_DEFAULT_NAME` | System default database (e.g., `postgres`) used for initial admin connection | - |
 | `REDIS_HOST` | Redis Host | `localhost` |
 | `REDIS_PORT` | Redis Port | `6379` |
 | `REDIS_PASS` | Redis Password | - |
@@ -163,7 +163,10 @@ We use a custom CLI tool built with `Commander.js` to manage database operations
 | `npm run cli db:reset` | ⚠️ Drops, re-creates, migrates, and seeds the DB. |
 | `npm run cli db:migrate` | Runs pending migrations (`knex migrate:latest`). |
 | `npm run cli db:rollback` | Reverts the last batch of migrations. |
-| `npm run cli db:make:migration <name>` | Creates a new migration timestamped file. |
+| `npm run cli db:make:migration <name>` | Creates a new migration timestamped file (e.g., `create_users`). |
+| `npm run cli db:delete:migration <name>` | Physically deletes a migration file from the disk (e.g., `20260130150428_create_users.ts`). |
+| `npm run cli db:run:migration <name>` | Runs a specific pending migration file (e.g., `20260130150428_create_users.ts`). |
+| `npm run cli db:rollback:migration <name>` | Reverts a specific migration file (e.g., `20260130150428_create_users.ts`). |
 | `npm run cli db:seed` | Runs seed files. |
 
 ---

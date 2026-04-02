@@ -12,14 +12,14 @@
     "rootDir": ".",
     "outDir": "./dist",
     "paths": {
-      "@app/*": ["./src/*"],
-      "@lib/*": ["./src/lib/*"],
-      "@utils/*": ["./src/lib/utils/*"],
       "@models/*": ["./src/lib/db/models/*"],
+      "@utils/*": ["./src/lib/utils/*"],
+      "@lib/*": ["./src/lib/*"],
       "@modules/*": ["./src/modules/*"],
       "@routes/*": ["./src/routes/*"],
       "@ioc/*": ["./src/ioc/*"],
-      "@app-types/*": ["./src/@types/*"]
+      "@app-types/*": ["./src/@types/*"],
+      "@app/*": ["./src/*"]
     },
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

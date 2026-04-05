@@ -2,7 +2,7 @@
 
 > Production-ready RESTful API for **EngLa** — a short-term rental marketplace in England. Built with Node.js, Express, TypeScript, PostgreSQL, and Clean Architecture principles.
 
-![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)
+![Node.js](https://img.shields.io/badge/Node.js-v20.19+-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -31,7 +31,7 @@
 
 ## 🛠 Tech Stack
 
-- **Runtime:** Node.js (v20+)
+- **Runtime:** Node.js (v20.19+)
 - **Language:** TypeScript
 - **Framework:** Express.js
 - **Database:** PostgreSQL (Primary), Redis (Caching & Queues)
@@ -58,7 +58,7 @@ This project follows **Clean Architecture** principles to ensure separation of c
 
 Before you begin, ensure you have met the following requirements:
 
-- **Node.js**: v20.0.0 or higher
+- **Node.js**: v20.19.0 or higher
 - **npm**: v10.0.0 or higher
 - **Docker** (Recommended for running PostgreSQL and Redis)
 

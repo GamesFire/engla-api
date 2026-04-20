@@ -21,7 +21,7 @@ export const updateUserBodySchema = z
     phone: z
       .string()
       .trim()
-      .max(ValidationLimits.PHONE_MAX, { message: 'Phone number is too long' })
+      .max(ValidationLimits.USER.PHONE_MAX, { message: 'Phone number is too long' })
       .regex(ValidationPatterns.PHONE_E164, {
         message: 'Phone must be in E.164 format (e.g., +447123456789)',
       })
@@ -59,8 +59,8 @@ export const adminGetAllUsersQuerySchema = basePaginationSchema.extend({
   search: z
     .string()
     .trim()
-    .min(ValidationLimits.SEARCH_MIN)
-    .max(ValidationLimits.SEARCH_MAX)
+    .min(ValidationLimits.SEARCH.MIN)
+    .max(ValidationLimits.SEARCH.MAX)
     .optional(),
 
   role: z.enum(UserRole, { message: 'Invalid user role' }).optional(),

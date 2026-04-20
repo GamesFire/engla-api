@@ -1,41 +1,41 @@
 export const ValidationLimits = {
-  // DB standard for VARCHAR(255)
-  EMAIL_MAX: 255,
-
-  // Reasonable limit to prevent DB overflow or UI issues
-  NAME_MIN: 1,
-  NAME_MAX: 50,
-  PHONE_MAX: 20,
-  SEARCH_MIN: 1,
-  SEARCH_MAX: 100,
-
-  // Standard limit for URLs (IE limit history, widely accepted safe max)
-  URL_MAX: 2048,
-
-  // Standard limits for property text fields
-  PROPERTY_TITLE_MIN: 5,
-  PROPERTY_TITLE_MAX: 100,
-  PROPERTY_DESC_MIN: 20,
-  PROPERTY_DESC_MAX: 5000,
-  PROPERTY_CITY_MIN: 2,
-  PROPERTY_CITY_MAX: 100,
-  PROPERTY_ADDRESS_MIN: 5,
-  PROPERTY_ADDRESS_MAX: 255,
-  PROPERTY_LICENSE_MAX: 100,
-  PROPERTY_RULES_MAX: 2000,
-
-  // Reasonable limits for property parameters and pricing (in pence for GBP)
-  MAX_PRICE_PENCE: 1_000_000,
-  MAX_CLEANING_FEE_PENCE: 50_000,
-  MAX_GUESTS: 30,
-  MAX_ROOMS: 20,
-  MAX_AREA_SQM: 5000,
-
-  // Geographic bounding box strictly for England (including Isles of Scilly & Isle of Wight)
-  ENGLAND_LAT_MIN: 49.8,
-  ENGLAND_LAT_MAX: 55.8,
-  ENGLAND_LNG_MIN: -6.5,
-  ENGLAND_LNG_MAX: 1.8,
+  USER: {
+    EMAIL_MAX: 255, // DB standard for VARCHAR(255)
+    NAME_MIN: 1,
+    NAME_MAX: 50,
+    PHONE_MAX: 20,
+  },
+  SEARCH: {
+    MIN: 1,
+    MAX: 100,
+  },
+  URL: {
+    MAX: 2048, // Standard limit for URLs (IE limit history)
+  },
+  PROPERTY: {
+    TITLE_MIN: 5,
+    TITLE_MAX: 100,
+    DESC_MIN: 20,
+    DESC_MAX: 5000,
+    CITY_MIN: 2,
+    CITY_MAX: 100,
+    ADDRESS_MIN: 5,
+    ADDRESS_MAX: 255,
+    LICENSE_MAX: 100,
+    RULES_MAX: 5000,
+    MAX_PRICE_PENCE: 1_000_000,
+    MAX_CLEANING_FEE_PENCE: 50_000,
+    MAX_GUESTS: 30,
+    MAX_ROOMS: 20,
+    MAX_AREA_SQM: 5000,
+  },
+  GEOGRAPHY: {
+    // Bounding box strictly for England
+    ENGLAND_LAT_MIN: 49.8,
+    ENGLAND_LAT_MAX: 55.8,
+    ENGLAND_LNG_MIN: -6.5,
+    ENGLAND_LNG_MAX: 1.8,
+  },
 } as const;
 
 export const ValidationPatterns = {

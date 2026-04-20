@@ -10,6 +10,7 @@ import {
   PropertyType,
   RoomType,
 } from '@models/properties/property.model.js';
+import { sanitizeText } from '@utils/sanitizer.js';
 
 // --- PROPERTY SHARED SCHEMAS ---
 
@@ -23,27 +24,37 @@ export const basePropertyFieldsSchema = z
     title: z
       .string()
       .trim()
-      .min(ValidationLimits.PROPERTY_TITLE_MIN)
-      .max(ValidationLimits.PROPERTY_TITLE_MAX),
+      .min(ValidationLimits.PROPERTY.TITLE_MIN)
+      .max(ValidationLimits.PROPERTY.TITLE_MAX)
+      .transform((val) => sanitizeText(val)),
+
     description: z
       .string()
       .trim()
-      .min(ValidationLimits.PROPERTY_DESC_MIN)
-      .max(ValidationLimits.PROPERTY_DESC_MAX),
+      .min(ValidationLimits.PROPERTY.DESC_MIN)
+      .max(ValidationLimits.PROPERTY.DESC_MAX)
+      .transform((val) => sanitizeText(val)),
 
     addressLine1: z
       .string()
       .trim()
-      .min(ValidationLimits.PROPERTY_ADDRESS_MIN)
-      .max(ValidationLimits.PROPERTY_ADDRESS_MAX),
+      .min(ValidationLimits.PROPERTY.ADDRESS_MIN)
+      .max(ValidationLimits.PROPERTY.ADDRESS_MAX)
+      .transform((val) => sanitizeText(val)),
 
-    addressLine2: z.string().trim().min(1).max(ValidationLimits.PROPERTY_ADDRESS_MAX).optional(),
+    addressLine2: z
+      .string()
+      .trim()
+      .min(1)
+      .max(ValidationLimits.PROPERTY.ADDRESS_MAX)
+      .transform((val) => sanitizeText(val))
+      .optional(),
 
     city: z
       .string()
       .trim()
-      .min(ValidationLimits.PROPERTY_CITY_MIN)
-      .max(ValidationLimits.PROPERTY_CITY_MAX)
+      .min(ValidationLimits.PROPERTY.CITY_MIN)
+      .max(ValidationLimits.PROPERTY.CITY_MAX)
       .regex(ValidationPatterns.CITY, { message: 'City name contains invalid characters' }),
 
     county: z.enum(EnglandCounties, { message: 'Invalid county' }),
@@ -56,21 +67,21 @@ export const basePropertyFieldsSchema = z
 
     latitude: z
       .number()
-      .min(ValidationLimits.ENGLAND_LAT_MIN)
-      .max(ValidationLimits.ENGLAND_LAT_MAX)
+      .min(ValidationLimits.GEOGRAPHY.ENGLAND_LAT_MIN)
+      .max(ValidationLimits.GEOGRAPHY.ENGLAND_LAT_MAX)
       .optional(),
 
     longitude: z
       .number()
-      .min(ValidationLimits.ENGLAND_LNG_MIN)
-      .max(ValidationLimits.ENGLAND_LNG_MAX)
+      .min(ValidationLimits.GEOGRAPHY.ENGLAND_LNG_MIN)
+      .max(ValidationLimits.GEOGRAPHY.ENGLAND_LNG_MAX)
       .optional(),
 
-    maxGuests: z.number().int().positive().max(ValidationLimits.MAX_GUESTS),
-    bedrooms: z.number().int().nonnegative().max(ValidationLimits.MAX_ROOMS),
-    beds: z.number().int().nonnegative().max(ValidationLimits.MAX_ROOMS),
-    bathrooms: z.number().int().nonnegative().max(ValidationLimits.MAX_ROOMS),
-    areaSqM: z.number().positive().max(ValidationLimits.MAX_AREA_SQM).optional(),
+    maxGuests: z.number().int().positive().max(ValidationLimits.PROPERTY.MAX_GUESTS),
+    bedrooms: z.number().int().nonnegative().max(ValidationLimits.PROPERTY.MAX_ROOMS),
+    beds: z.number().int().nonnegative().max(ValidationLimits.PROPERTY.MAX_ROOMS),
+    bathrooms: z.number().int().nonnegative().max(ValidationLimits.PROPERTY.MAX_ROOMS),
+    areaSqM: z.number().positive().max(ValidationLimits.PROPERTY.MAX_AREA_SQM).optional(),
 
     checkInTime: z
       .string()
@@ -81,18 +92,32 @@ export const basePropertyFieldsSchema = z
       .regex(ValidationPatterns.TIME_HH_MM, { message: 'Invalid time format (HH:MM)' }),
 
     isPetsAllowed: z.boolean({ message: 'isPetsAllowed must be a boolean' }).default(false),
-    houseRules: z.string().trim().max(ValidationLimits.PROPERTY_RULES_MAX).optional(),
+
+    houseRules: z
+      .string()
+      .trim()
+      .max(ValidationLimits.PROPERTY.RULES_MAX, {
+        message: `House rules cannot exceed ${ValidationLimits.PROPERTY.RULES_MAX} characters (including formatting)`,
+      })
+      .transform((val) => sanitizeText(val))
+      .optional(),
+
     cancellationPolicy: z.enum(CancellationPolicy, { message: 'Invalid cancellation policy' }),
-    pricePerNight: z.number().int().positive().max(ValidationLimits.MAX_PRICE_PENCE),
+    pricePerNight: z.number().int().positive().max(ValidationLimits.PROPERTY.MAX_PRICE_PENCE),
 
     cleaningFee: z
       .number()
       .int()
       .nonnegative()
-      .max(ValidationLimits.MAX_CLEANING_FEE_PENCE)
+      .max(ValidationLimits.PROPERTY.MAX_CLEANING_FEE_PENCE)
       .default(0),
 
-    licenseNumber: z.string().trim().max(ValidationLimits.PROPERTY_LICENSE_MAX).optional(),
+    licenseNumber: z
+      .string()
+      .trim()
+      .max(ValidationLimits.PROPERTY.LICENSE_MAX)
+      .transform((val) => sanitizeText(val))
+      .optional(),
   })
   .strict();
 
@@ -169,8 +194,8 @@ export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
   city: z
     .string()
     .trim()
-    .min(ValidationLimits.PROPERTY_CITY_MIN)
-    .max(ValidationLimits.PROPERTY_CITY_MAX)
+    .min(ValidationLimits.PROPERTY.CITY_MIN)
+    .max(ValidationLimits.PROPERTY.CITY_MAX)
     .optional(),
 
   county: z.enum(EnglandCounties, { message: 'Invalid county' }).optional(),
@@ -182,11 +207,37 @@ export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
     .optional(),
 
   minPrice: z.coerce.number().int().nonnegative().optional(),
-  maxPrice: z.coerce.number().int().positive().max(ValidationLimits.MAX_PRICE_PENCE).optional(),
-  minGuests: z.coerce.number().int().positive().max(ValidationLimits.MAX_GUESTS).optional(),
-  minBedrooms: z.coerce.number().int().positive().max(ValidationLimits.MAX_ROOMS).optional(),
-  minBeds: z.coerce.number().int().positive().max(ValidationLimits.MAX_ROOMS).optional(),
-  minBathrooms: z.coerce.number().int().positive().max(ValidationLimits.MAX_ROOMS).optional(),
+
+  maxPrice: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(ValidationLimits.PROPERTY.MAX_PRICE_PENCE)
+    .optional(),
+
+  minGuests: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(ValidationLimits.PROPERTY.MAX_GUESTS)
+    .optional(),
+
+  minBedrooms: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(ValidationLimits.PROPERTY.MAX_ROOMS)
+    .optional(),
+
+  minBeds: z.coerce.number().int().positive().max(ValidationLimits.PROPERTY.MAX_ROOMS).optional(),
+
+  minBathrooms: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(ValidationLimits.PROPERTY.MAX_ROOMS)
+    .optional(),
+
   isPetsAllowed: z.coerce.boolean({ message: 'isPetsAllowed must be a boolean' }).optional(),
 });
 
@@ -195,7 +246,7 @@ export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
 export const adminGetAllPropertiesQuerySchema = getAllPropertiesQuerySchema.extend({
   status: z.enum(PropertyStatus, { message: 'Invalid property status' }).optional(),
   hostId: z.coerce.number().int().positive().optional(),
-  licenseNumber: z.string().trim().max(ValidationLimits.PROPERTY_LICENSE_MAX).optional(),
+  licenseNumber: z.string().trim().max(ValidationLimits.PROPERTY.LICENSE_MAX).optional(),
   includeDeleted: z.coerce.boolean({ message: 'includeDeleted must be a boolean' }).default(false),
 });
 

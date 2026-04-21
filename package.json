@@ -1,7 +1,7 @@
 {
   "name": "engla-api",
   "version": "1.0.1",
-  "description": "Production-ready RESTful API for Engla — a short-term rental marketplace in England. Built with Node.js, Express, TypeScript, PostgreSQL, and Clean Architecture principles.",
+  "description": "Production-ready RESTful API for EngLa — a short-term rental marketplace in England. Built with Node.js, Express, TypeScript, PostgreSQL, and Clean Architecture principles.",
   "exports": "./dist/entrypoint.js",
   "type": "module",
   "scripts": {
@@ -74,6 +74,7 @@
     "objection": "^3.1.5",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
+    "sanitize-html": "^2.17.3",
     "stripe": "^22.0.2",
     "ulid": "^3.0.2",
     "winston": "^3.19.0",

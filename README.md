@@ -135,6 +135,10 @@ npm run start
 | `AUTH0_AUDIENCE` | Auth0 API Identifier / Namespace | - |
 | `AUTH0_M2M_CLIENT_ID` | Auth0 Machine-to-Machine Client ID | - |
 | `AUTH0_M2M_CLIENT_SECRET` | Auth0 Machine-to-Machine Client Secret | - |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary Account Name | - |
+| `CLOUDINARY_API_KEY` | Cloudinary API Key | - |
+| `CLOUDINARY_API_SECRET` | Cloudinary API Secret | - |
+| `CLOUDINARY_BASE_FOLDER`| Root folder for uploads | - |
 | `LOG_LEVEL` | Logging level (`debug`, `info`, `error`, `warn`, `http`) | `info` |
 | `LOG_DIR` | Directory for log files | `logs` |
 | `DB_HOST` | PostgreSQL Host | `localhost` |
@@ -176,6 +180,7 @@ We use a custom CLI tool built with `Commander.js` to manage database operations
 This project is designed to easily integrate with third-party providers. All external services are isolated within the `src/lib/integrations` directory to keep the core domain logic clean.
 
 * **[Auth0](https://auth0.com/):** Used for robust identity management, authentication, and authorization. We utilize the Auth0 Management API (via M2M App) for secure backend actions like synchronous user account deletion.
+* **[Cloudinary](https://cloudinary.com/):** Serves as our primary media asset management platform and CDN. It handles the storage, dynamic format conversion (e.g., to WebP), and on-the-fly optimization of user avatars and property gallery images.
 * *(More integrations like Stripe will be listed here as the project grows).*
 
 ---
@@ -236,13 +241,15 @@ src/
 
 - `npm run dev`: Starts the application in development mode with `nodemon`.
 - `npm run cli`: Runs the custom CLI tool (use `npm run cli -- --help` to see commands).
+- `npm run prebuild`: Automatically cleans the build directory and compiler cache before building.
 - `npm run build`: Compiles TypeScript to JavaScript (`dist` folder).
 - `npm run start`: Runs the compiled application (Production mode).
-- `npm run clean`: Removes the `dist` directory.
+- `npm run clean`: Removes the `dist` directory and `.tsbuildinfo` cache files.
 - `npm run lint`: Lint code with ESLint.
 - `npm run format`: Format code with Prettier.
 - `npm run test`: Run unit tests with Vitest.
 - `npm run typecheck`: Runs TypeScript type checking without emitting files.
+- `npm run verify`: Runs linter, typecheck, and tests sequentially (useful before pushing code).
 - `npm run prepare`: Sets up Husky git hooks.
 
 ---

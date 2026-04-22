@@ -15,6 +15,11 @@ export type AppConfig = {
   AUTH0_AUDIENCE: string;
   AUTH0_M2M_CLIENT_ID: string;
   AUTH0_M2M_CLIENT_SECRET: string;
+  // --- Cloudinary params ---
+  CLOUDINARY_CLOUD_NAME: string;
+  CLOUDINARY_API_KEY: string;
+  CLOUDINARY_API_SECRET: string;
+  CLOUDINARY_BASE_FOLDER: string;
   // --- Logger params ---
   LOG_LEVEL: LogLevel;
   LOG_DIR: string;
@@ -54,6 +59,10 @@ const envAppSchema = z.object({
   AUTH0_M2M_CLIENT_ID: z.string(),
   AUTH0_M2M_CLIENT_SECRET: z.string(),
   LOG_LEVEL: z.enum(LogLevel).default(LogLevel.INFO),
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string(),
+  CLOUDINARY_BASE_FOLDER: z.string(),
   LOG_DIR: z.string().default('logs'),
   DB_HOST: z.string().default('localhost'),
   DB_PORT: z.coerce.number().default(5432),

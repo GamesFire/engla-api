@@ -2,12 +2,18 @@ export const ErrorCodes = {
   SYSTEM: {
     INTERNAL_ERROR: 'INTERNAL_ERROR',
     JSON_PARSE_ERROR: 'JSON_PARSE_ERROR',
-    UPLOAD_ERROR: 'UPLOAD_ERROR',
     ROUTE_NOT_FOUND: 'HTTP_404',
   },
   HTTP: {
     BAD_REQUEST: 'HTTP_400',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
+  },
+  UPLOAD: {
+    GENERIC_ERROR: 'UPLOAD_ERROR',
+    FILE_TOO_LARGE: 'FILE_TOO_LARGE',
+    TOO_MANY_FILES: 'TOO_MANY_FILES',
+    UNEXPECTED_FILE: 'UNEXPECTED_FILE',
+    INVALID_FORMAT: 'INVALID_FILE_FORMAT',
   },
   RATE_LIMIT: {
     GLOBAL: 'TOO_MANY_GLOBAL_REQUESTS',
@@ -43,10 +49,11 @@ export const ErrorMessages = {
     ROUTE_NOT_FOUND: 'Route not found',
   },
   UPLOAD: {
+    GENERIC_ERROR: 'Upload error',
     FILE_TOO_LARGE: 'File is too large',
     TOO_MANY_FILES: 'Too many files',
     UNEXPECTED_FILE: 'Unexpected file field',
-    GENERIC_ERROR: 'Upload error',
+    INVALID_FORMAT: 'Unsupported file format. Only JPEG, PNG, and WebP are allowed',
   },
   VALIDATION: {
     FAILED: 'Validation failed',

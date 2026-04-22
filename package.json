@@ -6,15 +6,17 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon",
+    "prebuild": "npm run clean",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/entrypoint.js",
-    "clean": "rm -rf dist",
-    "prepare": "husky",
+    "clean": "rm -rf dist *.tsbuildinfo",
     "cli": "tsx src/cli/cli.entrypoint.ts",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run typecheck && npm run test",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -119,7 +121,6 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.53.1",
     "vite": "^8.0.3",
-    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.0.18"
   },
   "overrides": {

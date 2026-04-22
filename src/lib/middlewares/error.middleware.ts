@@ -38,7 +38,7 @@ export const errorMiddleware: ErrorRequestHandler = (
   if (err instanceof HttpError) {
     statusCode = err.statusCode;
     message = err.message;
-    errorCode = `HTTP_${err.statusCode}`;
+    errorCode = (err.internalPayload?.code as string) || `HTTP_${err.statusCode}`;
     internalDetails = {
       internalPayload: err.internalPayload,
       originalError: err.originalError,
@@ -72,20 +72,23 @@ export const errorMiddleware: ErrorRequestHandler = (
     }
   } else if (err instanceof multer.MulterError) {
     statusCode = 400;
-    errorCode = ErrorCodes.SYSTEM.UPLOAD_ERROR;
+    errorCode = ErrorCodes.UPLOAD.GENERIC_ERROR;
 
     switch (err.code) {
       case 'LIMIT_FILE_SIZE': {
         message = ErrorMessages.UPLOAD.FILE_TOO_LARGE;
+        errorCode = ErrorCodes.UPLOAD.FILE_TOO_LARGE;
         statusCode = 413;
         break;
       }
       case 'LIMIT_FILE_COUNT': {
         message = ErrorMessages.UPLOAD.TOO_MANY_FILES;
+        errorCode = ErrorCodes.UPLOAD.TOO_MANY_FILES;
         break;
       }
       case 'LIMIT_UNEXPECTED_FILE': {
         message = ErrorMessages.UPLOAD.UNEXPECTED_FILE;
+        errorCode = ErrorCodes.UPLOAD.UNEXPECTED_FILE;
         break;
       }
       default: {

@@ -9,6 +9,10 @@ declare global {
       AUTH0_AUDIENCE: string;
       AUTH0_M2M_CLIENT_ID: string;
       AUTH0_M2M_CLIENT_SECRET: string;
+      CLOUDINARY_CLOUD_NAME: string;
+      CLOUDINARY_API_KEY: string;
+      CLOUDINARY_API_SECRET: string;
+      CLOUDINARY_BASE_FOLDER: string;
       LOG_LEVEL: string;
       LOG_DIR: string;
       DB_HOST: string;

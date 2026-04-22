@@ -1,3 +1,4 @@
+import { FileSizeBytes } from './file-size.js';
 import { TimeMs } from './time.js';
 
 export const RequestConfig = {
@@ -45,7 +46,16 @@ export const RequestConfig = {
       },
     },
   },
-  MAX_BODY_SIZE: '10mb',
+  MAX_BODY_SIZE: 10 * FileSizeBytes.MB,
+  UPLOAD: {
+    MAX_IMAGE_SIZE_BYTES: 5 * FileSizeBytes.MB,
+    MAX_PROPERTY_IMAGES: 20,
+    ALLOWED_IMAGE_MIME_TYPES: ['image/jpeg', 'image/png', 'image/webp'] as const,
+    FIELDS: {
+      AVATAR: 'avatar',
+      PROPERTY_IMAGES: 'images',
+    },
+  },
   BUSINESS: {
     MAX_PROPERTIES_PER_HOST: 20,
     MAX_PENDING_PROPERTIES: 3,

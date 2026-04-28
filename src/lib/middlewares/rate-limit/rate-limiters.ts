@@ -24,6 +24,12 @@ export const RateLimiters = {
       errorCode: ErrorCodes.RATE_LIMIT.STRICT,
       message: ErrorMessages.RATE_LIMIT.USER_UPDATE,
     }),
+    UPLOAD_AVATAR: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.USERS.UPLOAD_AVATAR.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.USERS.UPLOAD_AVATAR.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.USER_AVATAR_UPLOAD,
+    }),
     DELETION: rateLimitMiddleware({
       windowMs: RequestConfig.RATE_LIMIT.USERS.DELETION.WINDOW_MS,
       maxRequests: RequestConfig.RATE_LIMIT.USERS.DELETION.MAX_REQUESTS,

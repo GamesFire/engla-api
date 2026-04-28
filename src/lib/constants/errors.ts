@@ -4,12 +4,17 @@ export const ErrorCodes = {
     JSON_PARSE_ERROR: 'JSON_PARSE_ERROR',
     ROUTE_NOT_FOUND: 'HTTP_404',
   },
+  INTEGRATION: {
+    IDENTITY_PROVIDER: 'IDENTITY_PROVIDER_ERROR',
+    CLOUD_STORAGE: 'CLOUD_STORAGE_ERROR',
+  },
   HTTP: {
     BAD_REQUEST: 'HTTP_400',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
   },
   UPLOAD: {
     GENERIC_ERROR: 'UPLOAD_ERROR',
+    NO_FILE_PROVIDED: 'NO_FILE_PROVIDED',
     FILE_TOO_LARGE: 'FILE_TOO_LARGE',
     TOO_MANY_FILES: 'TOO_MANY_FILES',
     UNEXPECTED_FILE: 'UNEXPECTED_FILE',
@@ -48,8 +53,13 @@ export const ErrorMessages = {
     GENERIC_PROD_ERROR: 'Something went wrong. Please try again later',
     ROUTE_NOT_FOUND: 'Route not found',
   },
+  INTEGRATION: {
+    IDENTITY_PROVIDER: 'Failed to synchronize with Identity Provider. Please try again later.',
+    CLOUD_STORAGE: 'Failed to communicate with cloud storage service. Please try again later.',
+  },
   UPLOAD: {
     GENERIC_ERROR: 'Upload error',
+    NO_FILE_PROVIDED: 'No file provided',
     FILE_TOO_LARGE: 'File is too large',
     TOO_MANY_FILES: 'Too many files',
     UNEXPECTED_FILE: 'Unexpected file field',
@@ -66,6 +76,7 @@ export const ErrorMessages = {
     PROPERTY_SEARCH: 'Too many search requests. Please slow down',
     PROPERTY_CREATION: 'Too many property creation attempts. Please try again later',
     PROPERTY_UPDATE: 'Too many property update attempts. Please try again later',
+    USER_AVATAR_UPLOAD: 'Too many avatar upload attempts. Please try again later',
     PROPERTY_PUBLISH: 'Too many publish attempts. Please wait before trying again',
     PROPERTY_STATUS_CHANGE: 'Too many status change attempts. Please wait before trying again',
   },

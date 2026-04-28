@@ -18,6 +18,10 @@ export const RequestConfig = {
         WINDOW_MS: TimeMs.ONE_HOUR,
         MAX_REQUESTS: 15,
       },
+      UPLOAD_AVATAR: {
+        WINDOW_MS: TimeMs.ONE_HOUR,
+        MAX_REQUESTS: 5,
+      },
       DELETION: {
         WINDOW_MS: TimeMs.ONE_HOUR,
         MAX_REQUESTS: 3,

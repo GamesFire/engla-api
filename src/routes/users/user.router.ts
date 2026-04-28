@@ -1,11 +1,13 @@
 import { Router } from 'express';
 
 import { RateLimiters } from '@lib/middlewares/rate-limit/rate-limiters.js';
+import { uploadAvatarMiddleware } from '@lib/middlewares/upload.middleware.js';
 
 import { UserController } from './user.controller.js';
 
 const ProtectedUserRoutes = {
   ME: '/me',
+  AVATAR: '/me/avatar',
 } as const;
 
 const AdminUserRoutes = {
@@ -19,6 +21,14 @@ export function createProtectedUserRouter(): Router {
 
   router.get(ProtectedUserRoutes.ME, userController.getMe);
   router.patch(ProtectedUserRoutes.ME, RateLimiters.USERS.UPDATE, userController.updateMe);
+
+  router.put(
+    ProtectedUserRoutes.AVATAR,
+    RateLimiters.USERS.UPLOAD_AVATAR,
+    uploadAvatarMiddleware,
+    userController.uploadMyAvatar,
+  );
+
   router.delete(ProtectedUserRoutes.ME, RateLimiters.USERS.DELETION, userController.deleteMe);
 
   return router;

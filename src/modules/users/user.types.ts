@@ -24,6 +24,12 @@ export type FindUserOptions = UserQueryOptions;
 
 export type GetUsersParams = AdminGetAllUsersQueryDto;
 
+export type UploadUserAvatarParams = {
+  userId: number;
+  auth0Id: string;
+  fileBuffer: Buffer;
+};
+
 export type CreateUserData = Pick<User, 'auth0Id' | 'email' | 'isVerified'> &
   Partial<Pick<User, 'firstName' | 'lastName' | 'avatarUrl' | 'language' | 'currency'>>;
 

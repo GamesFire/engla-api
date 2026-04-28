@@ -10,6 +10,7 @@ export const ErrorCodes = {
   },
   UPLOAD: {
     GENERIC_ERROR: 'UPLOAD_ERROR',
+    NO_FILE_PROVIDED: 'NO_FILE_PROVIDED',
     FILE_TOO_LARGE: 'FILE_TOO_LARGE',
     TOO_MANY_FILES: 'TOO_MANY_FILES',
     UNEXPECTED_FILE: 'UNEXPECTED_FILE',
@@ -50,6 +51,7 @@ export const ErrorMessages = {
   },
   UPLOAD: {
     GENERIC_ERROR: 'Upload error',
+    NO_FILE_PROVIDED: 'No file provided',
     FILE_TOO_LARGE: 'File is too large',
     TOO_MANY_FILES: 'Too many files',
     UNEXPECTED_FILE: 'Unexpected file field',
@@ -66,6 +68,7 @@ export const ErrorMessages = {
     PROPERTY_SEARCH: 'Too many search requests. Please slow down',
     PROPERTY_CREATION: 'Too many property creation attempts. Please try again later',
     PROPERTY_UPDATE: 'Too many property update attempts. Please try again later',
+    USER_AVATAR_UPLOAD: 'Too many avatar upload attempts. Please try again later',
     PROPERTY_PUBLISH: 'Too many publish attempts. Please wait before trying again',
     PROPERTY_STATUS_CHANGE: 'Too many status change attempts. Please wait before trying again',
   },

@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import { inject } from 'inversify';
 
 import { provide } from '@ioc/decorators.js';
+import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
+import { HttpError } from '@lib/errors/http.error.js';
 import { UserService } from '@modules/users/user.service.js';
 
 import {
@@ -16,6 +18,7 @@ export class UserController {
   constructor(@inject(UserService) private readonly _userService: UserService) {
     this.getMe = this.getMe.bind(this);
     this.updateMe = this.updateMe.bind(this);
+    this.uploadMyAvatar = this.uploadMyAvatar.bind(this);
     this.deleteMe = this.deleteMe.bind(this);
 
     this.adminGetUserById = this.adminGetUserById.bind(this);
@@ -37,6 +40,31 @@ export class UserController {
     const updateUserBodyDto = updateUserBodySchema.parse(req.body);
 
     const updatedUser = await this._userService.updateUserProfile(user.id, updateUserBodyDto);
+
+    res.status(200).json(updatedUser);
+  }
+
+  // ! TODO: E2E Testing Required (Avatar Upload & Auth0 Sync)
+  // ! Currently untestable via Auth0 Dashboard "Test" tab because test tokens lack a real user context,
+  // ! which means Auth0 Actions (custom_picture injection) are not triggered.
+  // ! Verify this once the SPA client flow is ready.
+  public async uploadMyAvatar(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const file = req.file;
+
+    if (!file) {
+      throw new HttpError({
+        statusCode: 400,
+        message: ErrorMessages.UPLOAD.NO_FILE_PROVIDED,
+        internalPayload: { code: ErrorCodes.UPLOAD.NO_FILE_PROVIDED },
+      });
+    }
+
+    const updatedUser = await this._userService.uploadAvatar({
+      userId: user.id,
+      auth0Id: user.auth0Id,
+      fileBuffer: file.buffer,
+    });
 
     res.status(200).json(updatedUser);
   }

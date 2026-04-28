@@ -20,6 +20,28 @@ export class Auth0Service {
   }
 
   /**
+   * Updates the user's custom avatar URL in Auth0's user_metadata.
+   *
+   * @param {string} auth0Id - User ID in Auth0.
+   * @param {string} avatarUrl - The new Cloudinary secure URL.
+   * @throws Will throw an error if the update fails.
+   */
+  public async updateUserAvatar(auth0Id: string, avatarUrl: string): Promise<void> {
+    try {
+      await this._managementClient.users.update(auth0Id, {
+        user_metadata: { custom_picture: avatarUrl },
+      });
+      logger.info(`[Auth0Service] Successfully updated custom_picture for user ${auth0Id}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+      logger.error(
+        `[Auth0Service] Failed to update avatar in Auth0 for user ${auth0Id}: ${errorMessage || 'Unknown error'}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Deletes a user from the Auth0 database.
    *
    * If the user is not found in Auth0 (404), the method will log a warning and return without throwing an error.

@@ -293,10 +293,10 @@ When code is merged into the main branch, the CI/CD pipeline will automatically:
 ## 🤝 Contributing
 
 1.  Fork the repository.
-2.  Create your feature branch (`git checkout -b feat/amazing_feature`).
+2.  Create your feature branch (`git checkout -b feat/amazing-feature`).
 3.  Commit your changes following the **Conventional Commits** standard: 
     `git commit -m 'feat: add some amazing feature'`
-4.  Push to the branch (`git push origin feat/amazing_feature`).
+4.  Push to the branch (`git push origin feat/amazing-feature`).
 5.  Open a Pull Request.
 
 ---

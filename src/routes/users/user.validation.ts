@@ -16,7 +16,6 @@ export const updateUserBodySchema = z
   .object({
     firstName: nameSchema.optional(),
     lastName: nameSchema.optional(),
-    avatarUrl: avatarSchema.optional(),
 
     phone: z
       .string()
@@ -71,6 +70,8 @@ export const adminGetAllUsersQuerySchema = basePaginationSchema.extend({
 
 export const adminUpdateUserBodySchema = updateUserBodySchema
   .extend({
+    avatarUrl: avatarSchema.optional(),
+
     role: z
       .enum(UserRole, {
         message: 'Invalid user role',

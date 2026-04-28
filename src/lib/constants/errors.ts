@@ -4,6 +4,10 @@ export const ErrorCodes = {
     JSON_PARSE_ERROR: 'JSON_PARSE_ERROR',
     ROUTE_NOT_FOUND: 'HTTP_404',
   },
+  INTEGRATION: {
+    IDENTITY_PROVIDER: 'IDENTITY_PROVIDER_ERROR',
+    CLOUD_STORAGE: 'CLOUD_STORAGE_ERROR',
+  },
   HTTP: {
     BAD_REQUEST: 'HTTP_400',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
@@ -48,6 +52,10 @@ export const ErrorMessages = {
     JSON_INVALID: 'Invalid JSON format',
     GENERIC_PROD_ERROR: 'Something went wrong. Please try again later',
     ROUTE_NOT_FOUND: 'Route not found',
+  },
+  INTEGRATION: {
+    IDENTITY_PROVIDER: 'Failed to synchronize with Identity Provider. Please try again later.',
+    CLOUD_STORAGE: 'Failed to communicate with cloud storage service. Please try again later.',
   },
   UPLOAD: {
     GENERIC_ERROR: 'Upload error',

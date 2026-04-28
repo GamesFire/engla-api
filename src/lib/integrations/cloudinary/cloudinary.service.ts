@@ -3,6 +3,8 @@ import { Readable } from 'stream';
 
 import { provide } from '@ioc/decorators.js';
 import { appConfig } from '@lib/configs/app.config.js';
+import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
+import { HttpError } from '@lib/errors/http.error.js';
 import { logger } from '@lib/logger.js';
 
 import { CloudinaryConfig } from './cloudinary.constants.js';
@@ -25,11 +27,8 @@ export class CloudinaryService {
    * intelligent quality compression. The file is stored under a dynamic base folder.
    *
    * @param {CloudinaryUploadParams} params - The upload configuration object.
-   * @param {Buffer} params.fileBuffer - The binary buffer of the image.
-   * @param {CloudinaryFolder} params.targetFolder - The specific sub-folder for this asset type.
-   * @param {string} [params.customPublicId] - Optional deterministic ID to automatically overwrite existing assets.
    * @returns {Promise<CloudinaryUploadResult>} A Promise resolving to the secure URL and Public ID of the uploaded image.
-   * @throws Will throw an error if the Cloudinary API rejects the stream.
+   * @throws {HttpError} Will throw an HTTP 502 error if the Cloudinary API rejects the stream.
    */
   public async uploadImage(params: CloudinaryUploadParams): Promise<CloudinaryUploadResult> {
     return new Promise((resolve, reject) => {
@@ -49,8 +48,18 @@ export class CloudinaryService {
 
       const uploadStream = cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
         if (error || !result) {
-          logger.error(`[CloudinaryService] Failed to upload image to ${fullFolderPath}:`, error);
-          return reject(error);
+          const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+          logger.error(
+            `[CloudinaryService] Failed to upload image to ${fullFolderPath}: ${errorMessage || 'Unknown error'}`,
+          );
+
+          return reject(
+            new HttpError({
+              statusCode: 502,
+              message: ErrorMessages.INTEGRATION.CLOUD_STORAGE,
+              internalPayload: { code: ErrorCodes.INTEGRATION.CLOUD_STORAGE },
+            }),
+          );
         }
 
         logger.info(`[CloudinaryService] Image successfully uploaded: ${result.public_id}`);
@@ -69,23 +78,27 @@ export class CloudinaryService {
    * Deletes an asset from the Cloudinary database.
    *
    * This is critical for preventing orphaned files in the cloud storage
-   * when entities are updated or deleted (e.g., changing a profile picture
-   * or removing a gallery item).
+   * when entities are updated or deleted.
    *
    * @param {string} publicId - The unique Cloudinary identifier of the image to delete.
    * @returns {Promise<void>} Resolves when the image is successfully destroyed.
-   * @throws Will throw an error if the deletion process fails.
+   * @throws {HttpError} Will throw an HTTP 502 error if the deletion process fails.
    */
   public async deleteImage(publicId: string): Promise<void> {
     try {
       await cloudinary.uploader.destroy(publicId);
       logger.info(`[CloudinaryService] Deleted image: ${publicId}`);
     } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
       logger.error(
-        `[CloudinaryService] Failed to delete image ${publicId}:`,
-        error instanceof Error ? error.message : error,
+        `[CloudinaryService] Failed to delete image ${publicId}: ${errorMessage || 'Unknown error'}`,
       );
-      throw error;
+
+      throw new HttpError({
+        statusCode: 502,
+        message: ErrorMessages.INTEGRATION.CLOUD_STORAGE,
+        internalPayload: { code: ErrorCodes.INTEGRATION.CLOUD_STORAGE },
+      });
     }
   }
 }

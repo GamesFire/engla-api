@@ -21,8 +21,9 @@ import type {
 export class UserRepository {
   /**
    * Applies common query options.
-   * @param {QueryBuilder<UserModel, T>} query - The query to modify.
-   * @param {UserQueryOptions} options - The options to apply.
+   *
+   * @param query - The query to modify.
+   * @param options - The options to apply.
    */
   private _applyOptions<T>(
     query: QueryBuilder<UserModel, T>,
@@ -42,8 +43,9 @@ export class UserRepository {
 
   /**
    * Applies filters to the query.
-   * @param {QueryBuilder<UserModel, UserModel[]>} query - The query to modify.
-   * @param {GetUsersParams} filters - The filters to apply.
+   *
+   * @param query - The query to modify.
+   * @param filters - The filters to apply.
    */
   private _applyFilters(
     query: QueryBuilder<UserModel, UserModel[]>,

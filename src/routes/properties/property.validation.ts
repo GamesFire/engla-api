@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { EnglandCounties } from '@lib/constants/geography.js';
 import { ValidationLimits, ValidationPatterns } from '@lib/constants/validation.js';
-import { idParamSchema } from '@lib/validations/params/id.param.js';
+import { idParamSchema, idSchema } from '@lib/validations/params/id.param.js';
 import { basePaginationSchema } from '@lib/validations/queries/pagination.query.js';
 import {
   CancellationPolicy,
@@ -15,6 +15,13 @@ import { sanitizeText } from '@utils/sanitizer.js';
 // --- PROPERTY SHARED SCHEMAS ---
 
 export const propertyIdParamSchema = idParamSchema.clone();
+
+export const propertyImageIdParamSchema = z
+  .object({
+    id: idSchema,
+    imageId: idSchema,
+  })
+  .strict();
 
 export const basePropertyFieldsSchema = z
   .object({
@@ -182,6 +189,15 @@ export const updatePropertyBodySchema = basePropertyFieldsSchema
     }
   });
 
+export const reorderPropertyImagesBodySchema = z
+  .object({
+    imageIds: z
+      .array(idSchema)
+      .min(1, { message: 'At least one image ID is required to reorder' })
+      .max(ValidationLimits.PROPERTY.MAX_IMAGES, { message: 'Too many image IDs provided' }),
+  })
+  .strict();
+
 // --- PROPERTY PUBLIC SCHEMAS (Search) ---
 
 export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
@@ -257,8 +273,10 @@ export const adminUpdatePropertyBodySchema = updatePropertyBodySchema
   .strict();
 
 export type PropertyIdParamDto = z.infer<typeof propertyIdParamSchema>;
+export type PropertyImageIdParamDto = z.infer<typeof propertyImageIdParamSchema>;
 export type CreatePropertyBodyDto = z.infer<typeof createPropertyBodySchema>;
 export type UpdatePropertyBodyDto = z.infer<typeof updatePropertyBodySchema>;
+export type ReorderPropertyImagesBodyDto = z.infer<typeof reorderPropertyImagesBodySchema>;
 export type GetAllPropertiesQueryDto = z.infer<typeof getAllPropertiesQuerySchema>;
 export type AdminGetAllPropertiesQueryDto = z.infer<typeof adminGetAllPropertiesQuerySchema>;
 export type AdminUpdatePropertyBodyDto = z.infer<typeof adminUpdatePropertyBodySchema>;

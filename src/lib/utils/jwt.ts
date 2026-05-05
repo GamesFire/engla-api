@@ -19,6 +19,7 @@ const TOKEN_SIGNING_ALG = 'RS256';
  * If successful, it attaches the decoded token payload to `req.auth`.
  *
  * @see https://github.com/auth0/node-oauth2-jwt-bearer/tree/main/packages/express-oauth2-jwt-bearer
+ * @returns The middleware function.
  */
 export const checkJwt: Handler = auth({
   issuerBaseURL: appConfig.AUTH0_ISSUER_BASE_URL,

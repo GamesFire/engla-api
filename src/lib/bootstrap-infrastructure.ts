@@ -11,6 +11,9 @@ import { GracefulShutdownHandler } from '@utils/graceful-shutdown.js';
 /**
  * Initializes and checks all infrastructure connections (DB, Cache, etc.)
  * Registers hooks for proper termination.
+ *
+ * @param ioc - The Inversify container.
+ * @returns Resolves when all initialization tasks are completed.
  */
 export async function bootstrapInfrastructure(ioc: Container): Promise<void> {
   try {

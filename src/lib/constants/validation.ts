@@ -28,6 +28,7 @@ export const ValidationLimits = {
     MAX_GUESTS: 30,
     MAX_ROOMS: 20,
     MAX_AREA_SQM: 5000,
+    MAX_IMAGES: 20,
   },
   GEOGRAPHY: {
     // Bounding box strictly for England

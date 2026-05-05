@@ -9,7 +9,11 @@ import type { PackageJson } from '@app/interfaces/package-json.interface.js';
 
 /**
  * Safely parse a JSON string.
- * Returns null or the default value if parsing fails, instead of throwing an error.
+ *
+ * @template T - The type of the parsed JSON object.
+ * @param input - The JSON string to parse.
+ * @param [defaults] - The default value to return if parsing fails.
+ * @returns The parsed JSON object, or the default value if parsing fails.
  */
 export function tryParseJSON<T = any>(input: string, defaults: Nullable<T> = null): Nullable<T> {
   try {
@@ -21,7 +25,8 @@ export function tryParseJSON<T = any>(input: string, defaults: Nullable<T> = nul
 
 /**
  * Reads package.json from the project root (process.cwd()).
- * Returns a typed object or a fallback value.
+ *
+ * @returns A promise that resolves to a typed object or a fallback value.
  */
 export async function getPackageInfo(): Promise<PackageJson> {
   try {
@@ -48,6 +53,8 @@ export async function getPackageInfo(): Promise<PackageJson> {
 
 /**
  * Generate a unique trace ID using ulid.
+ *
+ * @returns The generated trace ID.
  */
 export function generateTraceID(): string {
   return ulid();
@@ -59,8 +66,8 @@ export function generateTraceID(): string {
  * while `null` means "set to null".
  *
  * @template T - The type of the input object.
- * @param {T} obj - The source object.
- * @returns {T} A new object with `undefined` properties removed.
+ * @param obj - The source object.
+ * @returns A new object with `undefined` properties removed.
  *
  * @example
  * const input = { name: 'John', age: undefined, bio: null };

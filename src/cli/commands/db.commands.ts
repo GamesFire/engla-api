@@ -28,7 +28,9 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
 
   program
     .command('db:reset')
-    .description('Drop and re-create the database (Fresh start)')
+    .description(
+      'Drop and re-create the database (Fresh start) (Dev only). Forces disconnection of active users.',
+    )
     .action(async () => {
       await dropDatabase();
       await createDatabase();

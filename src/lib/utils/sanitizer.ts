@@ -3,10 +3,11 @@ import sanitizeHtml, { type IOptions } from 'sanitize-html';
 /**
  * Sanitizes a given HTML string to prevent XSS attacks and remove unwanted formatting.
  * By default, it applies a zero-tolerance policy (strips all HTML tags and attributes).
- * @param {string} text - The raw input string to be sanitized.
- * @param {IOptions} customOptions - Optional configuration to override the strict default settings
- * (e.g., allowing specific tags like 'b', 'i', or 'a').
+ *
+ * @param text - The raw input string to be sanitized.
+ * @param [customOptions] - Optional configuration to override the strict default settings (e.g., allowing specific tags like 'b', 'i', or 'a').
  * @returns The sanitized, safe string.
+ *
  * @example
  * // Strips everything (Default)
  * sanitizeText('<script>alert("xss")</script><p>Hello</p>'); // Returns: 'Hello'

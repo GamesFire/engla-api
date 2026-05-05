@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import { inject } from 'inversify';
 
 import { provide } from '@ioc/decorators.js';
+import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
+import { HttpError } from '@lib/errors/http.error.js';
 import { PropertyService } from '@modules/properties/property.service.js';
 
 import {
@@ -10,6 +12,8 @@ import {
   createPropertyBodySchema,
   getAllPropertiesQuerySchema,
   propertyIdParamSchema,
+  propertyImageIdParamSchema,
+  reorderPropertyImagesBodySchema,
   updatePropertyBodySchema,
 } from './property.validation.js';
 
@@ -26,6 +30,10 @@ export class PropertyController {
     this.pauseMyProperty = this.pauseMyProperty.bind(this);
     this.unpauseMyProperty = this.unpauseMyProperty.bind(this);
     this.deleteMyProperty = this.deleteMyProperty.bind(this);
+    this.uploadPropertyImages = this.uploadPropertyImages.bind(this);
+    this.reorderPropertyImages = this.reorderPropertyImages.bind(this);
+    this.deletePropertyImage = this.deletePropertyImage.bind(this);
+    this.setMainPropertyImage = this.setMainPropertyImage.bind(this);
 
     this.adminGetAllProperties = this.adminGetAllProperties.bind(this);
     this.adminUpdateProperty = this.adminUpdateProperty.bind(this);
@@ -117,6 +125,68 @@ export class PropertyController {
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
 
     await this._propertyService.deletePropertyByHost(user.id, propertyId);
+
+    res.status(204).send();
+  }
+
+  public async uploadPropertyImages(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      throw new HttpError({
+        statusCode: 400,
+        message: ErrorMessages.UPLOAD.NO_FILE_PROVIDED,
+        internalPayload: { code: ErrorCodes.UPLOAD.NO_FILE_PROVIDED },
+      });
+    }
+
+    const updatedProperty = await this._propertyService.uploadImages({
+      files,
+      hostId: user.id,
+      propertyId,
+    });
+
+    res.status(201).json(updatedProperty);
+  }
+
+  public async reorderPropertyImages(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const { imageIds } = reorderPropertyImagesBodySchema.parse(req.body);
+
+    await this._propertyService.reorderPropertyImages({
+      imageIds,
+      hostId: user.id,
+      propertyId,
+    });
+
+    res.status(204).send();
+  }
+
+  public async deletePropertyImage(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
+
+    await this._propertyService.deleteImage({
+      imageId,
+      hostId: user.id,
+      propertyId,
+    });
+
+    res.status(204).send();
+  }
+
+  public async setMainPropertyImage(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
+
+    await this._propertyService.setMainImage({
+      imageId,
+      hostId: user.id,
+      propertyId,
+    });
 
     res.status(204).send();
   }

@@ -26,9 +26,9 @@ export class CloudinaryService {
    * Automatically converts the image to the globally configured format and applies
    * intelligent quality compression. The file is stored under a dynamic base folder.
    *
-   * @param {CloudinaryUploadParams} params - The upload configuration object.
-   * @returns {Promise<CloudinaryUploadResult>} A Promise resolving to the secure URL and Public ID of the uploaded image.
-   * @throws {HttpError} Will throw an HTTP 502 error if the Cloudinary API rejects the stream.
+   * @param params - The upload configuration object.
+   * @returns A Promise resolving to the secure URL and Public ID of the uploaded image.
+   * @throws Will throw an HTTP 502 error if the Cloudinary API rejects the stream.
    */
   public async uploadImage(params: CloudinaryUploadParams): Promise<CloudinaryUploadResult> {
     return new Promise((resolve, reject) => {
@@ -80,9 +80,9 @@ export class CloudinaryService {
    * This is critical for preventing orphaned files in the cloud storage
    * when entities are updated or deleted.
    *
-   * @param {string} publicId - The unique Cloudinary identifier of the image to delete.
-   * @returns {Promise<void>} Resolves when the image is successfully destroyed.
-   * @throws {HttpError} Will throw an HTTP 502 error if the deletion process fails.
+   * @param publicId - The unique Cloudinary identifier of the image to delete.
+   * @returns Resolves when the image is successfully destroyed.
+   * @throws Will throw an HTTP 502 error if the deletion process fails.
    */
   public async deleteImage(publicId: string): Promise<void> {
     try {

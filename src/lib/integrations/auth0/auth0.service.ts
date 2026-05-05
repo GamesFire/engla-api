@@ -24,9 +24,9 @@ export class Auth0Service {
   /**
    * Updates the user's custom avatar URL in Auth0's user_metadata.
    *
-   * @param {string} auth0Id - User ID in Auth0.
-   * @param {string} avatarUrl - The new Cloudinary secure URL.
-   * @throws {HttpError} Will throw an HTTP 502 error if the update fails.
+   * @param auth0Id - User ID in Auth0.
+   * @param avatarUrl - The new Cloudinary secure URL.
+   * @throws Will throw an HTTP 502 error if the update fails.
    */
   public async updateUserAvatar(auth0Id: string, avatarUrl: string): Promise<void> {
     try {
@@ -53,9 +53,9 @@ export class Auth0Service {
    *
    * If the user is not found in Auth0 (404), the method will log a warning and return without throwing an error.
    *
-   * @param {string} auth0Id - User ID in Auth0 (e.g., "auth0|123456789").
-   * @returns {Promise<void>} A Promise that resolves when the user is deleted from Auth0.
-   * @throws {HttpError} Will throw an HTTP 502 error if the deletion fails (excluding 404).
+   * @param auth0Id - User ID in Auth0 (e.g., "auth0|123456789").
+   * @returns A Promise that resolves when the user is deleted from Auth0.
+   * @throws Will throw an HTTP 502 error if the deletion fails (excluding 404).
    */
   public async deleteUser(auth0Id: string): Promise<void> {
     try {

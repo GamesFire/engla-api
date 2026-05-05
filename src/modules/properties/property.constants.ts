@@ -1,9 +1,9 @@
 import type { Property } from '@models/properties/property.model.js';
 
-export const PropertyConstants = {
+export const PropertyRules = {
   /**
    * Fields that represent the physical location of the property.
-   * Modifying any of these fields is forbidden once the property leaves the DRAFT state.
+   * Modifying any of these fields is strictly forbidden once the property leaves the DRAFT state.
    */
   LOCATION_FIELDS: [
     'addressLine1',
@@ -16,9 +16,8 @@ export const PropertyConstants = {
   ] as const satisfies readonly (keyof Property)[],
 
   /**
-   * Fields that MUST be completely filled out before a DRAFT can be published.
-   * Note: 'propertyType' is not here because it is strictly required upon creation.
-   * Note: 'licenseNumber' is dynamically required only for 'hotel' property types.
+   * Core fields that MUST be completely filled out before a DRAFT can be published.
+   * Note: 'propertyType' is not here because it is strictly required upon initial creation.
    */
   REQUIRED_FOR_PUBLISHING: [
     'title',
@@ -36,4 +35,12 @@ export const PropertyConstants = {
     'checkOutTime',
     'cancellationPolicy',
   ] as const satisfies readonly (keyof Property)[],
+
+  /**
+   * Conditional or virtual fields required for publishing, evaluated dynamically.
+   */
+  DYNAMIC_PUBLISH_FIELDS: {
+    LICENSE: 'licenseNumber', // Required only for 'hotel' property types
+    IMAGES: 'images', // Virtual relation field: at least 1 image is required
+  },
 } as const;

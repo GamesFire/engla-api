@@ -164,7 +164,7 @@ We use a custom CLI tool built with `Commander.js` to manage database operations
 | --- | --- |
 | `npm run cli db:create` | Creates the database if it doesn't exist (using `pg` driver). |
 | `npm run cli db:drop` | ⚠️ Drops the database (Dev environment only). |
-| `npm run cli db:reset` | ⚠️ Drops, re-creates, migrates, and seeds the DB. |
+| `npm run cli db:reset` | ⚠️ Drop and re-creates the database (Dev environment only). |
 | `npm run cli db:migrate` | Runs pending migrations (`knex migrate:latest`). |
 | `npm run cli db:rollback` | Reverts the last batch of migrations. |
 | `npm run cli db:make:migration <name>` | Creates a new migration timestamped file (e.g., `create_users`). |
@@ -210,29 +210,32 @@ npm run test
 ## 📂 Project Structure
 
 ```text
-.github/                # GitHub Actions CI/CD workflows
+.github/                # GitHub Actions (CI/CD workflows), Dependabot, PR & Issue templates
 .husky/                 # Git hooks (pre-commit, commit-msg)
 database/               # Database migrations & seeds (Knex)
 tests/                  # Unit & Integration tests (Vitest)
-src/
+src/                    # Main source code
 ├── @types/             # Global TypeScript type definitions
 ├── cli/                # Custom CLI tool implementation (Commands, Entrypoint)
 ├── interfaces/         # Shared TypeScript interfaces
 ├── ioc/                # Dependency Injection (Container, Bindings, Decorators)
 ├── lib/                # Core libraries & Shared infrastructure
 │   ├── configs/        # Configuration schemas (AppConfig, KnexConfig)
-│   ├── constants/      # Global constants (Enums, Time, Limits)
-│   ├── db/             # Database clients (Knex, Redis), Models (Objection.js)
+│   ├── constants/      # Global constants (Enums, Time, Limits, Error Codes, etc.)
+│   ├── db/             # Database clients (Knex, Redis), Base Models (Objection.js)
 │   ├── errors/         # Custom Error classes (HttpError, etc.)
 │   ├── health/         # Infrastructure health check logic
-│   ├── integrations/   # Third-party service providers (Auth0, Stripe, etc.)
-│   ├── middlewares/    # Express middlewares (Auth, Logger, Rate Limiters, etc.)
-│   ├── utils/          # Helpers (Graceful Shutdown, Data parsing, etc.)
-│   └── validations/    # Global Zod validation schemas
+│   ├── integrations/   # Third-party service providers (Auth0, Cloudinary, Stripe, etc.)
+│   ├── middlewares/    # Express middlewares (Auth, Rate Limiters, File Uploads, etc.)
+│   ├── utils/          # Helpers (Type Guards, Graceful Shutdown, Sanitization, etc.)
+│   ├── validations/    # Global and shared Zod validation schemas
+│   ├── bootstrap-infrastructure.ts # Core infrastructure initialization logic
+│   └── logger.ts       # Application logger configuration
 ├── modules/            # Domain Modules / Business Logic (Services, Repositories)
-├── routes/             # API Routes & Controllers (System, V1)
-├── server.ts           # HTTP Server setup (Express app configuration)
+├── routes/             # API Routes, Controllers & Schemas (System, V1)
+├── server.ts           # HTTP Server setup (Express app, CORS, Middleware pipeline)
 └── entrypoint.ts       # Main application entry point
+...                     # Standard ecosystem configs (ESLint, Prettier, TS, Semantic Release, etc.)
 ```
 
 ---

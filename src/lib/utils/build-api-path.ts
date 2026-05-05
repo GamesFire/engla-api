@@ -8,7 +8,6 @@ import { ApiPrefix } from '../constants/routes.js';
  *
  * @param version - The API version (e.g., '/v1').
  * @param path - The endpoint path, starting with a slash (e.g., '/users', '/auth/login').
- *
  * @returns The fully qualified API path string.
  *
  * @example

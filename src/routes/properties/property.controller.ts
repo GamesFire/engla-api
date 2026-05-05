@@ -132,15 +132,16 @@ export class PropertyController {
   public async uploadPropertyImages(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
-    const files = req.files as Express.Multer.File[];
 
-    if (!files || files.length === 0) {
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
       throw new HttpError({
         statusCode: 400,
         message: ErrorMessages.UPLOAD.NO_FILE_PROVIDED,
         internalPayload: { code: ErrorCodes.UPLOAD.NO_FILE_PROVIDED },
       });
     }
+
+    const files = req.files as Express.Multer.File[];
 
     const updatedProperty = await this._propertyService.uploadImages({
       files,

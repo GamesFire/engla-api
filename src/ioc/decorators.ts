@@ -12,6 +12,8 @@ type Constructor<T = object> = new (...args: any[]) => T;
  * Decorator to automatically register a class in the IOC container.
  * It marks the class as `@injectable` and defines binding metadata (Singleton by default).
  *
+ * @returns A class decorator function that registers the target class in the IoC container.
+ *
  * @example
  * Usage:
  *

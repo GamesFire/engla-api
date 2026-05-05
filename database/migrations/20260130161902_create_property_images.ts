@@ -16,7 +16,14 @@ export async function up(knex: Knex): Promise<void> {
       .onDelete('CASCADE'); // If property is deleted, delete associated images too
 
     table.string('url').notNullable().comment('Full URL to the image storage');
-    table.string('public_id').nullable().comment('Cloudinary reference ID for deletion');
+
+    table
+      .string('public_id')
+      .nullable()
+      .comment(
+        'Provider-specific external asset identifier (e.g., used for cloud transformations and deletions)',
+      );
+
     table.boolean('is_main').defaultTo(false).comment('Indicates the thumbnail image');
     table.integer('order').unsigned().defaultTo(0).comment('UI sorting order');
 

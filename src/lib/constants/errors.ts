@@ -35,6 +35,9 @@ export const ErrorCodes = {
   },
   PROPERTIES: {
     NOT_FOUND: 'PROPERTY_NOT_FOUND',
+    IMAGE_NOT_FOUND: 'PROPERTY_IMAGE_NOT_FOUND',
+    INVALID_IMAGE_REORDER_COUNT: 'PROPERTY_INVALID_IMAGE_REORDER_COUNT',
+    INVALID_IMAGE_REORDER_IDS: 'PROPERTY_INVALID_IMAGE_REORDER_IDS',
     LIMIT_REACHED: 'PROPERTY_LIMIT_REACHED',
     LOCATION_LOCKED: 'PROPERTY_LOCATION_LOCKED',
     HAS_ACTIVE_BOOKINGS: 'PROPERTY_HAS_ACTIVE_BOOKINGS',
@@ -72,13 +75,15 @@ export const ErrorMessages = {
     GLOBAL: 'Too many requests, please try again later',
     AUTH_LOGIN: 'Too many login attempts. Please try again later',
     USER_UPDATE: 'Too many account update attempts. Please try again later',
+    USER_AVATAR_UPLOAD: 'Too many avatar upload attempts. Please try again later',
     USER_DELETION: 'Too many account deletion attempts. Please try again later',
     PROPERTY_SEARCH: 'Too many search requests. Please slow down',
     PROPERTY_CREATION: 'Too many property creation attempts. Please try again later',
     PROPERTY_UPDATE: 'Too many property update attempts. Please try again later',
-    USER_AVATAR_UPLOAD: 'Too many avatar upload attempts. Please try again later',
     PROPERTY_PUBLISH: 'Too many publish attempts. Please wait before trying again',
     PROPERTY_STATUS_CHANGE: 'Too many status change attempts. Please wait before trying again',
+    PROPERTY_IMAGE_UPLOAD: 'Too many image upload attempts. Please try again later',
+    PROPERTY_IMAGE_MANAGE: 'Too many image management attempts. Please try again later',
   },
   AUTH: {
     UNAUTHORIZED: 'Authentication failed',
@@ -92,6 +97,11 @@ export const ErrorMessages = {
   },
   PROPERTIES: {
     NOT_FOUND: 'Property not found',
+    IMAGE_NOT_FOUND: 'Property image not found',
+    INVALID_IMAGE_REORDER_COUNT:
+      'The number of provided image IDs does not match the actual number of images',
+    INVALID_IMAGE_REORDER_IDS:
+      'One or more image IDs are invalid or do not belong to this property',
     LIMIT_REACHED: 'You have reached the maximum allowed number of properties',
     LOCATION_LOCKED:
       'You cannot change the location of a property that is no longer a draft. Please create a new listing instead',

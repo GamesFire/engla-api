@@ -69,5 +69,17 @@ export const RateLimiters = {
       errorCode: ErrorCodes.RATE_LIMIT.STRICT,
       message: ErrorMessages.RATE_LIMIT.PROPERTY_STATUS_CHANGE,
     }),
+    UPLOAD_IMAGES: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.PROPERTIES.UPLOAD_IMAGES.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.PROPERTIES.UPLOAD_IMAGES.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.PROPERTY_IMAGE_UPLOAD,
+    }),
+    MANAGE_IMAGES: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.PROPERTIES.MANAGE_IMAGES.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.PROPERTIES.MANAGE_IMAGES.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.PROPERTY_IMAGE_MANAGE,
+    }),
   },
 } as const;

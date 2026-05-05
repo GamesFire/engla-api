@@ -48,9 +48,17 @@ export const RequestConfig = {
         WINDOW_MS: TimeMs.ONE_HOUR,
         MAX_REQUESTS: 10,
       },
+      UPLOAD_IMAGES: {
+        WINDOW_MS: TimeMs.ONE_HOUR,
+        MAX_REQUESTS: 10,
+      },
+      MANAGE_IMAGES: {
+        WINDOW_MS: TimeMs.ONE_MINUTE,
+        MAX_REQUESTS: 60,
+      },
     },
   },
-  MAX_BODY_SIZE: 10 * FileSizeBytes.MB,
+  MAX_JSON_BODY_SIZE: 10 * FileSizeBytes.MB,
   UPLOAD: {
     MAX_IMAGE_SIZE_BYTES: 5 * FileSizeBytes.MB,
     MAX_PROPERTY_IMAGES: 20,

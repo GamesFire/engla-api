@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { RateLimiters } from '@lib/middlewares/rate-limit/rate-limiters.js';
 import { skipIfParamNotNumericMiddleware } from '@lib/middlewares/skip-if-param-not-numeric.middleware.js';
+import { uploadPropertyImagesMiddleware } from '@lib/middlewares/upload.middleware.js';
 
 import { PropertyController } from './property.controller.js';
 
@@ -17,6 +18,10 @@ const ProtectedPropertyRoutes = {
   PUBLISH: '/:id/publish',
   PAUSE: '/:id/pause',
   UNPAUSE: '/:id/unpause',
+  IMAGES: '/:id/images',
+  IMAGES_REORDER: '/:id/images/reorder',
+  IMAGE_BY_ID: '/:id/images/:imageId',
+  MAKE_IMAGE_MAIN: '/:id/images/:imageId/main',
 } as const;
 
 const AdminPropertyRoutes = {
@@ -80,6 +85,31 @@ export function createProtectedPropertyRouter(): Router {
   );
 
   router.delete(ProtectedPropertyRoutes.BY_ID, propertyController.deleteMyProperty);
+
+  router.post(
+    ProtectedPropertyRoutes.IMAGES,
+    RateLimiters.PROPERTIES.UPLOAD_IMAGES,
+    uploadPropertyImagesMiddleware,
+    propertyController.uploadPropertyImages,
+  );
+
+  router.patch(
+    ProtectedPropertyRoutes.IMAGES_REORDER,
+    RateLimiters.PROPERTIES.MANAGE_IMAGES,
+    propertyController.reorderPropertyImages,
+  );
+
+  router.delete(
+    ProtectedPropertyRoutes.IMAGE_BY_ID,
+    RateLimiters.PROPERTIES.MANAGE_IMAGES,
+    propertyController.deletePropertyImage,
+  );
+
+  router.put(
+    ProtectedPropertyRoutes.MAKE_IMAGE_MAIN,
+    RateLimiters.PROPERTIES.MANAGE_IMAGES,
+    propertyController.setMainPropertyImage,
+  );
 
   return router;
 }

@@ -26,6 +26,9 @@ export class UserService {
 
   /**
    * Helper method to generate a deterministic Cloudinary ID for avatars.
+   *
+   * @param userId - The ID of the user.
+   * @returns The generated Cloudinary ID.
    */
   private _generateAvatarPublicId(userId: number): string {
     return `${UserMedia.AVATAR_PUBLIC_ID_PREFIX}${userId}`;
@@ -33,6 +36,9 @@ export class UserService {
 
   /**
    * Helper method to generate the full Cloudinary public ID (including folders).
+   *
+   * @param userId - The ID of the user.
+   * @returns The full Cloudinary public ID.
    */
   private _getFullAvatarPublicId(userId: number): string {
     const customId = this._generateAvatarPublicId(userId);
@@ -42,6 +48,9 @@ export class UserService {
   /**
    * Helper method to silently delete an avatar from Cloudinary if it exists.
    * We do not throw errors here to prevent blocking the account deletion flow.
+   *
+   * @param user - The user whose avatar to delete.
+   * @returns A promise that resolves when the deletion is complete.
    */
   private async _silentlyDeleteAvatar(user: User): Promise<void> {
     if (user.avatarUrl && user.avatarUrl.includes(CloudinaryConfig.DOMAIN)) {

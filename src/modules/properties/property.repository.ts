@@ -19,8 +19,9 @@ import type {
 export class PropertyRepository {
   /**
    * Applies common query options.
-   * @param {QueryBuilder<PropertyModel, T>} query - The query to modify.
-   * @param {PropertyQueryOptions} options - The options to apply.
+   *
+   * @param query - The query to modify.
+   * @param options - The options to apply.
    */
   private _applyOptions<T>(
     query: QueryBuilder<PropertyModel, T>,
@@ -40,8 +41,9 @@ export class PropertyRepository {
 
   /**
    * Applies complex filters for searching properties.
-   * @param {QueryBuilder<PropertyModel, PropertyModel[]>} query - The query to modify.
-   * @param {GetPublicPropertiesParams | AdminGetPropertiesParams} filters - The filters to apply.
+   *
+   * @param query - The query to modify.
+   * @param filters - The filters to apply.
    */
   private _applyFilters(
     query: QueryBuilder<PropertyModel, PropertyModel[]>,
@@ -111,11 +113,12 @@ export class PropertyRepository {
 
   /**
    * A universal method for counting properties based on any criteria.
+   *
+   * @param filters - An object with fields for filtering.
+   * @returns A promise that resolves to the count of properties that match the filters.
+   *
    * @example
    * count({ hostId: 1, status: PropertyStatus.PENDING })
-   *
-   * @param {Partial<Property>} filters - An object with fields for filtering.
-   * @returns {Promise<number>} A promise that resolves to the count of properties that match the filters.
    */
   public async count(filters: Partial<Property>): Promise<number> {
     const cleanFilters = skipUndefinedFields(filters);

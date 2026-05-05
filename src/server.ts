@@ -43,7 +43,7 @@ export async function createServer(): Promise<Express> {
 
   app.use(
     express.json({
-      limit: RequestConfig.MAX_BODY_SIZE,
+      limit: RequestConfig.MAX_JSON_BODY_SIZE,
       verify: (req, _res, buf) => {
         const request = req as ExpressRequest;
 
@@ -54,7 +54,7 @@ export async function createServer(): Promise<Express> {
     }),
   );
 
-  app.use(express.urlencoded({ extended: true, limit: RequestConfig.MAX_BODY_SIZE }));
+  app.use(express.urlencoded({ extended: true, limit: RequestConfig.MAX_JSON_BODY_SIZE }));
   app.use(hpp());
   app.use(requestLoggerMiddleware);
 

@@ -7,7 +7,9 @@ export interface Auth0ApiError {
 /**
  * Checks whether the error is an Auth0 Management API error.
  * These errors typically contain a 'statusCode' property.
- * @param {unknown} err - The error to check.
+ *
+ * @param err - The error to check.
+ * @returns Whether the error is an Auth0 Management API error.
  */
 export function isAuth0ApiError(err: unknown): err is Auth0ApiError {
   return (

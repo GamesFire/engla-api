@@ -11,4 +11,6 @@ export const loginBodySchema = z
   })
   .strict();
 
+// --- EXPORT TYPES ---
+
 export type LoginBodyDto = z.infer<typeof loginBodySchema>;

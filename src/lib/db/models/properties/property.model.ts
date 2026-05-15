@@ -1,6 +1,6 @@
 import { Model, type Pojo, type RelationMappings } from 'objection';
 
-import { AmenityModel } from '../amenity.model.js';
+import { AmenityModel } from '../amenities/amenity.model.js';
 import { BaseSystemModel } from '../base-system.model.js';
 import { PropertyImageModel } from '../property-image.model.js';
 import { UserModel } from '../users/user.model.js';
@@ -84,6 +84,7 @@ export interface Property {
 
 export class PropertyModel extends BaseSystemModel implements Property {
   static tableName = 'properties';
+  static modifiers = PropertyModifiers;
 
   id!: number;
   hostId!: number;
@@ -117,8 +118,6 @@ export class PropertyModel extends BaseSystemModel implements Property {
   host?: UserModel;
   images?: PropertyImageModel[];
   amenities?: AmenityModel[];
-
-  static modifiers = PropertyModifiers;
 
   // --- Relation Mappings (For Objection) ---
   static get relationMappings(): RelationMappings {

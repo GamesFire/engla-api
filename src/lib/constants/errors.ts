@@ -47,6 +47,13 @@ export const ErrorCodes = {
     NOT_ACTIVE: 'PROPERTY_NOT_ACTIVE',
     NOT_INACTIVE: 'PROPERTY_NOT_INACTIVE',
   },
+  AMENITIES: {
+    NOT_FOUND: 'AMENITY_NOT_FOUND',
+    NAME_EXISTS: 'AMENITY_NAME_EXISTS',
+    CATEGORY_NOT_FOUND: 'AMENITY_CATEGORY_NOT_FOUND',
+    CATEGORY_NAME_EXISTS: 'AMENITY_CATEGORY_NAME_EXISTS',
+    CATEGORY_IN_USE: 'AMENITY_CATEGORY_IN_USE',
+  },
 } as const;
 
 export const ErrorMessages = {
@@ -84,6 +91,9 @@ export const ErrorMessages = {
     PROPERTY_STATUS_CHANGE: 'Too many status change attempts. Please wait before trying again',
     PROPERTY_IMAGE_UPLOAD: 'Too many image upload attempts. Please try again later',
     PROPERTY_IMAGE_MANAGE: 'Too many image management attempts. Please try again later',
+    AMENITY_SEARCH: 'Too many amenity or amenity category search requests. Please slow down',
+    AMENITY_MANAGEMENT:
+      'Too many amenity or amenity category management attempts. Please try again later',
   },
   AUTH: {
     UNAUTHORIZED: 'Authentication failed',
@@ -113,5 +123,12 @@ export const ErrorMessages = {
       'You have reached the maximum number of properties awaiting review',
     NOT_ACTIVE: 'Only active properties can be paused',
     NOT_INACTIVE: 'Only inactive properties can be unpaused',
+  },
+  AMENITIES: {
+    NOT_FOUND: 'Amenity not found',
+    NAME_EXISTS: 'An amenity with this name already exists',
+    CATEGORY_NOT_FOUND: 'Amenity category not found',
+    CATEGORY_NAME_EXISTS: 'An amenity category with this name already exists',
+    CATEGORY_IN_USE: 'Amenity category is in use',
   },
 } as const;

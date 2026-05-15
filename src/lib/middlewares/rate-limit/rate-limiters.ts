@@ -82,4 +82,18 @@ export const RateLimiters = {
       message: ErrorMessages.RATE_LIMIT.PROPERTY_IMAGE_MANAGE,
     }),
   },
+  AMENITIES: {
+    SEARCH: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.AMENITIES.SEARCH.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.AMENITIES.SEARCH.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.AMENITY_SEARCH,
+    }),
+    MANAGEMENT: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.AMENITIES.MANAGEMENT.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.AMENITIES.MANAGEMENT.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.AMENITY_MANAGEMENT,
+    }),
+  },
 } as const;

@@ -57,6 +57,16 @@ export const RequestConfig = {
         MAX_REQUESTS: 60,
       },
     },
+    AMENITIES: {
+      SEARCH: {
+        WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
+        MAX_REQUESTS: 200,
+      },
+      MANAGEMENT: {
+        WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
+        MAX_REQUESTS: 50,
+      },
+    },
   },
   MAX_JSON_BODY_SIZE: 10 * FileSizeBytes.MB,
   UPLOAD: {

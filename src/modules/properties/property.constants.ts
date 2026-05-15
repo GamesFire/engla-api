@@ -1,5 +1,7 @@
 import type { Property } from '@models/properties/property.model.js';
 
+export const PropertySortFields = ['createdAt', 'pricePerNight', 'title'] as const;
+
 export const PropertyRules = {
   /**
    * Fields that represent the physical location of the property.

@@ -90,25 +90,25 @@ export function createProtectedPropertyRouter(): Router {
     ProtectedPropertyRoutes.IMAGES,
     RateLimiters.PROPERTIES.UPLOAD_IMAGES,
     uploadPropertyImagesMiddleware,
-    propertyController.uploadPropertyImages,
+    propertyController.uploadMyPropertyImages,
   );
 
   router.patch(
     ProtectedPropertyRoutes.IMAGES_REORDER,
     RateLimiters.PROPERTIES.MANAGE_IMAGES,
-    propertyController.reorderPropertyImages,
+    propertyController.reorderMyPropertyImages,
   );
 
   router.delete(
     ProtectedPropertyRoutes.IMAGE_BY_ID,
     RateLimiters.PROPERTIES.MANAGE_IMAGES,
-    propertyController.deletePropertyImage,
+    propertyController.deleteMyPropertyImage,
   );
 
   router.put(
     ProtectedPropertyRoutes.MAKE_IMAGE_MAIN,
     RateLimiters.PROPERTIES.MANAGE_IMAGES,
-    propertyController.setMainPropertyImage,
+    propertyController.setMainMyPropertyImage,
   );
 
   return router;

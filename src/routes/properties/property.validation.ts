@@ -10,6 +10,7 @@ import {
   PropertyType,
   RoomType,
 } from '@models/properties/property.model.js';
+import { PropertySortFields } from '@modules/properties/property.constants.js';
 import { sanitizeText } from '@utils/sanitizer.js';
 
 // --- PROPERTY SHARED SCHEMAS ---
@@ -125,6 +126,11 @@ export const basePropertyFieldsSchema = z
       .max(ValidationLimits.PROPERTY.LICENSE_MAX)
       .transform((val) => sanitizeText(val))
       .optional(),
+
+    amenityIds: z
+      .array(z.number().int().positive())
+      .max(ValidationLimits.PROPERTY.MAX_AMENITIES)
+      .optional(),
   })
   .strict();
 
@@ -191,10 +197,7 @@ export const updatePropertyBodySchema = basePropertyFieldsSchema
 
 export const reorderPropertyImagesBodySchema = z
   .object({
-    imageIds: z
-      .array(idSchema)
-      .min(1, { message: 'At least one image ID is required to reorder' })
-      .max(ValidationLimits.PROPERTY.MAX_IMAGES, { message: 'Too many image IDs provided' }),
+    imageIds: z.array(idSchema).min(1).max(ValidationLimits.PROPERTY.MAX_IMAGES),
   })
   .strict();
 
@@ -202,7 +205,7 @@ export const reorderPropertyImagesBodySchema = z
 
 export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
   orderBy: z
-    .enum(['createdAt', 'pricePerNight', 'title'] as const, {
+    .enum(PropertySortFields, {
       message: 'Invalid orderBy field for properties',
     })
     .default('createdAt'),
@@ -255,6 +258,46 @@ export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
     .optional(),
 
   isPetsAllowed: z.coerce.boolean({ message: 'isPetsAllowed must be a boolean' }).optional(),
+
+  amenityIds: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val, ctx) => {
+      if (!val) return undefined;
+
+      const arr = Array.isArray(val) ? val : val.split(',');
+      const result: number[] = [];
+
+      for (const id of arr) {
+        const trimmed = id.trim();
+
+        if (trimmed === '') {
+          continue;
+        }
+
+        if (!ValidationPatterns.NUMERIC_STRING.test(trimmed)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Invalid amenity ID format: '${trimmed}'`,
+          });
+          return z.NEVER;
+        }
+
+        const parsed = parseInt(trimmed, 10);
+
+        if (parsed <= 0) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Amenity ID must be a positive number: ${parsed}`,
+          });
+          return z.NEVER;
+        }
+
+        result.push(parsed);
+      }
+
+      return result.length > 0 ? result : undefined;
+    }),
 });
 
 // --- PROPERTY ADMIN SCHEMAS ---
@@ -272,11 +315,16 @@ export const adminUpdatePropertyBodySchema = updatePropertyBodySchema
   })
   .strict();
 
+// --- EXPORT TYPES ---
+
 export type PropertyIdParamDto = z.infer<typeof propertyIdParamSchema>;
 export type PropertyImageIdParamDto = z.infer<typeof propertyImageIdParamSchema>;
+
 export type CreatePropertyBodyDto = z.infer<typeof createPropertyBodySchema>;
 export type UpdatePropertyBodyDto = z.infer<typeof updatePropertyBodySchema>;
 export type ReorderPropertyImagesBodyDto = z.infer<typeof reorderPropertyImagesBodySchema>;
+
 export type GetAllPropertiesQueryDto = z.infer<typeof getAllPropertiesQuerySchema>;
+
 export type AdminGetAllPropertiesQueryDto = z.infer<typeof adminGetAllPropertiesQuerySchema>;
 export type AdminUpdatePropertyBodyDto = z.infer<typeof adminUpdatePropertyBodySchema>;

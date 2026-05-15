@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-export const basePaginationSchema = z.object({
+import { baseSortSchema } from './sort.query.js';
+
+export const basePaginationSchema = baseSortSchema.extend({
   page: z.coerce
     .number({ error: 'Page must be a number' })
     .min(1, 'Page must be greater than 0')

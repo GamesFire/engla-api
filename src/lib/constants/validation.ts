@@ -29,6 +29,7 @@ export const ValidationLimits = {
     MAX_ROOMS: 20,
     MAX_AREA_SQM: 5000,
     MAX_IMAGES: 20,
+    MAX_AMENITIES: 100,
   },
   GEOGRAPHY: {
     // Bounding box strictly for England
@@ -36,6 +37,12 @@ export const ValidationLimits = {
     ENGLAND_LAT_MAX: 55.8,
     ENGLAND_LNG_MIN: -6.5,
     ENGLAND_LNG_MAX: 1.8,
+  },
+  AMENITY: {
+    NAME_MIN: 2,
+    NAME_MAX: 50,
+    DESC_MAX: 255,
+    ICON_MAX: 50,
   },
 } as const;
 
@@ -82,4 +89,10 @@ export const ValidationPatterns = {
    * Matches 00:00 to 23:59.
    */
   TIME_HH_MM: /^([01]\d|2[0-3]):([0-5]\d)$/,
+
+  /**
+   * Numeric string format.
+   * Matches strings that contain ONLY digits (e.g., "123", "45", not "12a").
+   */
+  NUMERIC_STRING: /^\d+$/,
 } as const;

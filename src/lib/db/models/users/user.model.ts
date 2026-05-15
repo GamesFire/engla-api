@@ -32,6 +32,7 @@ export interface User {
 
 export class UserModel extends BaseSystemModel implements User {
   static tableName = 'users';
+  static modifiers = UserModifiers;
 
   id!: number;
   auth0Id!: string;
@@ -46,8 +47,6 @@ export class UserModel extends BaseSystemModel implements User {
   currency!: string;
   stripeAccountId!: Nullable<string>;
   stripeOnboardingCompleted!: boolean;
-
-  static modifiers = UserModifiers;
 
   get fullName() {
     return `${this.firstName || ''} ${this.lastName || ''}`.trim();

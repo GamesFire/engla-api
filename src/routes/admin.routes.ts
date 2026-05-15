@@ -4,6 +4,7 @@ import { ApiRoutes } from '@lib/constants/routes.js';
 import { roleMiddleware } from '@lib/middlewares/role.middleware.js';
 import { UserRole } from '@models/users/user.model.js';
 
+import { createAdminAmenityRouter } from './amenities/amenity.router.js';
 import { createAdminPropertyRouter } from './properties/property.router.js';
 import { createAdminUserRouter } from './users/user.router.js';
 
@@ -16,6 +17,7 @@ export function createAdminRouter(): Router {
   // --- ADMIN ROUTES ---
   router.use(ApiRoutes.USERS, createAdminUserRouter());
   router.use(ApiRoutes.PROPERTIES, createAdminPropertyRouter());
+  router.use(ApiRoutes.AMENITIES, createAdminAmenityRouter());
 
   return router;
 }

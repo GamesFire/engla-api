@@ -1,3 +1,5 @@
+export const UserSortFields = ['createdAt', 'email', 'firstName', 'lastName', 'role'] as const;
+
 export const UserAnonymization = {
   FIRST_NAME: 'Deleted',
   LAST_NAME: 'User',

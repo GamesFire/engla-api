@@ -52,6 +52,23 @@ This project follows **Clean Architecture** principles to ensure separation of c
 3.  **Bootstrapper Pattern:** Infrastructure initialization logic is decoupled from the entry point.
 4.  **Custom CLI:** Instead of relying on global binaries, we use a project-specific CLI (`engla-cli`) to manage database operations, ensuring consistency across environments.
 
+### Naming Conventions (Ubiquitous Language)
+
+To maintain a predictable and highly readable codebase, we strictly enforce the following naming conventions across our layers:
+
+1. **Controllers (Route & Role Context):**
+   Controller method names must reflect the **Endpoint Route** and the **Actor (Role)** calling it. This immediately tells the developer who is authorized to use this method.
+   * `getPublicProperties` -> Maps to `GET /properties` (Accessible to anyone).
+   * `getMyProperties` -> Maps to `GET /me/properties` (Accessible to the authenticated Host/User).
+   * `adminGetAllProperties` -> Maps to `GET /admin/properties` (Accessible only to Admins).
+
+2. **Services (Business Use-Case Context):**
+   Service method names must reflect the pure **Business Action**, stripped of HTTP context. We only use suffixes (like `ByHost` or `ByAdmin`) when the identical action has different business rules depending on the actor.
+   * `getProperties` -> A universal fetch method (No suffix needed).
+   * `updatePropertyByHost` -> Applies host-specific rules (e.g., location is locked after publishing).
+   * `adminUpdateProperty` -> Applies admin-specific rules (e.g., can force-change status bypassing host validations).
+   * `createAmenity` -> No `admin` prefix needed because only admins can create amenities globally (no context overlap).
+
 ---
 
 ## ✅ Prerequisites
@@ -147,10 +164,15 @@ npm run start
 | `DB_PASS` | PostgreSQL Password | - |
 | `DB_NAME` | Database Name | - |
 | `DB_DEFAULT_NAME` | System default database (e.g., `postgres`) used for initial admin connection | - |
+| `DB_DEBUG` | Enables Knex query logging in development mode | `false` |
 | `REDIS_HOST` | Redis Host | `localhost` |
 | `REDIS_PORT` | Redis Port | `6379` |
 | `REDIS_PASS` | Redis Password | - |
 | `REDIS_DB` | Redis Database | `0` |
+| `SEED_ADMIN_AUTH0_ID` | Mock Auth0 ID for the main Admin account | `auth0|admin123` |
+| `SEED_ADMIN_EMAIL` | Mock email for the main Admin account | `admin@engla.com` |
+| `SEED_HOST_AUTH0_ID` | Mock Auth0 ID for the demo Host account | `auth0|host123` |
+| `SEED_HOST_EMAIL` | Mock email for the demo Host account | `demo.host@example.com` |
 
 ---
 
@@ -166,12 +188,23 @@ We use a custom CLI tool built with `Commander.js` to manage database operations
 | `npm run cli db:drop` | ⚠️ Drops the database (Dev environment only). |
 | `npm run cli db:reset` | ⚠️ Drop and re-creates the database (Dev environment only). |
 | `npm run cli db:migrate` | Runs pending migrations (`knex migrate:latest`). |
-| `npm run cli db:rollback` | Reverts the last batch of migrations. |
+| `npm run cli db:rollback` | Reverts the last batch of migrations (`knex migrate:rollback`). |
 | `npm run cli db:make:migration <name>` | Creates a new migration timestamped file (e.g., `create_users`). |
 | `npm run cli db:delete:migration <name>` | Physically deletes a migration file from the disk (e.g., `20260130150428_create_users.ts`). |
 | `npm run cli db:run:migration <name>` | Runs a specific pending migration file (e.g., `20260130150428_create_users.ts`). |
 | `npm run cli db:rollback:migration <name>` | Reverts a specific migration file (e.g., `20260130150428_create_users.ts`). |
-| `npm run cli db:seed` | Runs seed files. |
+| `npm run cli db:seed` | Runs all seed files (`knex seed:run`). |
+| `npm run cli db:make:seed <name>` | Creates a new seed file (e.g., `01_system_amenity_categories`). |
+| `npm run cli db:delete:seed <name>` | Physically deletes a seed file from the disk (e.g., `01_system_amenity_categories.ts`). |
+| `npm run cli db:run:seed <name>` | Runs a specific seed file (e.g., `01_system_amenity_categories.ts`). |
+
+### Database Seeding Strategy
+
+Our seed files follow a strict naming convention to ensure proper execution order and environment safety:
+
+- **`01_system_*` / `02_system_*`**: System seeds contain production-ready dictionaries and core data (e.g., global amenity categories). These are executed in **all** environments, including production.
+- **`03_mock_*` / `04_mock_*`**: Mock seeds contain fake entities (e.g., users, properties) generated for development, testing, and presentations. These files include a failsafe guard (`if (appConfig.isProd) return;`) to ensure they are **never** executed in production.
+- **Numerical Prefix**: Guarantees that referenced tables (like `amenity_categories` before `amenities`, or `users` before `properties`) are seeded in the correct order to respect foreign key constraints.
 
 ---
 
@@ -212,7 +245,10 @@ npm run test
 ```text
 .github/                # GitHub Actions (CI/CD workflows), Dependabot, PR & Issue templates
 .husky/                 # Git hooks (pre-commit, commit-msg)
-database/               # Database migrations & seeds (Knex)
+database/               # Database structure and data management
+├── migrations/         # Schema definitions and table structures
+├── seeds/              # Initial data population scripts (system & mock data)
+├── stubs/              # Code generation templates (ensures proper Knex CLI file formatting)
 tests/                  # Unit & Integration tests (Vitest)
 src/                    # Main source code
 ├── @types/             # Global TypeScript type definitions

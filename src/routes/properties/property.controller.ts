@@ -30,10 +30,10 @@ export class PropertyController {
     this.pauseMyProperty = this.pauseMyProperty.bind(this);
     this.unpauseMyProperty = this.unpauseMyProperty.bind(this);
     this.deleteMyProperty = this.deleteMyProperty.bind(this);
-    this.uploadPropertyImages = this.uploadPropertyImages.bind(this);
-    this.reorderPropertyImages = this.reorderPropertyImages.bind(this);
-    this.deletePropertyImage = this.deletePropertyImage.bind(this);
-    this.setMainPropertyImage = this.setMainPropertyImage.bind(this);
+    this.uploadMyPropertyImages = this.uploadMyPropertyImages.bind(this);
+    this.reorderMyPropertyImages = this.reorderMyPropertyImages.bind(this);
+    this.deleteMyPropertyImage = this.deleteMyPropertyImage.bind(this);
+    this.setMainMyPropertyImage = this.setMainMyPropertyImage.bind(this);
 
     this.adminGetAllProperties = this.adminGetAllProperties.bind(this);
     this.adminUpdateProperty = this.adminUpdateProperty.bind(this);
@@ -129,7 +129,7 @@ export class PropertyController {
     res.status(204).send();
   }
 
-  public async uploadPropertyImages(req: Request, res: Response) {
+  public async uploadMyPropertyImages(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
 
@@ -143,7 +143,7 @@ export class PropertyController {
 
     const files = req.files as Express.Multer.File[];
 
-    const updatedProperty = await this._propertyService.uploadImages({
+    const updatedProperty = await this._propertyService.uploadPropertyImagesByHost({
       files,
       hostId: user.id,
       propertyId,
@@ -152,12 +152,12 @@ export class PropertyController {
     res.status(201).json(updatedProperty);
   }
 
-  public async reorderPropertyImages(req: Request, res: Response) {
+  public async reorderMyPropertyImages(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
     const { imageIds } = reorderPropertyImagesBodySchema.parse(req.body);
 
-    await this._propertyService.reorderPropertyImages({
+    await this._propertyService.reorderPropertyImagesByHost({
       imageIds,
       hostId: user.id,
       propertyId,
@@ -166,11 +166,11 @@ export class PropertyController {
     res.status(204).send();
   }
 
-  public async deletePropertyImage(req: Request, res: Response) {
+  public async deleteMyPropertyImage(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
 
-    await this._propertyService.deleteImage({
+    await this._propertyService.deletePropertyImageByHost({
       imageId,
       hostId: user.id,
       propertyId,
@@ -179,11 +179,11 @@ export class PropertyController {
     res.status(204).send();
   }
 
-  public async setMainPropertyImage(req: Request, res: Response) {
+  public async setMainMyPropertyImage(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
 
-    await this._propertyService.setMainImage({
+    await this._propertyService.setMainPropertyImageByHost({
       imageId,
       hostId: user.id,
       propertyId,
@@ -196,7 +196,7 @@ export class PropertyController {
 
   public async adminGetAllProperties(req: Request, res: Response) {
     const queryDto = adminGetAllPropertiesQuerySchema.parse(req.query);
-    const properties = await this._propertyService.adminGetProperties(queryDto);
+    const properties = await this._propertyService.getPropertiesByAdmin(queryDto);
 
     res.status(200).json(properties);
   }
@@ -205,7 +205,10 @@ export class PropertyController {
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
     const updateDto = adminUpdatePropertyBodySchema.parse(req.body);
 
-    const updatedProperty = await this._propertyService.adminUpdateProperty(propertyId, updateDto);
+    const updatedProperty = await this._propertyService.updatePropertyByAdmin(
+      propertyId,
+      updateDto,
+    );
 
     res.status(200).json(updatedProperty);
   }
@@ -213,7 +216,7 @@ export class PropertyController {
   public async adminDeleteProperty(req: Request, res: Response) {
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
 
-    await this._propertyService.adminDeleteProperty(propertyId);
+    await this._propertyService.deletePropertyByAdmin(propertyId);
 
     res.status(204).send();
   }

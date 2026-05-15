@@ -7,9 +7,9 @@ import { PropertyModifier } from '@models/properties/property.modifiers.js';
 import { skipUndefinedFields } from '@utils/data.js';
 
 import type {
-  AdminGetPropertiesParams,
   CreatePropertyData,
   FindPropertyOptions,
+  GetPropertiesByAdminParams,
   GetPublicPropertiesParams,
   PropertyQueryOptions,
   UpdatePropertyParams,
@@ -18,7 +18,7 @@ import type {
 @provide()
 export class PropertyRepository {
   /**
-   * Applies common query options.
+   * Applies common query options for properties.
    *
    * @param query - The query to modify.
    * @param options - The options to apply.
@@ -47,7 +47,7 @@ export class PropertyRepository {
    */
   private _applyFilters(
     query: QueryBuilder<PropertyModel, PropertyModel[]>,
-    filters: GetPublicPropertiesParams | AdminGetPropertiesParams,
+    filters: GetPublicPropertiesParams | GetPropertiesByAdminParams,
   ): void {
     const {
       city,
@@ -62,6 +62,7 @@ export class PropertyRepository {
       minBeds,
       minBathrooms,
       isPetsAllowed,
+      amenityIds,
     } = filters;
 
     if (city) query.where('city', 'ilike', `%${city}%`);
@@ -80,6 +81,17 @@ export class PropertyRepository {
     if (minBathrooms !== undefined) query.where('bathrooms', '>=', minBathrooms);
 
     if (isPetsAllowed !== undefined) query.where('isPetsAllowed', isPetsAllowed);
+
+    if (amenityIds && amenityIds.length > 0) {
+      query.whereExists(
+        PropertyModel.relatedQuery('amenities')
+          .clearSelect()
+          .select('properties_amenities.propertyId')
+          .whereIn('amenities.id', amenityIds)
+          .groupBy('properties_amenities.propertyId')
+          .havingRaw('COUNT(DISTINCT amenities.id) = ?', [amenityIds.length]),
+      );
+    }
 
     if ('status' in filters && filters.status) {
       query.where('status', filters.status);
@@ -167,8 +179,8 @@ export class PropertyRepository {
     return { results, total };
   }
 
-  public async adminGetProperties(
-    params: AdminGetPropertiesParams,
+  public async getPropertiesByAdmin(
+    params: GetPropertiesByAdminParams,
   ): Promise<PaginatedResponse<Property>> {
     const { page, limit, orderBy, orderDirection } = params;
 
@@ -193,9 +205,23 @@ export class PropertyRepository {
 
   public async updateAndFetchById(params: UpdatePropertyParams): Promise<Property> {
     const { propertyId, data, options = {} } = params;
-    const cleanData = skipUndefinedFields(data);
+
+    const { amenityIds, ...propertyData } = data;
+    const cleanData = skipUndefinedFields(propertyData);
 
     await PropertyModel.query().findById(propertyId).patch(cleanData);
+
+    if (amenityIds !== undefined) {
+      const property = await PropertyModel.query().findById(propertyId);
+      if (property) {
+        await property.$relatedQuery('amenities').unrelate();
+
+        if (amenityIds.length > 0) {
+          await property.$relatedQuery('amenities').relate(amenityIds);
+        }
+      }
+    }
+
     return this.findById(propertyId, options) as Promise<Property>;
   }
 

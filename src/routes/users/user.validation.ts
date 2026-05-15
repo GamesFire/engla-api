@@ -5,6 +5,7 @@ import { idParamSchema } from '@lib/validations/params/id.param.js';
 import { basePaginationSchema } from '@lib/validations/queries/pagination.query.js';
 import { avatarSchema, nameSchema } from '@lib/validations/user-shared.validation.js';
 import { Locale, UserRole } from '@models/users/user.model.js';
+import { UserSortFields } from '@modules/users/user.constants.js';
 
 // --- USER SHARED SCHEMAS ---
 
@@ -48,7 +49,7 @@ export const updateUserBodySchema = z
 
 export const adminGetAllUsersQuerySchema = basePaginationSchema.extend({
   orderBy: z
-    .enum(['createdAt', 'email', 'firstName', 'lastName', 'role'] as const, {
+    .enum(UserSortFields, {
       message: 'Invalid orderBy field for users',
     })
     .default('createdAt'),
@@ -92,7 +93,11 @@ export const adminUpdateUserBodySchema = updateUserBodySchema
   })
   .strict();
 
+// --- EXPORT TYPES ---
+
 export type UserIdParamDto = z.infer<typeof userIdParamSchema>;
+
 export type UpdateUserBodyDto = z.infer<typeof updateUserBodySchema>;
+
 export type AdminGetAllUsersQueryDto = z.infer<typeof adminGetAllUsersQuerySchema>;
 export type AdminUpdateUserBodyDto = z.infer<typeof adminUpdateUserBodySchema>;

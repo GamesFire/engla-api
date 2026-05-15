@@ -20,7 +20,7 @@ import type {
 @provide()
 export class UserRepository {
   /**
-   * Applies common query options.
+   * Applies common query options for users.
    *
    * @param query - The query to modify.
    * @param options - The options to apply.
@@ -42,7 +42,7 @@ export class UserRepository {
   }
 
   /**
-   * Applies filters to the query.
+   * Applies filters to the query for searching users.
    *
    * @param query - The query to modify.
    * @param filters - The filters to apply.

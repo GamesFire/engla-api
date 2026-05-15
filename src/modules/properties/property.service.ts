@@ -11,10 +11,8 @@ import { type Property, PropertyStatus, PropertyType } from '@models/properties/
 import { PropertyModifier } from '@models/properties/property.modifiers.js';
 import type { PropertyImage } from '@models/property-image.model.js';
 import type {
-  AdminGetAllPropertiesQueryDto,
   AdminUpdatePropertyBodyDto,
   CreatePropertyBodyDto,
-  GetAllPropertiesQueryDto,
 } from '@routes/properties/property.validation.js';
 
 import { PropertyImageRepository } from './property-image.repository.js';
@@ -23,10 +21,12 @@ import { PropertyRepository } from './property.repository.js';
 import type {
   FindPropertyOptions,
   GetExistingPropertyForHostParams,
-  PropertyImageParams,
-  ReorderPropertyImagesParams,
+  GetPropertiesByAdminParams,
+  GetPublicPropertiesParams,
+  PropertyImageByHostParams,
+  ReorderPropertyImagesByHostParams,
   UpdatePropertyByHostParams,
-  UploadPropertyImagesParams,
+  UploadPropertyImagesByHostParams,
 } from './property.types.js';
 
 @provide()
@@ -133,14 +133,14 @@ export class PropertyService {
   }
 
   public async getPublicProperties(
-    params: GetAllPropertiesQueryDto,
+    params: GetPublicPropertiesParams,
   ): Promise<PaginatedResponse<Property>> {
     return this._propertyRepository.getPublicProperties(params);
   }
 
   public async getPropertiesByHostId(
     hostId: number,
-    params: GetAllPropertiesQueryDto,
+    params: GetPublicPropertiesParams,
   ): Promise<PaginatedResponse<Property>> {
     return this._propertyRepository.getPropertiesByHostId(hostId, params);
   }
@@ -307,7 +307,9 @@ export class PropertyService {
     await this._executeSmartPropertyDeletion(property);
   }
 
-  public async uploadImages(params: UploadPropertyImagesParams): Promise<Property> {
+  public async uploadPropertyImagesByHost(
+    params: UploadPropertyImagesByHostParams,
+  ): Promise<Property> {
     const { files, hostId, propertyId } = params;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
@@ -343,7 +345,9 @@ export class PropertyService {
     return this._getExistingProperty(propertyId, { modifiers: PropertyModifier.HOST_VIEW });
   }
 
-  public async reorderPropertyImages(params: ReorderPropertyImagesParams): Promise<void> {
+  public async reorderPropertyImagesByHost(
+    params: ReorderPropertyImagesByHostParams,
+  ): Promise<void> {
     const { imageIds, hostId, propertyId } = params;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
@@ -377,7 +381,7 @@ export class PropertyService {
     }
   }
 
-  public async deleteImage(params: PropertyImageParams): Promise<void> {
+  public async deletePropertyImageByHost(params: PropertyImageByHostParams): Promise<void> {
     const { imageId, hostId, propertyId } = params;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
@@ -403,7 +407,7 @@ export class PropertyService {
     }
   }
 
-  public async setMainImage(params: PropertyImageParams): Promise<void> {
+  public async setMainPropertyImageByHost(params: PropertyImageByHostParams): Promise<void> {
     const { imageId, hostId, propertyId } = params;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
@@ -421,13 +425,13 @@ export class PropertyService {
     await this._propertyImageRepository.reorderImages(reorderedIds, propertyId);
   }
 
-  public async adminGetProperties(
-    params: AdminGetAllPropertiesQueryDto,
+  public async getPropertiesByAdmin(
+    params: GetPropertiesByAdminParams,
   ): Promise<PaginatedResponse<Property>> {
-    return this._propertyRepository.adminGetProperties(params);
+    return this._propertyRepository.getPropertiesByAdmin(params);
   }
 
-  public async adminUpdateProperty(
+  public async updatePropertyByAdmin(
     propertyId: number,
     dto: AdminUpdatePropertyBodyDto,
   ): Promise<Property> {
@@ -443,7 +447,7 @@ export class PropertyService {
     });
   }
 
-  public async adminDeleteProperty(propertyId: number): Promise<void> {
+  public async deletePropertyByAdmin(propertyId: number): Promise<void> {
     const property = await this._getExistingProperty(propertyId, { modifiers: null });
 
     // TODO: Handle existing bookings (e.g., auto-cancel and refund guests if admin deletes the property).

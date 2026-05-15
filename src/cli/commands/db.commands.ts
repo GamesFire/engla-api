@@ -158,7 +158,7 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
 
   program
     .command('db:seed')
-    .description('Run database seeds')
+    .description('Run all database seeds')
     .action(async () => {
       const knex = ioc.get<Knex>(InjectionToken.KnexClient);
       try {
@@ -167,10 +167,65 @@ export function createDatabaseCommands(program: Command, ioc: Container) {
           logger.info('[Seed] No seed files run');
         } else {
           logger.info(`[Seed] Ran ${log.length} seed files`);
-          log.forEach((file: string) => logger.info(`  seed: ${file}`));
+          log.forEach((file: string) => logger.info(`  > ${file}`));
         }
       } catch (error) {
         logger.error('[Seed] Failed', { error });
+        process.exit(1);
+      }
+    });
+
+  program
+    .command('db:make:seed <name>')
+    .description('Create a new seed file (e.g., 01_system_amenity_categories)')
+    .action(async (name) => {
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
+      try {
+        const res = await knex.seed.make(name);
+        logger.info(`[Seed] Created: ${res}`);
+      } catch (error) {
+        logger.error('[Seed] Create failed', { error });
+        process.exit(1);
+      }
+    });
+
+  program
+    .command('db:delete:seed <name>')
+    .description(
+      'Physically delete a seed file from the disk (e.g., 01_system_amenity_categories.ts)',
+    )
+    .action(async (name) => {
+      try {
+        const rawSeedDir = knexConfig.seeds?.directory;
+
+        if (!rawSeedDir || typeof rawSeedDir !== 'string') {
+          throw new Error('Seeds directory is invalid or not defined in knexConfig');
+        }
+
+        const filePath = path.join(rawSeedDir, name);
+
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          logger.info(`[Delete] Successfully deleted seed file: ${name}`);
+        } else {
+          logger.warn(`[Delete] File not found at path: ${filePath}`);
+        }
+      } catch (error) {
+        logger.error(`[Delete] Failed to delete seed ${name}`, { error });
+        process.exit(1);
+      }
+    });
+
+  program
+    .command('db:run:seed <name>')
+    .description('Run a specific seed file (e.g., 01_system_amenity_categories.ts)')
+    .action(async (name) => {
+      const knex = ioc.get<Knex>(InjectionToken.KnexClient);
+      try {
+        await knex.seed.run({ specific: name });
+        logger.info(`[Seed] Successfully ran specific seed: ${name}`);
+      } catch (error) {
+        logger.error(`[Seed] Failed to run seed ${name}`, { error });
         process.exit(1);
       }
     });

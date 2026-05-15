@@ -6,6 +6,7 @@ import { roleMiddleware } from '@lib/middlewares/role.middleware.js';
 import { UserRole } from '@models/users/user.model.js';
 
 import { createAdminRouter } from './admin.routes.js';
+import { createPublicAmenityRouter } from './amenities/amenity.router.js';
 import { createPublicAuthRouter } from './auth/auth.router.js';
 import {
   createProtectedPropertyRouter,
@@ -19,6 +20,7 @@ export function createV1Router(): Router {
   // --- PUBLIC / SEMI-PUBLIC ROUTES ---
   router.use(ApiRoutes.AUTH, createPublicAuthRouter());
   router.use(ApiRoutes.PROPERTIES, createPublicPropertyRouter());
+  router.use(ApiRoutes.AMENITIES, createPublicAmenityRouter());
 
   // --- GLOBAL BARRIER ---
   router.use(authMiddleware());

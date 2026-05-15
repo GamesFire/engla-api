@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { z } from 'zod';
 
+import { envBooleanSchema } from '@lib/validations/env-boolean.validation.js';
+
 import { AppType, LogLevel, NodeEnv } from '../constants/app.js';
 
 export type AppConfig = {
@@ -30,11 +32,17 @@ export type AppConfig = {
   DB_PASS: string;
   DB_NAME: string;
   DB_DEFAULT_NAME: string;
+  DB_DEBUG: boolean;
   // --- Redis params ---
   REDIS_HOST: string;
   REDIS_PORT: number;
   REDIS_PASS: Undefinable<string>;
   REDIS_DB: number;
+  // --- Seed Demo Data (Optional) ---
+  SEED_ADMIN_AUTH0_ID: string;
+  SEED_ADMIN_EMAIL: string;
+  SEED_HOST_AUTH0_ID: string;
+  SEED_HOST_EMAIL: string;
   // --- Flags ---
   isDev: boolean;
   isProd: boolean;
@@ -70,10 +78,15 @@ const envAppSchema = z.object({
   DB_PASS: z.string(),
   DB_NAME: z.string(),
   DB_DEFAULT_NAME: z.string(),
+  DB_DEBUG: envBooleanSchema.default(false),
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASS: z.string(),
   REDIS_DB: z.coerce.number().default(0),
+  SEED_ADMIN_AUTH0_ID: z.string().default('auth0|admin123'),
+  SEED_ADMIN_EMAIL: z.email().default('admin@engla.com'),
+  SEED_HOST_AUTH0_ID: z.string().default('auth0|host123'),
+  SEED_HOST_EMAIL: z.email().default('demo.host@example.com'),
 });
 
 const _envApp = envAppSchema.safeParse(process.env);

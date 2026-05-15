@@ -28,7 +28,7 @@ export type PropertyQueryOptions = {
 export type FindPropertyOptions = PropertyQueryOptions;
 
 export type GetPublicPropertiesParams = GetAllPropertiesQueryDto;
-export type AdminGetPropertiesParams = AdminGetAllPropertiesQueryDto;
+export type GetPropertiesByAdminParams = AdminGetAllPropertiesQueryDto;
 
 export type CreatePropertyData = Pick<Property, 'hostId' | 'propertyType' | 'status'>;
 
@@ -37,9 +37,13 @@ export type InsertPropertyImageData = Pick<
   'propertyId' | 'url' | 'publicId' | 'isMain' | 'order'
 >;
 
+export type UpdatePropertyData = Partial<Property> & {
+  amenityIds?: number[];
+};
+
 export type UpdatePropertyParams = {
   propertyId: number;
-  data: Partial<Property>;
+  data: UpdatePropertyData;
   options?: PropertyQueryOptions;
 };
 
@@ -55,19 +59,19 @@ export type UpdatePropertyByHostParams = {
   data: UpdatePropertyBodyDto;
 };
 
-export type UploadPropertyImagesParams = {
+export type UploadPropertyImagesByHostParams = {
   files: Express.Multer.File[];
   hostId: number;
   propertyId: number;
 };
 
-export type ReorderPropertyImagesParams = {
+export type ReorderPropertyImagesByHostParams = {
   imageIds: number[];
   hostId: number;
   propertyId: number;
 };
 
-export type PropertyImageParams = {
+export type PropertyImageByHostParams = {
   imageId: number;
   hostId: number;
   propertyId: number;

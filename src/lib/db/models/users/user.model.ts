@@ -1,3 +1,8 @@
+import { Model, type Pojo, type RelationMappings } from 'objection';
+
+import { PermissionModel, type SystemPermission } from '@models/permission.model.js';
+import { extractPermissionAction } from '@utils/extract-permission-action.js';
+
 import { BaseSystemModel } from '../base-system.model.js';
 import { UserModifiers } from './user.modifiers.js';
 
@@ -28,6 +33,9 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Nullable<Date>;
+
+  // --- Relations ---
+  permissions?: PermissionModel[] | SystemPermission[];
 }
 
 export class UserModel extends BaseSystemModel implements User {
@@ -48,7 +56,39 @@ export class UserModel extends BaseSystemModel implements User {
   stripeAccountId!: Nullable<string>;
   stripeOnboardingCompleted!: boolean;
 
+  // --- Relations ---
+  permissions?: PermissionModel[] | SystemPermission[];
+
   get fullName() {
     return `${this.firstName || ''} ${this.lastName || ''}`.trim();
+  }
+
+  // --- Relation Mappings (For Objection) ---
+  static get relationMappings(): RelationMappings {
+    return {
+      permissions: {
+        relation: Model.ManyToManyRelation,
+        modelClass: PermissionModel,
+        join: {
+          from: 'users.id',
+          through: {
+            from: 'users_permissions.user_id',
+            to: 'users_permissions.permission_id',
+          },
+          to: 'permissions.id',
+        },
+      },
+    };
+  }
+
+  // --- Modifiers for JSON (e.g., formatting permissions array) ---
+  $formatJson(json: Pojo): Pojo {
+    json = super.$formatJson(json);
+
+    if (Array.isArray(json.permissions)) {
+      json.permissions = json.permissions.map((p) => extractPermissionAction(p));
+    }
+
+    return json;
   }
 }

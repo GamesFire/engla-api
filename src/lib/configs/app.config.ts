@@ -17,6 +17,7 @@ export type AppConfig = {
   AUTH0_AUDIENCE: string;
   AUTH0_M2M_CLIENT_ID: string;
   AUTH0_M2M_CLIENT_SECRET: string;
+  ROOT_ADMIN_AUTH0_ID: string;
   // --- Cloudinary params ---
   CLOUDINARY_CLOUD_NAME: string;
   CLOUDINARY_API_KEY: string;
@@ -66,6 +67,7 @@ const envAppSchema = z.object({
   AUTH0_AUDIENCE: z.url(),
   AUTH0_M2M_CLIENT_ID: z.string(),
   AUTH0_M2M_CLIENT_SECRET: z.string(),
+  ROOT_ADMIN_AUTH0_ID: z.string().default('auth0|root_admin123'),
   LOG_LEVEL: z.enum(LogLevel).default(LogLevel.INFO),
   CLOUDINARY_CLOUD_NAME: z.string(),
   CLOUDINARY_API_KEY: z.string(),

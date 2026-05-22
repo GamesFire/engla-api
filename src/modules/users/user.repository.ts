@@ -2,9 +2,11 @@ import { type QueryBuilder } from 'objection';
 
 import type { PaginatedResponse } from '@app/interfaces/pagination.interface.js';
 import { provide } from '@ioc/decorators.js';
+import { PermissionModel, type SystemPermission } from '@models/permission.model.js';
 import { type User, UserModel } from '@models/users/user.model.js';
 import { UserModifier } from '@models/users/user.modifiers.js';
 import { skipUndefinedFields } from '@utils/data.js';
+import { extractPermissionAction } from '@utils/extract-permission-action.js';
 
 import { UserAnonymization } from './user.constants.js';
 import type {
@@ -38,6 +40,10 @@ export class UserRepository {
 
     if (!options.includeDeleted) {
       query.whereNull('deletedAt');
+    }
+
+    if (options.withPermissions) {
+      query.withGraphFetched('permissions');
     }
   }
 
@@ -127,6 +133,26 @@ export class UserRepository {
     return { results, total };
   }
 
+  /**
+   * Fetches only the granular permissions assigned to a specific user.
+   * Optimized to select only the user ID and the related permission actions.
+   *
+   * @param userId - The ID of the user.
+   * @returns An array of SystemPermissions strings.
+   */
+  public async getUserPermissions(userId: number): Promise<SystemPermission[]> {
+    const user = await UserModel.query()
+      .findById(userId)
+      .select('id')
+      .withGraphFetched('permissions');
+
+    if (!user || !user.permissions) {
+      return [];
+    }
+
+    return user.permissions.map((perm) => extractPermissionAction(perm));
+  }
+
   // --- WRITE METHODS ---
 
   public async createAndFetch(data: CreateUserData, options: FindUserOptions = {}): Promise<User> {
@@ -184,5 +210,33 @@ export class UserRepository {
       includeDeleted: true,
       modifiers: null,
     }) as Promise<User>;
+  }
+
+  /**
+   * Syncs user permissions by completely replacing the old ones with the new set.
+   * Uses an auto-managed transaction to ensure data integrity.
+   *
+   * @param userId - The ID of the user.
+   * @param actions - An array of SystemPermission strings.
+   * @returns An array of SystemPermissions strings.
+   */
+  public async syncUserPermissions(
+    userId: number,
+    actions: SystemPermission[],
+  ): Promise<SystemPermission[]> {
+    return UserModel.transaction(async (trx) => {
+      await UserModel.relatedQuery('permissions', trx).for(userId).unrelate();
+
+      if (actions.length > 0) {
+        const permissionsToAssign = await PermissionModel.query(trx).whereIn('action', actions);
+        const permissionIds = permissionsToAssign.map((p) => p.id);
+
+        if (permissionIds.length > 0) {
+          await UserModel.relatedQuery('permissions', trx).for(userId).relate(permissionIds);
+        }
+      }
+
+      return actions;
+    });
   }
 }

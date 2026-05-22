@@ -1,8 +1,10 @@
 import { Router } from 'express';
 
+import { permissionMiddleware } from '@lib/middlewares/permission.middleware.js';
 import { RateLimiters } from '@lib/middlewares/rate-limit/rate-limiters.js';
 import { skipIfParamNotNumericMiddleware } from '@lib/middlewares/skip-if-param-not-numeric.middleware.js';
 import { uploadPropertyImagesMiddleware } from '@lib/middlewares/upload.middleware.js';
+import { SystemPermission } from '@models/permission.model.js';
 
 import { PropertyController } from './property.controller.js';
 
@@ -118,9 +120,25 @@ export function createAdminPropertyRouter(): Router {
   const router = Router({ mergeParams: true });
   const propertyController = ioc.get(PropertyController);
 
-  router.get(AdminPropertyRoutes.ROOT, propertyController.adminGetAllProperties);
-  router.patch(AdminPropertyRoutes.BY_ID, propertyController.adminUpdateProperty);
-  router.delete(AdminPropertyRoutes.BY_ID, propertyController.adminDeleteProperty);
+  router.get(
+    AdminPropertyRoutes.ROOT,
+    permissionMiddleware([SystemPermission.PROPERTIES_READ]),
+    propertyController.adminGetAllProperties,
+  );
+
+  router.patch(
+    AdminPropertyRoutes.BY_ID,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.PROPERTIES_UPDATE]),
+    propertyController.adminUpdateProperty,
+  );
+
+  router.delete(
+    AdminPropertyRoutes.BY_ID,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.PROPERTIES_DELETE]),
+    propertyController.adminDeleteProperty,
+  );
 
   return router;
 }

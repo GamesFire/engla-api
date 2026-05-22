@@ -18,6 +18,12 @@ export type UserQueryOptions = {
    * @default false
    */
   includeDeleted?: boolean;
+
+  /**
+   * Whether to forcefully load the user's permissions array.
+   * @default false
+   */
+  withPermissions?: boolean;
 };
 
 export type FindUserOptions = UserQueryOptions;

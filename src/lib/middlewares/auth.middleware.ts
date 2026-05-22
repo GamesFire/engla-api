@@ -2,6 +2,7 @@ import { type NextFunction, type Request, type Response } from 'express';
 
 import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
+import { UserRole } from '@models/users/user.model.js';
 import { UserRepository } from '@modules/users/user.repository.js';
 import { checkJwt } from '@utils/jwt.js';
 
@@ -43,7 +44,12 @@ export const authMiddleware = () => {
           });
         }
 
+        if (user.role === UserRole.ADMIN) {
+          user.permissions = await _userRepository.getUserPermissions(user.id);
+        }
+
         req.currentUser = user;
+
         next();
       } catch (error) {
         next(error);

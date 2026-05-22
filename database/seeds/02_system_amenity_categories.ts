@@ -1,11 +1,13 @@
 import type { Knex } from 'knex';
 
-export async function seed(knex: Knex): Promise<void> {
-  // Deletes ALL existing entries
-  await knex.raw('TRUNCATE TABLE amenity_categories RESTART IDENTITY CASCADE');
+import { logger } from '@lib/logger.js';
 
-  // Inserts seed entries
-  await knex('amenity_categories').insert([
+export async function seed(knex: Knex): Promise<void> {
+  // !CRITICAL: We DO NOT use TRUNCATE here.
+  // Using UPSERT ensures we can add new categories or fix typos in production
+  // without destroying foreign key links to the 'amenities' table.
+
+  const categories = [
     { name: 'Essentials', description: 'Basic items for a comfortable stay', order: 1 },
     { name: 'Kitchen & Dining', description: 'Cooking basics and appliances', order: 2 },
     { name: 'Bathroom', description: 'Bathroom amenities and toiletries', order: 3 },
@@ -16,5 +18,12 @@ export async function seed(knex: Knex): Promise<void> {
     { name: 'Outdoors', description: 'Exterior features and spaces', order: 8 },
     { name: 'Facilities', description: 'Building features and shared spaces', order: 9 },
     { name: 'Services', description: 'Additional host services', order: 10 },
-  ]);
+  ];
+
+  await knex('amenity_categories')
+    .insert(categories)
+    .onConflict('name') // 'name' must be UNIQUE in the schema
+    .merge(); // Updates description and order if they changed
+
+  logger.info(`[Seed] System amenity categories verified/inserted (${categories.length} total)`);
 }

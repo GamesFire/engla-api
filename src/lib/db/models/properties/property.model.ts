@@ -80,6 +80,11 @@ export interface Property {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Nullable<Date>;
+
+  // --- Relations ---
+  host?: UserModel;
+  images?: PropertyImageModel[];
+  amenities?: AmenityModel[];
 }
 
 export class PropertyModel extends BaseSystemModel implements Property {

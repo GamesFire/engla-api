@@ -34,7 +34,7 @@
 - **Runtime:** Node.js (v22.22.1+)
 - **Language:** TypeScript
 - **Framework:** Express.js
-- **Database:** PostgreSQL (Primary), Redis (Caching & Queues)
+- **Database:** PostgreSQL v14+ (Strictly required due to dialect-specific features like ILIKE, UPSERTs, etc.), Redis (Caching & Queues)
 - **ORM / Query Builder:** Knex.js & Objection.js
 - **Dependency Injection:** InversifyJS
 - **Validation:** Zod
@@ -69,6 +69,14 @@ To maintain a predictable and highly readable codebase, we strictly enforce the 
    * `adminUpdateProperty` -> Applies admin-specific rules (e.g., can force-change status bypassing host validations).
    * `createAmenity` -> No `admin` prefix needed because only admins can create amenities globally (no context overlap).
 
+### Security & Granular Permissions (ABAC)
+
+The system utilizes an **Attribute-Based Access Control (ABAC)** model for administrative and staff roles. Instead of relying solely on broad roles (like `admin`), access to sensitive endpoints is protected by **Granular Permissions**.
+
+* **Action-Based Definitions:** Permissions are defined as specific, granular actions (e.g., `users:delete`, `properties:update`, `dictionaries:manage`) rather than abstract roles.
+* **Real-time Enforcement:** The `permission.middleware` dynamically verifies these permissions against the database on every protected request. If a staff member's rights are revoked, they lose access instantly, even if their JWT is still valid.
+* **Root Admin Bypass (Anti-Lockout):** The system defines a `ROOT_ADMIN_AUTH0_ID` in the environment variables. This master account bypasses all database permission checks (God Mode). This serves as a fail-safe to ensure the system owner is never accidentally locked out, even if the database permissions table is truncated or corrupted.
+
 ---
 
 ## ✅ Prerequisites
@@ -77,7 +85,8 @@ Before you begin, ensure you have met the following requirements:
 
 - **Node.js**: v22.22.1 or higher
 - **npm**: v10.0.0 or higher
-- **Docker** (Recommended for running PostgreSQL and Redis)
+- **PostgreSQL**: v14.0 or higher
+- **Docker** (Recommended for running local infrastructure)
 
 ---
 
@@ -152,6 +161,7 @@ npm run start
 | `AUTH0_AUDIENCE` | Auth0 API Identifier / Namespace | - |
 | `AUTH0_M2M_CLIENT_ID` | Auth0 Machine-to-Machine Client ID | - |
 | `AUTH0_M2M_CLIENT_SECRET` | Auth0 Machine-to-Machine Client Secret | - |
+| `ROOT_ADMIN_AUTH0_ID` | The Auth0 ID of the unmodifiable Root Administrator (used to prevent privilege escalation) | `auth0\|root_admin123` |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary Account Name | - |
 | `CLOUDINARY_API_KEY` | Cloudinary API Key | - |
 | `CLOUDINARY_API_SECRET` | Cloudinary API Secret | - |
@@ -169,10 +179,24 @@ npm run start
 | `REDIS_PORT` | Redis Port | `6379` |
 | `REDIS_PASS` | Redis Password | - |
 | `REDIS_DB` | Redis Database | `0` |
-| `SEED_ADMIN_AUTH0_ID` | Mock Auth0 ID for the main Admin account | `auth0|admin123` |
+| `SEED_ADMIN_AUTH0_ID` | Mock Auth0 ID for the main Admin account | `auth0\|admin123` |
 | `SEED_ADMIN_EMAIL` | Mock email for the main Admin account | `admin@engla.com` |
-| `SEED_HOST_AUTH0_ID` | Mock Auth0 ID for the demo Host account | `auth0|host123` |
+| `SEED_HOST_AUTH0_ID` | Mock Auth0 ID for the demo Host account | `auth0\|host123` |
 | `SEED_HOST_EMAIL` | Mock email for the demo Host account | `demo.host@example.com` |
+
+### 💡 Pro-tip for Local Testing (Seed Accounts)
+
+By default, the seed script creates mock users with fake Auth0 IDs and emails. Since you cannot log into these fake accounts, you should overwrite them with your **real Auth0 credentials** in your `.env` file before seeding the database:
+
+1. Register an account on your locally running frontend (which is connected to your Auth0 tenant).
+2. Go to your Auth0 Dashboard -> User Management -> Users.
+3. Copy the `user_id` (e.g., `auth0|64b9a1...`) and the user's `email`.
+4. Paste them into your `.env` mapping to the respective roles:
+   - **Admin:** `SEED_ADMIN_AUTH0_ID` and `SEED_ADMIN_EMAIL`
+   - **Host:** `SEED_HOST_AUTH0_ID` and `SEED_HOST_EMAIL`
+5. Run `npm run cli db:seed`.
+
+Now you can successfully log in and test the system with full Admin or Host privileges!
 
 ---
 
@@ -194,17 +218,17 @@ We use a custom CLI tool built with `Commander.js` to manage database operations
 | `npm run cli db:run:migration <name>` | Runs a specific pending migration file (e.g., `20260130150428_create_users.ts`). |
 | `npm run cli db:rollback:migration <name>` | Reverts a specific migration file (e.g., `20260130150428_create_users.ts`). |
 | `npm run cli db:seed` | Runs all seed files (`knex seed:run`). |
-| `npm run cli db:make:seed <name>` | Creates a new seed file (e.g., `01_system_amenity_categories`). |
-| `npm run cli db:delete:seed <name>` | Physically deletes a seed file from the disk (e.g., `01_system_amenity_categories.ts`). |
-| `npm run cli db:run:seed <name>` | Runs a specific seed file (e.g., `01_system_amenity_categories.ts`). |
+| `npm run cli db:make:seed <name>` | Creates a new seed file (e.g., `01_system_permissions`). |
+| `npm run cli db:delete:seed <name>` | Physically deletes a seed file from the disk (e.g., `01_system_permissions.ts`). |
+| `npm run cli db:run:seed <name>` | Runs a specific seed file (e.g., `01_system_permissions.ts`). |
 
 ### Database Seeding Strategy
 
 Our seed files follow a strict naming convention to ensure proper execution order and environment safety:
 
-- **`01_system_*` / `02_system_*`**: System seeds contain production-ready dictionaries and core data (e.g., global amenity categories). These are executed in **all** environments, including production.
-- **`03_mock_*` / `04_mock_*`**: Mock seeds contain fake entities (e.g., users, properties) generated for development, testing, and presentations. These files include a failsafe guard (`if (appConfig.isProd) return;`) to ensure they are **never** executed in production.
-- **Numerical Prefix**: Guarantees that referenced tables (like `amenity_categories` before `amenities`, or `users` before `properties`) are seeded in the correct order to respect foreign key constraints.
+- **`01_system_*` / `02_system_*`**: System seeds contain production-ready dictionaries and core data (e.g., granular permissions, global amenity categories). These are executed in **all** environments, including production.
+- **`04_mock_*` / `05_mock_*`**: Mock seeds contain fake entities (e.g., users, properties, role assignments) generated for development, testing, and presentations. These files include a failsafe guard (`if (appConfig.isProd) return;`) to ensure they are **never** executed in production.
+- **Numerical Prefix**: Guarantees that referenced tables are seeded in the correct order to respect foreign key constraints (e.g., `01_system_permissions` runs before `04_mock_users` so mock admins can be assigned permissions).
 
 ---
 

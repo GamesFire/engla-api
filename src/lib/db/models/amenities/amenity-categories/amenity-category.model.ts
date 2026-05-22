@@ -11,6 +11,9 @@ export interface AmenityCategory {
   order: number; // Default 0
   createdAt: Date;
   updatedAt: Date;
+
+  // --- Relations ---
+  amenities?: AmenityModel[];
 }
 
 export class AmenityCategoryModel extends BaseSystemModel implements AmenityCategory {

@@ -80,6 +80,7 @@ export const ErrorMessages = {
   },
   RATE_LIMIT: {
     GLOBAL: 'Too many requests, please try again later',
+    ADMIN_MANAGEMENT: 'Too many admin management attempts. Please try again later',
     AUTH_LOGIN: 'Too many login attempts. Please try again later',
     USER_UPDATE: 'Too many account update attempts. Please try again later',
     USER_AVATAR_UPLOAD: 'Too many avatar upload attempts. Please try again later',
@@ -92,8 +93,6 @@ export const ErrorMessages = {
     PROPERTY_IMAGE_UPLOAD: 'Too many image upload attempts. Please try again later',
     PROPERTY_IMAGE_MANAGE: 'Too many image management attempts. Please try again later',
     AMENITY_SEARCH: 'Too many amenity or amenity category search requests. Please slow down',
-    AMENITY_MANAGEMENT:
-      'Too many amenity or amenity category management attempts. Please try again later',
   },
   AUTH: {
     UNAUTHORIZED: 'Authentication failed',

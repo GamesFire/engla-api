@@ -8,6 +8,14 @@ export const RateLimiters = {
     windowMs: RequestConfig.RATE_LIMIT.GLOBAL.WINDOW_MS,
     maxRequests: RequestConfig.RATE_LIMIT.GLOBAL.MAX_REQUESTS,
   }),
+  ADMIN: {
+    MANAGEMENT: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.ADMIN.MANAGEMENT.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.ADMIN.MANAGEMENT.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.ADMIN_MANAGEMENT,
+    }),
+  },
   AUTH: {
     LOGIN: rateLimitMiddleware({
       windowMs: RequestConfig.RATE_LIMIT.AUTH.LOGIN.WINDOW_MS,
@@ -88,12 +96,6 @@ export const RateLimiters = {
       maxRequests: RequestConfig.RATE_LIMIT.AMENITIES.SEARCH.MAX_REQUESTS,
       errorCode: ErrorCodes.RATE_LIMIT.STRICT,
       message: ErrorMessages.RATE_LIMIT.AMENITY_SEARCH,
-    }),
-    MANAGEMENT: rateLimitMiddleware({
-      windowMs: RequestConfig.RATE_LIMIT.AMENITIES.MANAGEMENT.WINDOW_MS,
-      maxRequests: RequestConfig.RATE_LIMIT.AMENITIES.MANAGEMENT.MAX_REQUESTS,
-      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
-      message: ErrorMessages.RATE_LIMIT.AMENITY_MANAGEMENT,
     }),
   },
 } as const;

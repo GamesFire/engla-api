@@ -18,6 +18,9 @@ export interface Amenity {
   iconKey: Nullable<string>;
   createdAt: Date;
   updatedAt: Date;
+
+  // --- Relations ---
+  category?: AmenityCategoryModel;
 }
 
 export class AmenityModel extends BaseSystemModel implements Amenity {

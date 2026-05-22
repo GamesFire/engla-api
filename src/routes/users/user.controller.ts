@@ -8,6 +8,7 @@ import { UserService } from '@modules/users/user.service.js';
 
 import {
   adminGetAllUsersQuerySchema,
+  adminSyncPermissionsBodySchema,
   adminUpdateUserBodySchema,
   updateUserBodySchema,
   userIdParamSchema,
@@ -23,8 +24,10 @@ export class UserController {
 
     this.adminGetUserById = this.adminGetUserById.bind(this);
     this.adminGetAllUsers = this.adminGetAllUsers.bind(this);
+    this.adminGetUserPermissions = this.adminGetUserPermissions.bind(this);
     this.adminUpdateUser = this.adminUpdateUser.bind(this);
     this.adminDeleteUser = this.adminDeleteUser.bind(this);
+    this.adminSyncUserPermissions = this.adminSyncUserPermissions.bind(this);
   }
 
   // --- PROTECTED ENDPOINTS (Users/Hosts) ---
@@ -80,7 +83,7 @@ export class UserController {
 
   public async adminGetUserById(req: Request, res: Response) {
     const { id: userId } = userIdParamSchema.parse(req.params);
-    const user = await this._userService.getUserById(userId);
+    const user = await this._userService.getUserByIdForAdmin(userId);
 
     res.status(200).json(user);
   }
@@ -90,6 +93,13 @@ export class UserController {
     const users = await this._userService.getUsers(adminGetAllUsersQueryDto);
 
     res.status(200).json(users);
+  }
+
+  public async adminGetUserPermissions(req: Request, res: Response) {
+    const { id: userId } = userIdParamSchema.parse(req.params);
+    const permissions = await this._userService.getUserPermissions(userId);
+
+    res.status(200).json(permissions);
   }
 
   public async adminUpdateUser(req: Request, res: Response) {
@@ -106,5 +116,17 @@ export class UserController {
     await this._userService.deleteUserByAdmin(userId);
 
     res.status(204).send();
+  }
+
+  public async adminSyncUserPermissions(req: Request, res: Response) {
+    const { id: userId } = userIdParamSchema.parse(req.params);
+    const adminSyncPermissionsBodyDto = adminSyncPermissionsBodySchema.parse(req.body);
+
+    const permissions = await this._userService.syncUserPermissionsByAdmin(
+      userId,
+      adminSyncPermissionsBodyDto,
+    );
+
+    res.status(200).json(permissions);
   }
 }

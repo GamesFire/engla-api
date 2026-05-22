@@ -12,6 +12,7 @@ export const ApiRoutes = {
   USERS: '/users',
   PROPERTIES: '/properties',
   AMENITIES: '/amenities',
+  PERMISSIONS: '/permissions',
 } as const;
 
 export const SystemRoutes = {

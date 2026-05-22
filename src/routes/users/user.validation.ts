@@ -4,6 +4,7 @@ import { ValidationLimits, ValidationPatterns } from '@lib/constants/validation.
 import { idParamSchema } from '@lib/validations/params/id.param.js';
 import { basePaginationSchema } from '@lib/validations/queries/pagination.query.js';
 import { avatarSchema, nameSchema } from '@lib/validations/user-shared.validation.js';
+import { SystemPermission } from '@models/permission.model.js';
 import { Locale, UserRole } from '@models/users/user.model.js';
 import { UserSortFields } from '@modules/users/user.constants.js';
 
@@ -93,6 +94,18 @@ export const adminUpdateUserBodySchema = updateUserBodySchema
   })
   .strict();
 
+export const adminSyncPermissionsBodySchema = z
+  .object({
+    permissions: z
+      .array(
+        z.enum(SystemPermission, {
+          message: 'Invalid permissions for user',
+        }),
+      )
+      .default([]),
+  })
+  .strict();
+
 // --- EXPORT TYPES ---
 
 export type UserIdParamDto = z.infer<typeof userIdParamSchema>;
@@ -101,3 +114,4 @@ export type UpdateUserBodyDto = z.infer<typeof updateUserBodySchema>;
 
 export type AdminGetAllUsersQueryDto = z.infer<typeof adminGetAllUsersQuerySchema>;
 export type AdminUpdateUserBodyDto = z.infer<typeof adminUpdateUserBodySchema>;
+export type AdminSyncPermissionsBodyDto = z.infer<typeof adminSyncPermissionsBodySchema>;

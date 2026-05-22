@@ -9,9 +9,13 @@ import { Auth0Service } from '@lib/integrations/auth0/auth0.service.js';
 import { CloudinaryConfig } from '@lib/integrations/cloudinary/cloudinary.constants.js';
 import { CloudinaryService } from '@lib/integrations/cloudinary/cloudinary.service.js';
 import { logger } from '@lib/logger.js';
-import { type User } from '@models/users/user.model.js';
+import { type User, UserRole } from '@models/users/user.model.js';
 import { UserRepository } from '@modules/users/user.repository.js';
-import type { AdminUpdateUserBodyDto, UpdateUserBodyDto } from '@routes/users/user.validation.js';
+import type {
+  AdminSyncPermissionsBodyDto,
+  AdminUpdateUserBodyDto,
+  UpdateUserBodyDto,
+} from '@routes/users/user.validation.js';
 
 import { UserMedia } from './user.constants.js';
 import type { FindUserOptions, GetUsersParams, UploadUserAvatarParams } from './user.types.js';
@@ -80,12 +84,30 @@ export class UserService {
     return user;
   }
 
-  public async getUserById(userId: number): Promise<User> {
+  public async getUserProfileById(userId: number): Promise<User> {
     return this._getExistingUser(userId);
+  }
+
+  public async getMyProfile(userId: number, role: UserRole): Promise<User> {
+    return this._getExistingUser(userId, {
+      withPermissions: role === UserRole.ADMIN,
+    });
+  }
+
+  public async getUserByIdForAdmin(userId: number): Promise<User> {
+    return this._getExistingUser(userId, {
+      includeDeleted: true,
+    });
   }
 
   public async getUsers(params: GetUsersParams): Promise<PaginatedResponse<User>> {
     return this._userRepository.getUsers(params);
+  }
+
+  public async getUserPermissions(userId: number): Promise<string[]> {
+    await this._getExistingUser(userId, { includeDeleted: true });
+
+    return this._userRepository.getUserPermissions(userId);
   }
 
   public async updateUserProfile(userId: number, dto: UpdateUserBodyDto): Promise<User> {
@@ -147,5 +169,14 @@ export class UserService {
     await this._auth0Service.deleteUser(user.auth0Id);
     await this._silentlyDeleteAvatar(user);
     await this._userRepository.softDeleteAndFetchById(userId);
+  }
+
+  public async syncUserPermissionsByAdmin(
+    userId: number,
+    dto: AdminSyncPermissionsBodyDto,
+  ): Promise<string[]> {
+    await this._getExistingUser(userId, { includeDeleted: true });
+
+    return this._userRepository.syncUserPermissions(userId, dto.permissions);
   }
 }

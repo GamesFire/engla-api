@@ -4,9 +4,10 @@ import { ApiRoutes } from '@lib/constants/routes.js';
 import { roleMiddleware } from '@lib/middlewares/role.middleware.js';
 import { UserRole } from '@models/users/user.model.js';
 
-import { createAdminAmenityRouter } from './amenities/amenity.router.js';
-import { createAdminPropertyRouter } from './properties/property.router.js';
-import { createAdminUserRouter } from './users/user.router.js';
+import { createAdminAmenityRouter } from './amenities/amenity.routes.js';
+import { createAdminPermissionRouter } from './permissions/permission.routes.js';
+import { createAdminPropertyRouter } from './properties/property.routes.js';
+import { createAdminUserRouter } from './users/user.routes.js';
 
 export function createAdminRouter(): Router {
   const router = Router();
@@ -18,6 +19,7 @@ export function createAdminRouter(): Router {
   router.use(ApiRoutes.USERS, createAdminUserRouter());
   router.use(ApiRoutes.PROPERTIES, createAdminPropertyRouter());
   router.use(ApiRoutes.AMENITIES, createAdminAmenityRouter());
+  router.use(ApiRoutes.PERMISSIONS, createAdminPermissionRouter());
 
   return router;
 }

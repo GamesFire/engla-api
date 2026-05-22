@@ -12,8 +12,10 @@ export async function seed(knex: Knex): Promise<void> {
   // Deletes ALL existing entries safely
   await knex.raw('TRUNCATE TABLE properties RESTART IDENTITY CASCADE');
 
-  // --- PROPERTIES (15 Items) ---
+  // Inserts seed entries (properties)
   await knex('properties').insert([
+    // --- PROPERTIES (15 Items) ---
+
     // ==========================================
     // LONDON & EDINBURGH (Demo Host - ID 2)
     // ==========================================
@@ -758,6 +760,7 @@ export async function seed(knex: Knex): Promise<void> {
     });
   });
 
+  // Inserts seed entries (property images)
   await knex('property_images').insert(imagesToInsert);
 
   // --- PROPERTIES AMENITIES ---
@@ -796,6 +799,7 @@ export async function seed(knex: Knex): Promise<void> {
     });
   });
 
+  // Inserts seed entries (properties amenities)
   await knex('properties_amenities').insert(propertyAmenities);
 
   logger.info(

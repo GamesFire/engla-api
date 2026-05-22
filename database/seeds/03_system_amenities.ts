@@ -1,11 +1,13 @@
 import type { Knex } from 'knex';
 
-export async function seed(knex: Knex): Promise<void> {
-  // Deletes ALL existing entries
-  await knex.raw('TRUNCATE TABLE amenities RESTART IDENTITY CASCADE');
+import { logger } from '@lib/logger.js';
 
-  // Inserts seed entries
-  await knex('amenities').insert([
+export async function seed(knex: Knex): Promise<void> {
+  // !CRITICAL: We DO NOT use TRUNCATE here.
+  // Truncating with CASCADE would wipe out all assigned amenities in 'properties_amenities'.
+  // Upsert guarantees production safety.
+
+  const amenities = [
     // Essentials (1)
     { category_id: 1, name: 'Wifi', icon_key: 'wifi', scope: 'property' },
     { category_id: 1, name: 'Dedicated workspace', icon_key: 'laptop', scope: 'property' },
@@ -65,5 +67,12 @@ export async function seed(knex: Knex): Promise<void> {
     { category_id: 10, name: 'Self check-in', icon_key: 'keybox', scope: 'property' },
     { category_id: 10, name: 'Luggage dropoff allowed', icon_key: 'luggage', scope: 'property' },
     { category_id: 10, name: 'Long term stays allowed', icon_key: 'calendar', scope: 'property' },
-  ]);
+  ];
+
+  await knex('amenities')
+    .insert(amenities)
+    .onConflict('name') // 'name' must be UNIQUE in the schema
+    .merge(); // Updates icon_key and scope if they changed
+
+  logger.info(`[Seed] System amenities verified/inserted (${amenities.length} total)`);
 }

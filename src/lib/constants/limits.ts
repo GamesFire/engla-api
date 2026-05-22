@@ -7,6 +7,12 @@ export const RequestConfig = {
       WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
       MAX_REQUESTS: 100,
     },
+    ADMIN: {
+      MANAGEMENT: {
+        WINDOW_MS: TimeMs.ONE_MINUTE,
+        MAX_REQUESTS: 100,
+      },
+    },
     AUTH: {
       LOGIN: {
         WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
@@ -61,10 +67,6 @@ export const RequestConfig = {
       SEARCH: {
         WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
         MAX_REQUESTS: 200,
-      },
-      MANAGEMENT: {
-        WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
-        MAX_REQUESTS: 50,
       },
     },
   },

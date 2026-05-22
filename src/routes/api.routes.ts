@@ -6,13 +6,13 @@ import { roleMiddleware } from '@lib/middlewares/role.middleware.js';
 import { UserRole } from '@models/users/user.model.js';
 
 import { createAdminRouter } from './admin.routes.js';
-import { createPublicAmenityRouter } from './amenities/amenity.router.js';
-import { createPublicAuthRouter } from './auth/auth.router.js';
+import { createPublicAmenityRouter } from './amenities/amenity.routes.js';
+import { createPublicAuthRouter } from './auth/auth.routes.js';
 import {
   createProtectedPropertyRouter,
   createPublicPropertyRouter,
-} from './properties/property.router.js';
-import { createProtectedUserRouter } from './users/user.router.js';
+} from './properties/property.routes.js';
+import { createProtectedUserRouter } from './users/user.routes.js';
 
 export function createV1Router(): Router {
   const router = Router();

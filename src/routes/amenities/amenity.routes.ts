@@ -1,7 +1,9 @@
 import { Router } from 'express';
 
+import { permissionMiddleware } from '@lib/middlewares/permission.middleware.js';
 import { RateLimiters } from '@lib/middlewares/rate-limit/rate-limiters.js';
 import { skipIfParamNotNumericMiddleware } from '@lib/middlewares/skip-if-param-not-numeric.middleware.js';
+import { SystemPermission } from '@models/permission.model.js';
 
 import { AmenityController } from './amenity.controller.js';
 
@@ -59,38 +61,44 @@ export function createAdminAmenityRouter(): Router {
   // --- AMENITIES ---
   router.post(
     AdminAmenityRoutes.AMENITIES_ROOT,
-    RateLimiters.AMENITIES.MANAGEMENT,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.DICTIONARIES_MANAGE]),
     amenityController.adminCreateAmenity,
   );
 
   router.patch(
     AdminAmenityRoutes.AMENITY_BY_ID,
-    RateLimiters.AMENITIES.MANAGEMENT,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.DICTIONARIES_MANAGE]),
     amenityController.adminUpdateAmenity,
   );
 
   router.delete(
     AdminAmenityRoutes.AMENITY_BY_ID,
-    RateLimiters.AMENITIES.MANAGEMENT,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.DICTIONARIES_MANAGE]),
     amenityController.adminDeleteAmenity,
   );
 
   // --- AMENITY CATEGORIES ---
   router.post(
     AdminAmenityRoutes.AMENITY_CATEGORIES_ROOT,
-    RateLimiters.AMENITIES.MANAGEMENT,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.DICTIONARIES_MANAGE]),
     amenityController.adminCreateAmenityCategory,
   );
 
   router.patch(
     AdminAmenityRoutes.AMENITY_CATEGORY_BY_ID,
-    RateLimiters.AMENITIES.MANAGEMENT,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.DICTIONARIES_MANAGE]),
     amenityController.adminUpdateAmenityCategory,
   );
 
   router.delete(
     AdminAmenityRoutes.AMENITY_CATEGORY_BY_ID,
-    RateLimiters.AMENITIES.MANAGEMENT,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.DICTIONARIES_MANAGE]),
     amenityController.adminDeleteAmenityCategory,
   );
 

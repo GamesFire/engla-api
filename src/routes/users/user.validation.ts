@@ -48,7 +48,7 @@ export const updateUserBodySchema = z
 
 // --- USER ADMIN SCHEMAS ---
 
-export const adminGetAllUsersQuerySchema = basePaginationSchema.extend({
+export const adminGetUsersQuerySchema = basePaginationSchema.extend({
   orderBy: z
     .enum(UserSortFields, {
       message: 'Invalid orderBy field for users',
@@ -112,6 +112,6 @@ export type UserIdParamDto = z.infer<typeof userIdParamSchema>;
 
 export type UpdateUserBodyDto = z.infer<typeof updateUserBodySchema>;
 
-export type AdminGetAllUsersQueryDto = z.infer<typeof adminGetAllUsersQuerySchema>;
+export type AdminGetUsersQueryDto = z.infer<typeof adminGetUsersQuerySchema>;
 export type AdminUpdateUserBodyDto = z.infer<typeof adminUpdateUserBodySchema>;
 export type AdminSyncPermissionsBodyDto = z.infer<typeof adminSyncPermissionsBodySchema>;

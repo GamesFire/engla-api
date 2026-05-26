@@ -3,7 +3,7 @@ import { inject } from 'inversify';
 
 import { provide } from '@ioc/decorators.js';
 import { PermissionService } from '@modules/permissions/permission.service.js';
-import { getPermissionsQuerySchema } from '@routes/permissions/permission.validation.js';
+import { getAllPermissionsQuerySchema } from '@routes/permissions/permission.validation.js';
 
 @provide()
 export class PermissionController {
@@ -12,8 +12,8 @@ export class PermissionController {
   }
 
   public async adminGetAllPermissions(req: Request, res: Response) {
-    const queryDto = getPermissionsQuerySchema.parse(req.query);
-    const permissions = await this._permissionService.getAllPermissions(queryDto);
+    const getAllPermissionsQueryDto = getAllPermissionsQuerySchema.parse(req.query);
+    const permissions = await this._permissionService.getAllPermissions(getAllPermissionsQueryDto);
 
     res.status(200).json(permissions);
   }

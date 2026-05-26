@@ -49,6 +49,8 @@ export async function seed(knex: Knex): Promise<void> {
       price_per_night: 25000,
       cleaning_fee: 5000,
       license_number: 'STL-LND-2024-8832',
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
       // 2. ACTIVE
@@ -79,6 +81,8 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'moderate',
       price_per_night: 18000,
       cleaning_fee: 4000,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
       // 3. ACTIVE
@@ -108,6 +112,8 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'strict',
       price_per_night: 45000,
       cleaning_fee: 10000,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
       // 4. INACTIVE
@@ -136,9 +142,11 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'flexible',
       price_per_night: 6500,
       cleaning_fee: 1500,
+      auto_activate_on_approval: false,
+      rejection_reason: null,
     },
     {
-      // 8. ACTIVE
+      // 5. ACTIVE
       host_id: 2,
       status: 'active',
       property_type: 'guesthouse',
@@ -165,9 +173,11 @@ export async function seed(knex: Knex): Promise<void> {
       price_per_night: 8500,
       cleaning_fee: 1500,
       license_number: 'EDIN-B&B-1123',
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
-      // 9. ACTIVE
+      // 6. ACTIVE
       host_id: 2,
       status: 'active',
       property_type: 'apartment',
@@ -193,9 +203,11 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'strict',
       price_per_night: 16000,
       cleaning_fee: 3500,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
-      // 10. ARCHIVED
+      // 7. ARCHIVED
       host_id: 2,
       status: 'archived',
       property_type: 'apartment',
@@ -221,13 +233,15 @@ export async function seed(knex: Knex): Promise<void> {
       price_per_night: 14000,
       cleaning_fee: 3000,
       deleted_at: knex.fn.now(),
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
 
     // ==========================================
     // COTSWOLDS & MANCHESTER (David - Host 5)
     // ==========================================
     {
-      // 5. ACTIVE
+      // 8. ACTIVE
       host_id: 5,
       status: 'active',
       property_type: 'house',
@@ -254,9 +268,11 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'moderate',
       price_per_night: 18000,
       cleaning_fee: 4000,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
-      // 6. ACTIVE
+      // 9. ACTIVE
       host_id: 5,
       status: 'active',
       property_type: 'house',
@@ -283,9 +299,11 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'moderate',
       price_per_night: 22000,
       cleaning_fee: 4500,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
-      // 7. PENDING
+      // 10. PENDING
       host_id: 5,
       status: 'pending',
       property_type: 'house',
@@ -310,9 +328,11 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'flexible',
       price_per_night: 12000,
       cleaning_fee: 3000,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
-      // 14. REJECTED
+      // 11. REJECTED
       host_id: 5,
       status: 'rejected',
       property_type: 'apartment',
@@ -337,9 +357,12 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'moderate',
       price_per_night: 11000,
       cleaning_fee: 2500,
+      auto_activate_on_approval: true,
+      rejection_reason:
+        'The uploaded images are too blurry and do not clearly display the sleeping arrangements. Please upload high-quality, well-lit photos of the bedroom and living spaces before submitting for review again.',
     },
     {
-      // 15. ACTIVE
+      // 12. ACTIVE
       host_id: 5,
       status: 'active',
       property_type: 'apartment',
@@ -365,13 +388,15 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'strict',
       price_per_night: 19000,
       cleaning_fee: 4500,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
 
     // ==========================================
     // CORNWALL (Emma - Host 6)
     // ==========================================
     {
-      // 11. ACTIVE
+      // 13. ACTIVE
       host_id: 6,
       status: 'active',
       property_type: 'house',
@@ -398,9 +423,11 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'strict',
       price_per_night: 55000,
       cleaning_fee: 12000,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
     {
-      // 12. DRAFT
+      // 14. DRAFT
       host_id: 6,
       status: 'draft',
       property_type: 'guesthouse',
@@ -425,9 +452,11 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: null,
       price_per_night: null,
       cleaning_fee: 0,
+      auto_activate_on_approval: false,
+      rejection_reason: null,
     },
     {
-      // 13. ACTIVE
+      // 15. ACTIVE
       host_id: 6,
       status: 'active',
       property_type: 'apartment',
@@ -454,6 +483,8 @@ export async function seed(knex: Knex): Promise<void> {
       cancellation_policy: 'moderate',
       price_per_night: 13000,
       cleaning_fee: 3000,
+      auto_activate_on_approval: true,
+      rejection_reason: null,
     },
   ]);
 

@@ -68,6 +68,17 @@ export async function up(knex: Knex): Promise<void> {
       .nullable()
       .comment('Legal registration number for short-term lets');
 
+    table
+      .boolean('auto_activate_on_approval')
+      .notNullable()
+      .defaultTo(true)
+      .comment('If true, goes ACTIVE upon approval. If false, goes INACTIVE');
+
+    table
+      .text('rejection_reason')
+      .nullable()
+      .comment('Admin message explaining why the property was rejected');
+
     table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now());
     table.timestamp('updated_at', { useTz: true }).defaultTo(knex.fn.now());
     table.timestamp('deleted_at', { useTz: true }).nullable();

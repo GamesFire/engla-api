@@ -76,6 +76,10 @@ export interface Property {
   // --- Legal ---
   licenseNumber: Nullable<string>;
 
+  // --- Moderation ---
+  autoActivateOnApproval: boolean; // Default true
+  rejectionReason: Nullable<string>;
+
   // --- Timestamps ---
   createdAt: Date;
   updatedAt: Date;
@@ -118,6 +122,8 @@ export class PropertyModel extends BaseSystemModel implements Property {
   pricePerNight!: Nullable<number>; // !Important: DB stores integer (in pence)
   cleaningFee!: Nullable<number>; // !Important: DB stores integer (in pence)
   licenseNumber!: Nullable<string>;
+  autoActivateOnApproval!: boolean;
+  rejectionReason!: Nullable<string>;
 
   // --- Relations ---
   host?: UserModel;

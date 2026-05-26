@@ -7,12 +7,14 @@ import { HttpError } from '@lib/errors/http.error.js';
 import { PropertyService } from '@modules/properties/property.service.js';
 
 import {
-  adminGetAllPropertiesQuerySchema,
+  adminGetPropertiesQuerySchema,
+  adminRejectPropertyBodySchema,
   adminUpdatePropertyBodySchema,
   createPropertyBodySchema,
-  getAllPropertiesQuerySchema,
+  getPropertiesQuerySchema,
   propertyIdParamSchema,
   propertyImageIdParamSchema,
+  publishPropertyBodySchema,
   reorderPropertyImagesBodySchema,
   updatePropertyBodySchema,
 } from './property.validation.js';
@@ -21,7 +23,7 @@ import {
 export class PropertyController {
   constructor(@inject(PropertyService) private readonly _propertyService: PropertyService) {
     this.getPublicPropertyById = this.getPublicPropertyById.bind(this);
-    this.getAllPublicProperties = this.getAllPublicProperties.bind(this);
+    this.getPublicProperties = this.getPublicProperties.bind(this);
 
     this.getMyProperties = this.getMyProperties.bind(this);
     this.createMyProperty = this.createMyProperty.bind(this);
@@ -35,8 +37,10 @@ export class PropertyController {
     this.deleteMyPropertyImage = this.deleteMyPropertyImage.bind(this);
     this.setMainMyPropertyImage = this.setMainMyPropertyImage.bind(this);
 
-    this.adminGetAllProperties = this.adminGetAllProperties.bind(this);
+    this.adminGetProperties = this.adminGetProperties.bind(this);
     this.adminUpdateProperty = this.adminUpdateProperty.bind(this);
+    this.adminApproveProperty = this.adminApproveProperty.bind(this);
+    this.adminRejectProperty = this.adminRejectProperty.bind(this);
     this.adminDeleteProperty = this.adminDeleteProperty.bind(this);
   }
 
@@ -49,9 +53,9 @@ export class PropertyController {
     res.status(200).json(property);
   }
 
-  public async getAllPublicProperties(req: Request, res: Response) {
-    const queryDto = getAllPropertiesQuerySchema.parse(req.query);
-    const properties = await this._propertyService.getPublicProperties(queryDto);
+  public async getPublicProperties(req: Request, res: Response) {
+    const getPropertiesQueryDto = getPropertiesQuerySchema.parse(req.query);
+    const properties = await this._propertyService.getPublicProperties(getPropertiesQueryDto);
 
     res.status(200).json(properties);
   }
@@ -60,18 +64,21 @@ export class PropertyController {
 
   public async getMyProperties(req: Request, res: Response) {
     const user = req.currentUser!;
-    const queryDto = getAllPropertiesQuerySchema.parse(req.query);
+    const getPropertiesQueryDto = getPropertiesQuerySchema.parse(req.query);
 
-    const properties = await this._propertyService.getPropertiesByHostId(user.id, queryDto);
+    const properties = await this._propertyService.getPropertiesByHostId(
+      user.id,
+      getPropertiesQueryDto,
+    );
 
     res.status(200).json(properties);
   }
 
   public async createMyProperty(req: Request, res: Response) {
     const user = req.currentUser!;
-    const createPropertyDto = createPropertyBodySchema.parse(req.body);
+    const createPropertyBodyDto = createPropertyBodySchema.parse(req.body);
 
-    const property = await this._propertyService.createProperty(user.id, createPropertyDto);
+    const property = await this._propertyService.createProperty(user.id, createPropertyBodyDto);
 
     res.status(201).json(property);
   }
@@ -79,12 +86,12 @@ export class PropertyController {
   public async updateMyProperty(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
-    const updatePropertyDto = updatePropertyBodySchema.parse(req.body);
+    const updatePropertyBodyDto = updatePropertyBodySchema.parse(req.body);
 
     const updatedProperty = await this._propertyService.updatePropertyByHost({
       hostId: user.id,
       propertyId,
-      data: updatePropertyDto,
+      data: updatePropertyBodyDto,
     });
 
     res.status(200).json(updatedProperty);
@@ -93,11 +100,13 @@ export class PropertyController {
   public async publishMyProperty(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const publishPropertyBodyDto = publishPropertyBodySchema.parse(req.body);
 
-    const publishedProperty = await this._propertyService.publishPropertyByHost(
-      user.id,
+    const publishedProperty = await this._propertyService.publishPropertyByHost({
+      hostId: user.id,
       propertyId,
-    );
+      data: publishPropertyBodyDto,
+    });
 
     res.status(200).json(publishedProperty);
   }
@@ -141,12 +150,12 @@ export class PropertyController {
       });
     }
 
-    const files = req.files as Express.Multer.File[];
+    const files = req.files;
 
     const updatedProperty = await this._propertyService.uploadPropertyImagesByHost({
-      files,
       hostId: user.id,
       propertyId,
+      files,
     });
 
     res.status(201).json(updatedProperty);
@@ -155,12 +164,12 @@ export class PropertyController {
   public async reorderMyPropertyImages(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
-    const { imageIds } = reorderPropertyImagesBodySchema.parse(req.body);
+    const reorderPropertyImagesBodyDto = reorderPropertyImagesBodySchema.parse(req.body);
 
     await this._propertyService.reorderPropertyImagesByHost({
-      imageIds,
       hostId: user.id,
       propertyId,
+      data: reorderPropertyImagesBodyDto,
     });
 
     res.status(204).send();
@@ -171,9 +180,9 @@ export class PropertyController {
     const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
 
     await this._propertyService.deletePropertyImageByHost({
-      imageId,
       hostId: user.id,
       propertyId,
+      imageId,
     });
 
     res.status(204).send();
@@ -184,9 +193,9 @@ export class PropertyController {
     const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
 
     await this._propertyService.setMainPropertyImageByHost({
-      imageId,
       hostId: user.id,
       propertyId,
+      imageId,
     });
 
     res.status(204).send();
@@ -194,28 +203,46 @@ export class PropertyController {
 
   // --- ADMIN ENDPOINTS ---
 
-  public async adminGetAllProperties(req: Request, res: Response) {
-    const queryDto = adminGetAllPropertiesQuerySchema.parse(req.query);
-    const properties = await this._propertyService.getPropertiesByAdmin(queryDto);
+  public async adminGetProperties(req: Request, res: Response) {
+    const adminGetPropertiesQueryDto = adminGetPropertiesQuerySchema.parse(req.query);
+    const properties = await this._propertyService.getPropertiesByAdmin(adminGetPropertiesQueryDto);
 
     res.status(200).json(properties);
   }
 
   public async adminUpdateProperty(req: Request, res: Response) {
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
-    const updateDto = adminUpdatePropertyBodySchema.parse(req.body);
+    const adminUpdatePropertyBodyDto = adminUpdatePropertyBodySchema.parse(req.body);
 
     const updatedProperty = await this._propertyService.updatePropertyByAdmin(
       propertyId,
-      updateDto,
+      adminUpdatePropertyBodyDto,
     );
 
     res.status(200).json(updatedProperty);
   }
 
+  public async adminApproveProperty(req: Request, res: Response) {
+    const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const approvedProperty = await this._propertyService.approvePropertyByAdmin(propertyId);
+
+    res.status(200).json(approvedProperty);
+  }
+
+  public async adminRejectProperty(req: Request, res: Response) {
+    const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const adminRejectPropertyBodyDto = adminRejectPropertyBodySchema.parse(req.body);
+
+    const rejectedProperty = await this._propertyService.rejectPropertyByAdmin(
+      propertyId,
+      adminRejectPropertyBodyDto,
+    );
+
+    res.status(200).json(rejectedProperty);
+  }
+
   public async adminDeleteProperty(req: Request, res: Response) {
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
-
     await this._propertyService.deletePropertyByAdmin(propertyId);
 
     res.status(204).send();

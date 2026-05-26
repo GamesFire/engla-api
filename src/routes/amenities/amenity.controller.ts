@@ -42,8 +42,8 @@ export class AmenityController {
   }
 
   public async getAmenities(req: Request, res: Response) {
-    const queryDto = getAmenitiesQuerySchema.parse(req.query);
-    const amenities = await this._amenityService.getAmenities(queryDto);
+    const getAmenitiesQueryDto = getAmenitiesQuerySchema.parse(req.query);
+    const amenities = await this._amenityService.getAmenities(getAmenitiesQueryDto);
 
     res.status(200).json(amenities);
   }
@@ -56,9 +56,10 @@ export class AmenityController {
   }
 
   public async getAmenityCategories(req: Request, res: Response) {
-    const queryDto = getAmenityCategoriesQuerySchema.parse(req.query);
-
-    const amenityCategories = await this._amenityService.getAmenityCategories(queryDto);
+    const getAmenityCategoriesQueryDto = getAmenityCategoriesQuerySchema.parse(req.query);
+    const amenityCategories = await this._amenityService.getAmenityCategories(
+      getAmenityCategoriesQueryDto,
+    );
 
     res.status(200).json(amenityCategories);
   }
@@ -66,19 +67,19 @@ export class AmenityController {
   // --- ADMIN ENDPOINTS (Amenities) ---
 
   public async adminCreateAmenity(req: Request, res: Response) {
-    const createDto = createAmenityBodySchema.parse(req.body);
-    const amenity = await this._amenityService.createAmenity(createDto);
+    const createAmenityBodyDto = createAmenityBodySchema.parse(req.body);
+    const amenity = await this._amenityService.createAmenity(createAmenityBodyDto);
 
     res.status(201).json(amenity);
   }
 
   public async adminUpdateAmenity(req: Request, res: Response) {
     const { id: amenityId } = amenityIdParamSchema.parse(req.params);
-    const updateDto = updateAmenityBodySchema.parse(req.body);
+    const updateAmenityBodyDto = updateAmenityBodySchema.parse(req.body);
 
     const updatedAmenity = await this._amenityService.updateAmenity({
       amenityId,
-      data: updateDto,
+      data: updateAmenityBodyDto,
     });
 
     res.status(200).json(updatedAmenity);
@@ -94,19 +95,21 @@ export class AmenityController {
   // --- ADMIN ENDPOINTS (Amenity Categories) ---
 
   public async adminCreateAmenityCategory(req: Request, res: Response) {
-    const createDto = createAmenityCategoryBodySchema.parse(req.body);
-    const amenityCategory = await this._amenityService.createAmenityCategory(createDto);
+    const createAmenityCategoryBodyDto = createAmenityCategoryBodySchema.parse(req.body);
+    const amenityCategory = await this._amenityService.createAmenityCategory(
+      createAmenityCategoryBodyDto,
+    );
 
     res.status(201).json(amenityCategory);
   }
 
   public async adminUpdateAmenityCategory(req: Request, res: Response) {
     const { id: categoryId } = amenityCategoryIdParamSchema.parse(req.params);
-    const updateDto = updateAmenityCategoryBodySchema.parse(req.body);
+    const updateAmenityCategoryBodyDto = updateAmenityCategoryBodySchema.parse(req.body);
 
     const updatedAmenityCategory = await this._amenityService.updateAmenityCategory({
       categoryId,
-      data: updateDto,
+      data: updateAmenityCategoryBodyDto,
     });
 
     res.status(200).json(updatedAmenityCategory);

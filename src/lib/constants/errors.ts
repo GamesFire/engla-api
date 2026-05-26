@@ -44,6 +44,7 @@ export const ErrorCodes = {
     NOT_DRAFT: 'PROPERTY_NOT_DRAFT',
     MISSING_PUBLISH_FIELDS: 'PROPERTY_MISSING_PUBLISH_FIELDS',
     MAX_PENDING_PROPERTIES_REACHED: 'MAX_PENDING_PROPERTIES_REACHED',
+    NOT_PENDING: 'PROPERTY_NOT_PENDING',
     NOT_ACTIVE: 'PROPERTY_NOT_ACTIVE',
     NOT_INACTIVE: 'PROPERTY_NOT_INACTIVE',
   },
@@ -120,6 +121,7 @@ export const ErrorMessages = {
     MISSING_PUBLISH_FIELDS: 'Cannot publish property. Missing required fields',
     MAX_PENDING_PROPERTIES_REACHED:
       'You have reached the maximum number of properties awaiting review',
+    NOT_PENDING: 'This action requires the property to be in a pending review state',
     NOT_ACTIVE: 'Only active properties can be paused',
     NOT_INACTIVE: 'Only inactive properties can be unpaused',
   },

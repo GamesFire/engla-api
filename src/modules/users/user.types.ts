@@ -1,6 +1,6 @@
 import type { User } from '@models/users/user.model.js';
 import type { UserModifierName } from '@models/users/user.modifiers.js';
-import type { AdminGetAllUsersQueryDto } from '@routes/users/user.validation.js';
+import type { AdminGetUsersQueryDto } from '@routes/users/user.validation.js';
 
 export type UserQueryOptions = {
   /**
@@ -28,7 +28,7 @@ export type UserQueryOptions = {
 
 export type FindUserOptions = UserQueryOptions;
 
-export type GetUsersParams = AdminGetAllUsersQueryDto;
+export type GetUsersParams = AdminGetUsersQueryDto;
 
 export type UploadUserAvatarParams = {
   userId: number;

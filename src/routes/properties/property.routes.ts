@@ -29,6 +29,8 @@ const ProtectedPropertyRoutes = {
 const AdminPropertyRoutes = {
   ROOT: '/',
   BY_ID: '/:id',
+  APPROVE: '/:id/approve',
+  REJECT: '/:id/reject',
 } as const;
 
 export function createPublicPropertyRouter(): Router {
@@ -38,7 +40,7 @@ export function createPublicPropertyRouter(): Router {
   router.get(
     PublicPropertyRoutes.ROOT,
     RateLimiters.PROPERTIES.SEARCH,
-    propertyController.getAllPublicProperties,
+    propertyController.getPublicProperties,
   );
 
   router.get(
@@ -123,7 +125,7 @@ export function createAdminPropertyRouter(): Router {
   router.get(
     AdminPropertyRoutes.ROOT,
     permissionMiddleware([SystemPermission.PROPERTIES_READ]),
-    propertyController.adminGetAllProperties,
+    propertyController.adminGetProperties,
   );
 
   router.patch(
@@ -131,6 +133,20 @@ export function createAdminPropertyRouter(): Router {
     RateLimiters.ADMIN.MANAGEMENT,
     permissionMiddleware([SystemPermission.PROPERTIES_UPDATE]),
     propertyController.adminUpdateProperty,
+  );
+
+  router.post(
+    AdminPropertyRoutes.APPROVE,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.PROPERTIES_UPDATE]),
+    propertyController.adminApproveProperty,
+  );
+
+  router.post(
+    AdminPropertyRoutes.REJECT,
+    RateLimiters.ADMIN.MANAGEMENT,
+    permissionMiddleware([SystemPermission.PROPERTIES_UPDATE]),
+    propertyController.adminRejectProperty,
   );
 
   router.delete(

@@ -7,7 +7,7 @@ import { HttpError } from '@lib/errors/http.error.js';
 import { UserService } from '@modules/users/user.service.js';
 
 import {
-  adminGetAllUsersQuerySchema,
+  adminGetUsersQuerySchema,
   adminSyncPermissionsBodySchema,
   adminUpdateUserBodySchema,
   updateUserBodySchema,
@@ -23,7 +23,7 @@ export class UserController {
     this.deleteMe = this.deleteMe.bind(this);
 
     this.adminGetUserById = this.adminGetUserById.bind(this);
-    this.adminGetAllUsers = this.adminGetAllUsers.bind(this);
+    this.adminGetUsers = this.adminGetUsers.bind(this);
     this.adminGetUserPermissions = this.adminGetUserPermissions.bind(this);
     this.adminUpdateUser = this.adminUpdateUser.bind(this);
     this.adminDeleteUser = this.adminDeleteUser.bind(this);
@@ -88,9 +88,9 @@ export class UserController {
     res.status(200).json(user);
   }
 
-  public async adminGetAllUsers(req: Request, res: Response) {
-    const adminGetAllUsersQueryDto = adminGetAllUsersQuerySchema.parse(req.query);
-    const users = await this._userService.getUsers(adminGetAllUsersQueryDto);
+  public async adminGetUsers(req: Request, res: Response) {
+    const adminGetUsersQueryDto = adminGetUsersQuerySchema.parse(req.query);
+    const users = await this._userService.getUsers(adminGetUsersQueryDto);
 
     res.status(200).json(users);
   }

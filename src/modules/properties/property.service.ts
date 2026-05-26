@@ -11,6 +11,7 @@ import { type Property, PropertyStatus, PropertyType } from '@models/properties/
 import { PropertyModifier } from '@models/properties/property.modifiers.js';
 import type { PropertyImage } from '@models/property-image.model.js';
 import type {
+  AdminRejectPropertyBodyDto,
   AdminUpdatePropertyBodyDto,
   CreatePropertyBodyDto,
 } from '@routes/properties/property.validation.js';
@@ -24,6 +25,7 @@ import type {
   GetPropertiesByAdminParams,
   GetPublicPropertiesParams,
   PropertyImageByHostParams,
+  PublishPropertyByHostParams,
   ReorderPropertyImagesByHostParams,
   UpdatePropertyByHostParams,
   UploadPropertyImagesByHostParams,
@@ -58,7 +60,7 @@ export class PropertyService {
   private async _getExistingPropertyForHost(
     params: GetExistingPropertyForHostParams,
   ): Promise<Property> {
-    const { propertyId, hostId, options } = params;
+    const { hostId, propertyId, options } = params;
     const property = await this._getExistingProperty(propertyId, options);
 
     if (property.hostId !== hostId) {
@@ -118,6 +120,26 @@ export class PropertyService {
     // If there are no active bookings (only past ones) -> Archive (Soft Delete).
     // All images and reviews remain in the database and on Cloudinary for the sake of history.
     await this._propertyRepository.softDeleteAndFetchById(property.id);
+  }
+
+  /**
+   * Helper method to fetch a property and ensure it is currently pending moderation.
+   *
+   * @param propertyId - The ID of the property to fetch.
+   * @returns A promise that resolves to the fetched property.
+   */
+  private async _getPendingPropertyForAdmin(propertyId: number): Promise<Property> {
+    const property = await this._getExistingProperty(propertyId, { modifiers: null });
+
+    if (property.status !== PropertyStatus.PENDING) {
+      throw new HttpError({
+        statusCode: 400,
+        message: ErrorMessages.PROPERTIES.NOT_PENDING,
+        internalPayload: { code: ErrorCodes.PROPERTIES.NOT_PENDING },
+      });
+    }
+
+    return property;
   }
 
   public async getPublicPropertyById(propertyId: number): Promise<Property> {
@@ -194,7 +216,9 @@ export class PropertyService {
     });
   }
 
-  public async publishPropertyByHost(hostId: number, propertyId: number): Promise<Property> {
+  public async publishPropertyByHost(params: PublishPropertyByHostParams): Promise<Property> {
+    const { hostId, propertyId, data } = params;
+
     const property = await this._getExistingPropertyForHost({
       propertyId,
       hostId,
@@ -248,7 +272,11 @@ export class PropertyService {
 
     return this._propertyRepository.updateAndFetchById({
       propertyId,
-      data: { status: PropertyStatus.PENDING },
+      data: {
+        status: PropertyStatus.PENDING,
+        autoActivateOnApproval: data.autoActivateOnApproval,
+        rejectionReason: null,
+      },
       options: { modifiers: PropertyModifier.HOST_VIEW },
     });
   }
@@ -310,7 +338,7 @@ export class PropertyService {
   public async uploadPropertyImagesByHost(
     params: UploadPropertyImagesByHostParams,
   ): Promise<Property> {
-    const { files, hostId, propertyId } = params;
+    const { hostId, propertyId, files } = params;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
 
@@ -348,7 +376,8 @@ export class PropertyService {
   public async reorderPropertyImagesByHost(
     params: ReorderPropertyImagesByHostParams,
   ): Promise<void> {
-    const { imageIds, hostId, propertyId } = params;
+    const { hostId, propertyId, data } = params;
+    const { imageIds } = data;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
 
@@ -382,7 +411,7 @@ export class PropertyService {
   }
 
   public async deletePropertyImageByHost(params: PropertyImageByHostParams): Promise<void> {
-    const { imageId, hostId, propertyId } = params;
+    const { hostId, propertyId, imageId } = params;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
 
@@ -408,7 +437,7 @@ export class PropertyService {
   }
 
   public async setMainPropertyImageByHost(params: PropertyImageByHostParams): Promise<void> {
-    const { imageId, hostId, propertyId } = params;
+    const { hostId, propertyId, imageId } = params;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
     await this._getExistingPropertyImage(imageId, propertyId);
@@ -444,6 +473,40 @@ export class PropertyService {
       propertyId,
       data: dto,
       options: { modifiers: PropertyModifier.ADMIN_VIEW, includeDeleted: true },
+    });
+  }
+
+  public async approvePropertyByAdmin(propertyId: number): Promise<Property> {
+    const property = await this._getPendingPropertyForAdmin(propertyId);
+
+    const finalStatus = property.autoActivateOnApproval
+      ? PropertyStatus.ACTIVE
+      : PropertyStatus.INACTIVE;
+
+    // TODO (Redis/Queue): Dispatch "Property Approved" Email job to Host
+
+    return this._propertyRepository.updateAndFetchById({
+      propertyId,
+      data: { status: finalStatus },
+      options: { modifiers: PropertyModifier.ADMIN_VIEW },
+    });
+  }
+
+  public async rejectPropertyByAdmin(
+    propertyId: number,
+    dto: AdminRejectPropertyBodyDto,
+  ): Promise<Property> {
+    await this._getPendingPropertyForAdmin(propertyId);
+
+    // TODO (Redis/Queue): Dispatch "Property Rejected" Email job to Host with dto.reason
+
+    return this._propertyRepository.updateAndFetchById({
+      propertyId,
+      data: {
+        status: PropertyStatus.REJECTED,
+        rejectionReason: dto.reason,
+      },
+      options: { modifiers: PropertyModifier.ADMIN_VIEW },
     });
   }
 

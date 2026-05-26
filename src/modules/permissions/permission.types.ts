@@ -1,3 +1,3 @@
-import type { GetPermissionsQueryDto } from '@routes/permissions/permission.validation.js';
+import type { GetAllPermissionsQueryDto } from '@routes/permissions/permission.validation.js';
 
-export type GetPermissionsParams = GetPermissionsQueryDto;
+export type GetAllPermissionsParams = GetAllPermissionsQueryDto;

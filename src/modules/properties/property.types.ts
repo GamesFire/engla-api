@@ -2,8 +2,10 @@ import type { Property } from '@models/properties/property.model.js';
 import type { PropertyModifierName } from '@models/properties/property.modifiers.js';
 import type { PropertyImage } from '@models/property-image.model.js';
 import type {
-  AdminGetAllPropertiesQueryDto,
-  GetAllPropertiesQueryDto,
+  AdminGetPropertiesQueryDto,
+  GetPropertiesQueryDto,
+  PublishPropertyBodyDto,
+  ReorderPropertyImagesBodyDto,
   UpdatePropertyBodyDto,
 } from '@routes/properties/property.validation.js';
 
@@ -27,8 +29,8 @@ export type PropertyQueryOptions = {
 
 export type FindPropertyOptions = PropertyQueryOptions;
 
-export type GetPublicPropertiesParams = GetAllPropertiesQueryDto;
-export type GetPropertiesByAdminParams = AdminGetAllPropertiesQueryDto;
+export type GetPublicPropertiesParams = GetPropertiesQueryDto;
+export type GetPropertiesByAdminParams = AdminGetPropertiesQueryDto;
 
 export type CreatePropertyData = Pick<Property, 'hostId' | 'propertyType' | 'status'>;
 
@@ -48,8 +50,8 @@ export type UpdatePropertyParams = {
 };
 
 export type GetExistingPropertyForHostParams = {
-  propertyId: number;
   hostId: number;
+  propertyId: number;
   options?: FindPropertyOptions;
 };
 
@@ -59,20 +61,26 @@ export type UpdatePropertyByHostParams = {
   data: UpdatePropertyBodyDto;
 };
 
-export type UploadPropertyImagesByHostParams = {
-  files: Express.Multer.File[];
+export type PublishPropertyByHostParams = {
   hostId: number;
   propertyId: number;
+  data: PublishPropertyBodyDto;
+};
+
+export type UploadPropertyImagesByHostParams = {
+  hostId: number;
+  propertyId: number;
+  files: Express.Multer.File[];
 };
 
 export type ReorderPropertyImagesByHostParams = {
-  imageIds: number[];
   hostId: number;
   propertyId: number;
+  data: ReorderPropertyImagesBodyDto;
 };
 
 export type PropertyImageByHostParams = {
-  imageId: number;
   hostId: number;
   propertyId: number;
+  imageId: number;
 };

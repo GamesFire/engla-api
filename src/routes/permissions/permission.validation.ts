@@ -5,7 +5,7 @@ import { PermissionSortFields } from '@modules/permissions/permission.constants.
 
 // --- PERMISSION ADMIN SCHEMAS ---
 
-export const getPermissionsQuerySchema = baseSortSchema.extend({
+export const getAllPermissionsQuerySchema = baseSortSchema.extend({
   orderBy: z
     .enum(PermissionSortFields, {
       message: 'Invalid orderBy field for permissions',
@@ -15,4 +15,4 @@ export const getPermissionsQuerySchema = baseSortSchema.extend({
 
 // --- EXPORT TYPES ---
 
-export type GetPermissionsQueryDto = z.infer<typeof getPermissionsQuerySchema>;
+export type GetAllPermissionsQueryDto = z.infer<typeof getAllPermissionsQuerySchema>;

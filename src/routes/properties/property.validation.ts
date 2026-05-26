@@ -201,9 +201,17 @@ export const reorderPropertyImagesBodySchema = z
   })
   .strict();
 
+export const publishPropertyBodySchema = z
+  .object({
+    autoActivateOnApproval: z
+      .boolean({ message: 'autoActivateOnApproval must be a boolean' })
+      .default(true),
+  })
+  .strict();
+
 // --- PROPERTY PUBLIC SCHEMAS (Search) ---
 
-export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
+export const getPropertiesQuerySchema = basePaginationSchema.extend({
   orderBy: z
     .enum(PropertySortFields, {
       message: 'Invalid orderBy field for properties',
@@ -302,7 +310,7 @@ export const getAllPropertiesQuerySchema = basePaginationSchema.extend({
 
 // --- PROPERTY ADMIN SCHEMAS ---
 
-export const adminGetAllPropertiesQuerySchema = getAllPropertiesQuerySchema.extend({
+export const adminGetPropertiesQuerySchema = getPropertiesQuerySchema.extend({
   status: z.enum(PropertyStatus, { message: 'Invalid property status' }).optional(),
   hostId: z.coerce.number().int().positive().optional(),
   licenseNumber: z.string().trim().max(ValidationLimits.PROPERTY.LICENSE_MAX).optional(),
@@ -315,6 +323,17 @@ export const adminUpdatePropertyBodySchema = updatePropertyBodySchema
   })
   .strict();
 
+export const adminRejectPropertyBodySchema = z
+  .object({
+    reason: z
+      .string()
+      .trim()
+      .min(ValidationLimits.PROPERTY.REJECTION_REASON_MIN)
+      .max(ValidationLimits.PROPERTY.REJECTION_REASON_MAX)
+      .transform((val) => sanitizeText(val)),
+  })
+  .strict();
+
 // --- EXPORT TYPES ---
 
 export type PropertyIdParamDto = z.infer<typeof propertyIdParamSchema>;
@@ -323,8 +342,10 @@ export type PropertyImageIdParamDto = z.infer<typeof propertyImageIdParamSchema>
 export type CreatePropertyBodyDto = z.infer<typeof createPropertyBodySchema>;
 export type UpdatePropertyBodyDto = z.infer<typeof updatePropertyBodySchema>;
 export type ReorderPropertyImagesBodyDto = z.infer<typeof reorderPropertyImagesBodySchema>;
+export type PublishPropertyBodyDto = z.infer<typeof publishPropertyBodySchema>;
 
-export type GetAllPropertiesQueryDto = z.infer<typeof getAllPropertiesQuerySchema>;
+export type GetPropertiesQueryDto = z.infer<typeof getPropertiesQuerySchema>;
 
-export type AdminGetAllPropertiesQueryDto = z.infer<typeof adminGetAllPropertiesQuerySchema>;
+export type AdminGetPropertiesQueryDto = z.infer<typeof adminGetPropertiesQuerySchema>;
 export type AdminUpdatePropertyBodyDto = z.infer<typeof adminUpdatePropertyBodySchema>;
+export type AdminRejectPropertyBodyDto = z.infer<typeof adminRejectPropertyBodySchema>;

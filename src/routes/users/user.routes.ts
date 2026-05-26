@@ -44,7 +44,7 @@ export function createAdminUserRouter(): Router {
   router.get(
     AdminUserRoutes.ROOT,
     permissionMiddleware([SystemPermission.USERS_READ]),
-    userController.adminGetAllUsers,
+    userController.adminGetUsers,
   );
 
   router.get(

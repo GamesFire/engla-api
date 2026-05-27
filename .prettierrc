@@ -8,7 +8,11 @@
   "bracketSpacing": true,
   "bracketSameLine": true,
   "endOfLine": "lf",
-  "importOrder": ["<THIRD_PARTY_MODULES>", "^@(app|lib|utils|models|modules|routes|ioc)/(.*)$", "^[./]"],
+  "importOrder": [
+    "<THIRD_PARTY_MODULES>",
+    "^@(app|lib|utils|models|modules|routes|ioc|app-types)/(.*)$",
+    "^[./]"
+  ],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
   "importOrderParserPlugins": ["typescript", "decorators-legacy", "classProperties"],

@@ -24,7 +24,6 @@
     "vitest.config.ts",
     "eslint.config.mjs",
     "release.config.cjs",
-    "nodemon.json",
-    ".eslintrc.js"
+    "nodemon.json"
   ]
 }

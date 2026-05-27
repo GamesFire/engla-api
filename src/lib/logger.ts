@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import winston from 'winston';
+import winston, { type Logger } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
 import { appConfig } from './configs/app.config.js';
@@ -84,7 +84,9 @@ export const logger = winston.createLogger({
  * Smart logger getter.
  * If we are inside an HTTP request -> returns Child Logger with TraceID.
  * If we are at the start of the application or in CRON -> returns Global Logger.
+ *
+ * @returns Logger
  */
-export function getLogger() {
+export function getLogger(): Logger {
   return HttpContext.getLogger() || logger;
 }

@@ -32,6 +32,7 @@ export const knexConfig: Knex.Config = {
     directory: seedsDir,
     extension: 'ts',
     loadExtensions: ['.ts', '.js'],
+    stub: path.join(rootDir, 'database', 'stubs', 'seed.stub.ts'),
   },
-  debug: appConfig.isDev && process.env.DB_DEBUG === 'true',
+  debug: appConfig.isDev && appConfig.DB_DEBUG,
 };

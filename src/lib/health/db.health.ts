@@ -4,6 +4,10 @@ import { logger } from '@lib/logger.js';
 
 /**
  * Checks if Database connection is alive by running a simple query.
+ *
+ * @param knex - Knex instance.
+ * @returns Resolves when the check is completed.
+ * @throws If the check fails.
  */
 export async function dbHealthCheck(knex: Knex): Promise<void> {
   const start = Date.now();

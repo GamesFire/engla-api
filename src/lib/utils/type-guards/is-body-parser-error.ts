@@ -6,6 +6,9 @@ interface BodyParserError extends SyntaxError {
 
 /**
  * Checks whether the error is a body-parser error (e.g., malformed JSON).
+ *
+ * @param err - The error to check.
+ * @returns Whether the error is a body-parser error.
  */
 export function isBodyParserError(err: unknown): err is BodyParserError {
   return (

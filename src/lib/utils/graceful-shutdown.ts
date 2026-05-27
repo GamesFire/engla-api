@@ -19,12 +19,12 @@ export class GracefulShutdownHandler {
   /**
    * Registers a cleanup task to be executed during graceful shutdown.
    *
-   * @param task - An async function that handles resource cleanup.
-   * It receives the signal and an optional error object.
+   * @param task - An async function that handles resource cleanup. It receives the signal and an optional error object.
+   *
    * @example
    * GracefulShutdownHandler.registerTask(async () => {
-   * await db.destroy();
-   * logger.info('DB closed');
+   *   await db.destroy();
+   *   logger.info('DB closed');
    * });
    */
   public static registerTask(task: (signal: string, err?: Error) => Promise<void>): void {
@@ -36,7 +36,7 @@ export class GracefulShutdownHandler {
    * Executes all registered tasks in parallel and exits the process.
    *
    * @param signal - The signal that triggered the shutdown (e.g., 'SIGTERM', 'SIGINT').
-   * @param err - Optional error object if triggered by an uncaught exception.
+   * @param [err] - Optional error object if triggered by an uncaught exception.
    */
   private static async handleShutdown(signal: string, err?: Error): Promise<void> {
     if (GracefulShutdownHandler.isShuttingDown) {

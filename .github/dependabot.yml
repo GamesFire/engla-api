@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+    labels:
+      - "dependencies"
+      - "chore"
+
+    groups:
+      safe-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

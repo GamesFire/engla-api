@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a Security Vulnerability
+    url: https://github.com/GamesFire/engla-api/security/advisories/new
+    about: Please securely report any security vulnerabilities here instead of opening an issue.

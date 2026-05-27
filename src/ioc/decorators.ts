@@ -2,8 +2,8 @@ import { type Bind, decorate, injectable } from 'inversify';
 
 import { logger } from '@lib/logger.js';
 
-import { REFLECT_KEYS } from './constants.js';
-import type { TProvide } from './types.js';
+import { ReflectKey } from './constants.js';
+import type { ProvideMetadata } from './types.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = object> = new (...args: any[]) => T;
@@ -11,6 +11,8 @@ type Constructor<T = object> = new (...args: any[]) => T;
 /**
  * Decorator to automatically register a class in the IOC container.
  * It marks the class as `@injectable` and defines binding metadata (Singleton by default).
+ *
+ * @returns A class decorator function that registers the target class in the IoC container.
  *
  * @example
  * Usage:
@@ -34,15 +36,16 @@ export function provide() {
       }
     }
 
-    const currentMetadata: TProvide = {
+    const currentMetadata: ProvideMetadata = {
       constraint: (bind: Bind) => bind(target).toSelf().inSingletonScope(),
       implementationType: target,
     };
 
-    const previousMetadata: TProvide[] = Reflect.getMetadata(REFLECT_KEYS.PROVIDE, Reflect) || [];
+    const previousMetadata: ProvideMetadata[] =
+      Reflect.getMetadata(ReflectKey.PROVIDE, Reflect) || [];
     const newMetadata = [currentMetadata, ...previousMetadata];
 
-    Reflect.defineMetadata(REFLECT_KEYS.PROVIDE, newMetadata, Reflect);
+    Reflect.defineMetadata(ReflectKey.PROVIDE, newMetadata, Reflect);
 
     return target;
   };

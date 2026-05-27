@@ -9,6 +9,9 @@ const { Client } = pg;
 /**
  * Creates a database if it does not exist.
  * Takes UTF8 encoding into DB.
+ *
+ * @see https://www.postgresql.org/docs/current/sql-createdatabase.html
+ * @returns Resolves when the database is created.
  */
 export async function createDatabase(): Promise<void> {
   const dbName = appConfig.DB_NAME;
@@ -45,6 +48,9 @@ export async function createDatabase(): Promise<void> {
 /**
  * Deletes the database (Only for Dev/Test environments!).
  * Forcibly breaks all active connections before deletion.
+ *
+ * @see https://www.postgresql.org/docs/current/sql-dropdatabase.html
+ * @returns Resolves when the database is dropped.
  */
 export async function dropDatabase(): Promise<void> {
   if (appConfig.isProd) {

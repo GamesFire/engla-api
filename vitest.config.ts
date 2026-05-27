@@ -1,8 +1,9 @@
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     globals: true,
     environment: 'node',
@@ -18,8 +19,8 @@ export default defineConfig({
         'node_modules/',
         'dist/',
         'tests/',
-        'src/database/migrations',
-        'src/database/seeds',
+        'database/**',
+        'src/@types/**',
         '**/*.d.ts',
         '**/*.js',
         'eslint.config.mjs',

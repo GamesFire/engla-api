@@ -1,11 +1,11 @@
-export interface IPaginationParams {
+export interface PaginationParams {
   page: number;
   limit?: number;
   orderBy?: string;
-  order?: 'asc' | 'desc';
+  orderDirection?: 'asc' | 'desc';
 }
 
-export interface IPaginatedResult<T> {
+export interface PaginatedResponse<T> {
   results: T[];
   total: number;
 }

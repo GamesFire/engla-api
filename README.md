@@ -1,10 +1,10 @@
-# EngLa API 🇬🇧
+# EngLa API 🏴󠁧󠁢󠁥󠁮󠁧󠁿
 
 > Production-ready RESTful API for **EngLa** — a short-term rental marketplace in England. Built with Node.js, Express, TypeScript, PostgreSQL, and Clean Architecture principles.
 
-![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)
+![Node.js](https://img.shields.io/badge/Node.js-v22.22+-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
-![License](https://img.shields.io/badge/license-ISC-grey.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## 📋 Table of Contents
 
@@ -15,9 +15,11 @@
 - [🚀 Getting Started](#-getting-started)
 - [⚙ Environment Configuration](#-environment-configuration)
 - [💻 Database Management (CLI)](#-database-management-cli)
+- [🔌 Integrations](#-integrations)
 - [🧪 Testing](#-testing)
 - [📂 Project Structure](#-project-structure)
 - [📜 Scripts](#-scripts)
+- [🏷 Versioning & Commits](#-versioning--commits)
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
 
@@ -29,10 +31,10 @@
 
 ## 🛠 Tech Stack
 
-- **Runtime:** Node.js (v20+)
+- **Runtime:** Node.js (v22.22.1+)
 - **Language:** TypeScript
 - **Framework:** Express.js
-- **Database:** PostgreSQL (Primary), Redis (Caching & Queues)
+- **Database:** PostgreSQL v14+ (Strictly required due to dialect-specific features like ILIKE, UPSERTs, etc.), Redis (Caching & Queues)
 - **ORM / Query Builder:** Knex.js & Objection.js
 - **Dependency Injection:** InversifyJS
 - **Validation:** Zod
@@ -50,15 +52,41 @@ This project follows **Clean Architecture** principles to ensure separation of c
 3.  **Bootstrapper Pattern:** Infrastructure initialization logic is decoupled from the entry point.
 4.  **Custom CLI:** Instead of relying on global binaries, we use a project-specific CLI (`engla-cli`) to manage database operations, ensuring consistency across environments.
 
+### Naming Conventions (Ubiquitous Language)
+
+To maintain a predictable and highly readable codebase, we strictly enforce the following naming conventions across our layers:
+
+1. **Controllers (Route & Role Context):**
+   Controller method names must reflect the **Endpoint Route** and the **Actor (Role)** calling it. This immediately tells the developer who is authorized to use this method.
+   * `getPublicProperties` -> Maps to `GET /properties` (Accessible to anyone).
+   * `getMyProperties` -> Maps to `GET /me/properties` (Accessible to the authenticated Host/User).
+   * `adminGetAllProperties` -> Maps to `GET /admin/properties` (Accessible only to Admins).
+
+2. **Services (Business Use-Case Context):**
+   Service method names must reflect the pure **Business Action**, stripped of HTTP context. We only use suffixes (like `ByHost` or `ByAdmin`) when the identical action has different business rules depending on the actor.
+   * `getProperties` -> A universal fetch method (No suffix needed).
+   * `updatePropertyByHost` -> Applies host-specific rules (e.g., location is locked after publishing).
+   * `adminUpdateProperty` -> Applies admin-specific rules (e.g., can force-change status bypassing host validations).
+   * `createAmenity` -> No `admin` prefix needed because only admins can create amenities globally (no context overlap).
+
+### Security & Granular Permissions (ABAC)
+
+The system utilizes an **Attribute-Based Access Control (ABAC)** model for administrative and staff roles. Instead of relying solely on broad roles (like `admin`), access to sensitive endpoints is protected by **Granular Permissions**.
+
+* **Action-Based Definitions:** Permissions are defined as specific, granular actions (e.g., `users:delete`, `properties:update`, `dictionaries:manage`) rather than abstract roles.
+* **Real-time Enforcement:** The `permission.middleware` dynamically verifies these permissions against the database on every protected request. If a staff member's rights are revoked, they lose access instantly, even if their JWT is still valid.
+* **Root Admin Bypass (Anti-Lockout):** The system defines a `ROOT_ADMIN_AUTH0_ID` in the environment variables. This master account bypasses all database permission checks (God Mode). This serves as a fail-safe to ensure the system owner is never accidentally locked out, even if the database permissions table is truncated or corrupted.
+
 ---
 
 ## ✅ Prerequisites
 
 Before you begin, ensure you have met the following requirements:
 
-- **Node.js**: v20.0.0 or higher
+- **Node.js**: v22.22.1 or higher
 - **npm**: v10.0.0 or higher
-- **Docker** (Recommended for running PostgreSQL and Redis)
+- **PostgreSQL**: v14.0 or higher
+- **Docker** (Recommended for running local infrastructure)
 
 ---
 
@@ -131,6 +159,13 @@ npm run start
 | `CORS_ORIGIN` | Allowed Origin for CORS | - |
 | `AUTH0_ISSUER_BASE_URL` | Auth0 Tenant Domain | - |
 | `AUTH0_AUDIENCE` | Auth0 API Identifier / Namespace | - |
+| `AUTH0_M2M_CLIENT_ID` | Auth0 Machine-to-Machine Client ID | - |
+| `AUTH0_M2M_CLIENT_SECRET` | Auth0 Machine-to-Machine Client Secret | - |
+| `ROOT_ADMIN_AUTH0_ID` | The Auth0 ID of the unmodifiable Root Administrator (used to prevent privilege escalation) | `auth0\|root_admin123` |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary Account Name | - |
+| `CLOUDINARY_API_KEY` | Cloudinary API Key | - |
+| `CLOUDINARY_API_SECRET` | Cloudinary API Secret | - |
+| `CLOUDINARY_BASE_FOLDER`| Root folder for uploads | - |
 | `LOG_LEVEL` | Logging level (`debug`, `info`, `error`, `warn`, `http`) | `info` |
 | `LOG_DIR` | Directory for log files | `logs` |
 | `DB_HOST` | PostgreSQL Host | `localhost` |
@@ -138,11 +173,30 @@ npm run start
 | `DB_USER` | PostgreSQL User | - |
 | `DB_PASS` | PostgreSQL Password | - |
 | `DB_NAME` | Database Name | - |
-| `DB_DEFAULT_NAME` | Default Database Name | - |
+| `DB_DEFAULT_NAME` | System default database (e.g., `postgres`) used for initial admin connection | - |
+| `DB_DEBUG` | Enables Knex query logging in development mode | `false` |
 | `REDIS_HOST` | Redis Host | `localhost` |
 | `REDIS_PORT` | Redis Port | `6379` |
 | `REDIS_PASS` | Redis Password | - |
 | `REDIS_DB` | Redis Database | `0` |
+| `SEED_ADMIN_AUTH0_ID` | Mock Auth0 ID for the main Admin account | `auth0\|admin123` |
+| `SEED_ADMIN_EMAIL` | Mock email for the main Admin account | `admin@engla.com` |
+| `SEED_HOST_AUTH0_ID` | Mock Auth0 ID for the demo Host account | `auth0\|host123` |
+| `SEED_HOST_EMAIL` | Mock email for the demo Host account | `demo.host@example.com` |
+
+### 💡 Pro-tip for Local Testing (Seed Accounts)
+
+By default, the seed script creates mock users with fake Auth0 IDs and emails. Since you cannot log into these fake accounts, you should overwrite them with your **real Auth0 credentials** in your `.env` file before seeding the database:
+
+1. Register an account on your locally running frontend (which is connected to your Auth0 tenant).
+2. Go to your Auth0 Dashboard -> User Management -> Users.
+3. Copy the `user_id` (e.g., `auth0|64b9a1...`) and the user's `email`.
+4. Paste them into your `.env` mapping to the respective roles:
+   - **Admin:** `SEED_ADMIN_AUTH0_ID` and `SEED_ADMIN_EMAIL`
+   - **Host:** `SEED_HOST_AUTH0_ID` and `SEED_HOST_EMAIL`
+5. Run `npm run cli db:seed`.
+
+Now you can successfully log in and test the system with full Admin or Host privileges!
 
 ---
 
@@ -156,11 +210,35 @@ We use a custom CLI tool built with `Commander.js` to manage database operations
 | --- | --- |
 | `npm run cli db:create` | Creates the database if it doesn't exist (using `pg` driver). |
 | `npm run cli db:drop` | ⚠️ Drops the database (Dev environment only). |
-| `npm run cli db:reset` | ⚠️ Drops, re-creates, migrates, and seeds the DB. |
+| `npm run cli db:reset` | ⚠️ Drop and re-creates the database (Dev environment only). |
 | `npm run cli db:migrate` | Runs pending migrations (`knex migrate:latest`). |
-| `npm run cli db:rollback` | Reverts the last batch of migrations. |
-| `npm run cli db:make:migration <name>` | Creates a new migration timestamped file. |
-| `npm run cli db:seed` | Runs seed files. |
+| `npm run cli db:rollback` | Reverts the last batch of migrations (`knex migrate:rollback`). |
+| `npm run cli db:make:migration <name>` | Creates a new migration timestamped file (e.g., `create_users`). |
+| `npm run cli db:delete:migration <name>` | Physically deletes a migration file from the disk (e.g., `20260130150428_create_users.ts`). |
+| `npm run cli db:run:migration <name>` | Runs a specific pending migration file (e.g., `20260130150428_create_users.ts`). |
+| `npm run cli db:rollback:migration <name>` | Reverts a specific migration file (e.g., `20260130150428_create_users.ts`). |
+| `npm run cli db:seed` | Runs all seed files (`knex seed:run`). |
+| `npm run cli db:make:seed <name>` | Creates a new seed file (e.g., `01_system_permissions`). |
+| `npm run cli db:delete:seed <name>` | Physically deletes a seed file from the disk (e.g., `01_system_permissions.ts`). |
+| `npm run cli db:run:seed <name>` | Runs a specific seed file (e.g., `01_system_permissions.ts`). |
+
+### Database Seeding Strategy
+
+Our seed files follow a strict naming convention to ensure proper execution order and environment safety:
+
+- **`01_system_*` / `02_system_*`**: System seeds contain production-ready dictionaries and core data (e.g., granular permissions, global amenity categories). These are executed in **all** environments, including production.
+- **`04_mock_*` / `05_mock_*`**: Mock seeds contain fake entities (e.g., users, properties, role assignments) generated for development, testing, and presentations. These files include a failsafe guard (`if (appConfig.isProd) return;`) to ensure they are **never** executed in production.
+- **Numerical Prefix**: Guarantees that referenced tables are seeded in the correct order to respect foreign key constraints (e.g., `01_system_permissions` runs before `04_mock_users` so mock admins can be assigned permissions).
+
+---
+
+## 🔌 Integrations
+
+This project is designed to easily integrate with third-party providers. All external services are isolated within the `src/lib/integrations` directory to keep the core domain logic clean.
+
+* **[Auth0](https://auth0.com/):** Used for robust identity management, authentication, and authorization. We utilize the Auth0 Management API (via M2M App) for secure backend actions like synchronous user account deletion.
+* **[Cloudinary](https://cloudinary.com/):** Serves as our primary media asset management platform and CDN. It handles the storage, dynamic format conversion (e.g., to WebP), and on-the-fly optimization of user avatars and property gallery images.
+* *(More integrations like Stripe will be listed here as the project grows).*
 
 ---
 
@@ -189,25 +267,35 @@ npm run test
 ## 📂 Project Structure
 
 ```text
-database/               # Database migrations & seeds (Knex)
-src/
+.github/                # GitHub Actions (CI/CD workflows), Dependabot, PR & Issue templates
+.husky/                 # Git hooks (pre-commit, commit-msg)
+database/               # Database structure and data management
+├── migrations/         # Schema definitions and table structures
+├── seeds/              # Initial data population scripts (system & mock data)
+├── stubs/              # Code generation templates (ensures proper Knex CLI file formatting)
+tests/                  # Unit & Integration tests (Vitest)
+src/                    # Main source code
+├── @types/             # Global TypeScript type definitions
 ├── cli/                # Custom CLI tool implementation (Commands, Entrypoint)
-├── interfaces/         # Shared interfaces
+├── interfaces/         # Shared TypeScript interfaces
 ├── ioc/                # Dependency Injection (Container, Bindings, Decorators)
 ├── lib/                # Core libraries & Shared infrastructure
 │   ├── configs/        # Configuration schemas (AppConfig, KnexConfig)
-│   ├── constants/      # Global constants (Enums, static data)
-│   ├── db/             # Database clients (Knex, Redis), Models (Objection.js) & Admin utils
-|   ├── errors/         # Custom Error classes (HttpError, etc.)
+│   ├── constants/      # Global constants (Enums, Time, Limits, Error Codes, etc.)
+│   ├── db/             # Database clients (Knex, Redis), Base Models (Objection.js)
+│   ├── errors/         # Custom Error classes (HttpError, etc.)
 │   ├── health/         # Infrastructure health check logic
-│   ├── middlewares/    # Express middlewares (Auth, Logger, Error Handler, Security etc.)
-│   └── utils/          # Helpers (Data parsing, Graceful Shutdown etc.)
-├── modules/            # Domain Modules (Business Logic / Services)
-├── routes/             # API Routes (System & V1), Controllers
-├── types/              # Global TypeScript type definitions
-├── server.ts           # HTTP Server setup (Express app configuration)
+│   ├── integrations/   # Third-party service providers (Auth0, Cloudinary, Stripe, etc.)
+│   ├── middlewares/    # Express middlewares (Auth, Rate Limiters, File Uploads, etc.)
+│   ├── utils/          # Helpers (Type Guards, Graceful Shutdown, Sanitization, etc.)
+│   ├── validations/    # Global and shared Zod validation schemas
+│   ├── bootstrap-infrastructure.ts # Core infrastructure initialization logic
+│   └── logger.ts       # Application logger configuration
+├── modules/            # Domain Modules / Business Logic (Services, Repositories)
+├── routes/             # API Routes, Controllers & Schemas (System, V1)
+├── server.ts           # HTTP Server setup (Express app, CORS, Middleware pipeline)
 └── entrypoint.ts       # Main application entry point
-tests/                  # Unit & Integration tests
+...                     # Standard ecosystem configs (ESLint, Prettier, TS, Semantic Release, etc.)
 ```
 
 ---
@@ -216,27 +304,66 @@ tests/                  # Unit & Integration tests
 
 - `npm run dev`: Starts the application in development mode with `nodemon`.
 - `npm run cli`: Runs the custom CLI tool (use `npm run cli -- --help` to see commands).
+- `npm run prebuild`: Automatically cleans the build directory and compiler cache before building.
 - `npm run build`: Compiles TypeScript to JavaScript (`dist` folder).
 - `npm run start`: Runs the compiled application (Production mode).
-- `npm run clean`: Removes the `dist` directory.
+- `npm run clean`: Removes the `dist` directory and `.tsbuildinfo` cache files.
 - `npm run lint`: Lint code with ESLint.
 - `npm run format`: Format code with Prettier.
 - `npm run test`: Run unit tests with Vitest.
 - `npm run typecheck`: Runs TypeScript type checking without emitting files.
+- `npm run verify`: Runs linter, typecheck, and tests sequentially (useful before pushing code).
 - `npm run prepare`: Sets up Husky git hooks.
+
+---
+
+## 🏷 Versioning & Commits
+
+This project follows **Semantic Versioning (SemVer)** and enforces the **Conventional Commits** specification. This ensures a readable Git history and allows for automated releases and CHANGELOG generation.
+
+### Commit Standards
+
+We use `commitlint` (configured with `@commitlint/config-conventional`) and Husky hooks to validate commit messages before they are created. 
+
+Your commit message must follow this structure:
+`<type>[optional scope]: <description>`
+
+**Allowed Types:**
+* `feat`: A new feature (correlates with a MINOR release).
+* `fix`: A bug fix (correlates with a PATCH release).
+* `docs`: Documentation only changes.
+* `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc).
+* `refactor`: A code change that neither fixes a bug nor adds a feature.
+* `perf`: A code change that improves performance.
+* `test`: Adding missing tests or correcting existing tests.
+* `ci`: Changes to our CI configuration files and scripts (e.g., GitHub Actions, semantic-release).
+* `chore`: Changes to the build process or auxiliary tools and libraries.
+
+**Example of a valid commit:**
+`feat(users): add admin middleware for user management`
+
+### Automated Releases
+
+We use `semantic-release` to fully automate the version management and package publishing process.
+When code is merged into the main branch, the CI/CD pipeline will automatically:
+1. Analyze the commit messages.
+2. Determine the next semantic version number (Major, Minor, or Patch).
+3. Generate and update the `CHANGELOG.md` file.
+4. Create a new Git tag and GitHub Release.
 
 ---
 
 ## 🤝 Contributing
 
 1.  Fork the repository.
-2.  Create your feature branch (`git checkout -b feat/amazing_feature`).
-3.  Commit your changes (`git commit -m 'Add some amazing_feature'`).
-4.  Push to the branch (`git push origin feat/amazing_feature`).
+2.  Create your feature branch (`git checkout -b feat/amazing-feature`).
+3.  Commit your changes following the **Conventional Commits** standard: 
+    `git commit -m 'feat: add some amazing feature'`
+4.  Push to the branch (`git push origin feat/amazing-feature`).
 5.  Open a Pull Request.
 
 ---
 
 ## 📝 License
 
-Distributed under the ISC License. See `LICENSE` for more information.
+Distributed under the **MIT License**. See `LICENSE` for more information.

@@ -5,14 +5,14 @@ import type { Knex } from 'knex';
 import { getKnexClient } from '@lib/db/knex.client.js';
 import { getRedisClient } from '@lib/db/redis.client.js';
 
-import { DI } from './constants.js';
+import { InjectionToken } from './constants.js';
 import { buildProviderModule } from './loader.js';
 
 export function constructIOC(): Container {
   const ioc = new Container();
 
   ioc
-    .bind<Redis>(DI.RedisClient)
+    .bind<Redis>(InjectionToken.RedisClient)
     .toDynamicValue(() => getRedisClient())
     .inSingletonScope();
 
@@ -22,7 +22,7 @@ export function constructIOC(): Container {
     .inSingletonScope();
 
   ioc
-    .bind<Knex>(DI.KnexClient)
+    .bind<Knex>(InjectionToken.KnexClient)
     .toDynamicValue(() => getKnexClient())
     .inSingletonScope();
 

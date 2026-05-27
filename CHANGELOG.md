@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/GamesFire/engla-api/compare/v1.0.1...v1.1.0) (2026-05-27)
+
+### Features
+
+- **release:** trigger v2 production release with ABAC and media pipeline ([da87e1c](https://github.com/GamesFire/engla-api/commit/da87e1cd3f34aaf16ff65bb1b70344f828c1e61c))
+
 ## [1.0.1](https://github.com/GamesFire/engla-api/compare/v1.0.0...v1.0.1) (2026-02-10)
 
 ### Bug Fixes

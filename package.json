@@ -55,7 +55,7 @@
     "auth0": "^5.11.0",
     "bullmq": "^5.77.6",
     "cloudinary": "^2.10.0",
-    "commander": "^14.0.2",
+    "commander": "^15.0.0",
     "connection-string": "^5.0.0",
     "cors": "^2.8.6",
     "dayjs": "^1.11.21",

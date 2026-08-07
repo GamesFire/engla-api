@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { z } from 'zod';
 
 import { ValidationLimits, ValidationPatterns } from '@lib/constants/validation.js';
@@ -23,8 +24,9 @@ export const updateUserBodySchema = z
       .string()
       .trim()
       .max(ValidationLimits.USER.PHONE_MAX, { message: 'Phone number is too long' })
-      .regex(ValidationPatterns.PHONE_E164, {
-        message: 'Phone must be in E.164 format (e.g., +447123456789)',
+      .refine((val) => isValidPhoneNumber(val), {
+        message:
+          'Invalid phone number format or non-existent region code. Must be a valid E.164 number (e.g., +447123456789)',
       })
       .optional(),
 

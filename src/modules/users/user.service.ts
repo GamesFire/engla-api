@@ -8,6 +8,7 @@ import { HttpError } from '@lib/errors/http.error.js';
 import { Auth0Service } from '@lib/integrations/auth0/auth0.service.js';
 import { CloudinaryConfig } from '@lib/integrations/cloudinary/cloudinary.constants.js';
 import { CloudinaryService } from '@lib/integrations/cloudinary/cloudinary.service.js';
+import { StripeService } from '@lib/integrations/stripe/stripe.service.js';
 import { logger } from '@lib/logger.js';
 import { type User, UserRole } from '@models/users/user.model.js';
 import { UserRepository } from '@modules/users/user.repository.js';
@@ -17,8 +18,14 @@ import type {
   UpdateUserBodyDto,
 } from '@routes/users/user.validation.js';
 
-import { UserMedia } from './user.constants.js';
-import type { FindUserOptions, GetUsersParams, UploadUserAvatarParams } from './user.types.js';
+import { UserMedia, UserRules } from './user.constants.js';
+import type {
+  FindUserOptions,
+  GetUsersParams,
+  HostOnboardingReadyUser,
+  InitiateHostOnboardingResult,
+  UploadUserAvatarParams,
+} from './user.types.js';
 
 @provide()
 export class UserService {
@@ -26,6 +33,7 @@ export class UserService {
     @inject(UserRepository) private readonly _userRepository: UserRepository,
     @inject(Auth0Service) private readonly _auth0Service: Auth0Service,
     @inject(CloudinaryService) private readonly _cloudinaryService: CloudinaryService,
+    @inject(StripeService) private readonly _stripeService: StripeService,
   ) {}
 
   /**
@@ -67,6 +75,30 @@ export class UserService {
           `[UserService] Failed to delete avatar for user ${user.id} during account deletion. Storage might contain an orphaned file.`,
         );
       }
+    }
+  }
+
+  /**
+   * Validates that a user's profile meets the minimum requirements for host onboarding.
+   * Ensures all mandatory personal details required by the payment provider (Stripe KYC) are present.
+   *
+   * @param user - The base user entity to validate.
+   * @throws Will throw a 400 Bad Request detailing the missing required fields if the profile is incomplete.
+   */
+  private _assertProfileComplete(user: User): asserts user is HostOnboardingReadyUser {
+    const missingFields = UserRules.REQUIRED_FOR_ONBOARDING.filter(
+      (field) => !user[field],
+    ) as string[];
+
+    if (missingFields.length > 0) {
+      throw new HttpError({
+        statusCode: 400,
+        message: `${ErrorMessages.USERS.PROFILE_INCOMPLETE}: ${missingFields.join(', ')}`,
+        internalPayload: {
+          code: ErrorCodes.USERS.PROFILE_INCOMPLETE,
+          missingFields,
+        },
+      });
     }
   }
 
@@ -178,5 +210,86 @@ export class UserService {
     await this._getExistingUser(userId, { includeDeleted: true });
 
     return this._userRepository.syncUserPermissions(userId, dto.permissions);
+  }
+
+  /**
+   * Initiates the Stripe Connect onboarding flow for a user to become a host.
+   *
+   * Validates prerequisites (verified email, complete personal profile) and
+   * generates an idempotency-safe account link for KYC verification.
+   *
+   * @param userId - The ID of the user initiating onboarding.
+   * @returns A Promise resolving to the secure Stripe onboarding URL.
+   * @throws Will throw HTTP 400 if prerequisites are not met.
+   */
+  public async initiateHostOnboarding(userId: number): Promise<InitiateHostOnboardingResult> {
+    const user = await this._getExistingUser(userId, { modifiers: null });
+
+    if (!user.isVerified) {
+      throw new HttpError({
+        statusCode: 400,
+        message: ErrorMessages.USERS.NOT_VERIFIED,
+        internalPayload: { code: ErrorCodes.USERS.NOT_VERIFIED },
+      });
+    }
+
+    this._assertProfileComplete(user);
+
+    let accountId = user.stripeAccountId;
+
+    if (!accountId) {
+      accountId = await this._stripeService.createExpressAccount({
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+      });
+
+      await this._userRepository.updateSystemDataAndFetchById({
+        userId,
+        data: { stripeAccountId: accountId },
+      });
+    }
+
+    const url = await this._stripeService.createOnboardingLink(accountId);
+
+    return { url };
+  }
+
+  /**
+   * Upgrades a user to HOST status upon successful Stripe Connect KYC completion.
+   * This method is idempotent and safe against duplicate webhook deliveries.
+   *
+   * @param stripeAccountId - The Stripe account ID received from the webhook.
+   * @returns A Promise that resolves when the user status is updated.
+   */
+  public async completeHostOnboarding(stripeAccountId: string): Promise<void> {
+    const user = await this._userRepository.findByStripeAccountId(stripeAccountId, {
+      modifiers: null,
+    });
+
+    if (!user) {
+      logger.warn(
+        `[UserService] Webhook received for unknown Stripe account ID: ${stripeAccountId}`,
+      );
+      return;
+    }
+
+    if (user.stripeOnboardingCompleted && user.role === UserRole.HOST) {
+      logger.info(
+        `[UserService] User ${user.id} is already an active HOST. Ignoring duplicate webhook.`,
+      );
+      return;
+    }
+
+    await this._userRepository.updateSystemDataAndFetchById({
+      userId: user.id,
+      data: {
+        stripeOnboardingCompleted: true,
+        role: UserRole.HOST,
+      },
+    });
+
+    logger.info(`[UserService] User ${user.id} (${user.email}) successfully upgraded to HOST!`);
   }
 }

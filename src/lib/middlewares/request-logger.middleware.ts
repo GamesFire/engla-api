@@ -3,7 +3,7 @@ import { ulid } from 'ulid';
 
 import { LogLevel } from '@lib/constants/app.js';
 import { logger } from '@lib/logger.js';
-import { HttpContext } from '@utils/http.context.js';
+import { HttpContext } from '@utils/http-context.js';
 
 import { HttpHeader } from '../constants/http.js';
 

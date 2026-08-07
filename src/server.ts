@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express, { type Express, type Request as ExpressRequest } from 'express';
+import express, { type Express } from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 
@@ -11,7 +11,7 @@ import { errorMiddleware } from '@lib/middlewares/error.middleware.js';
 import { notFoundMiddleware } from '@lib/middlewares/not-found.middleware.js';
 import { RateLimiters } from '@lib/middlewares/rate-limit/rate-limiters.js';
 import { requestLoggerMiddleware } from '@lib/middlewares/request-logger.middleware.js';
-import { createSystemRouter, createV1Router } from '@routes/index.js';
+import { createSystemRouter, createV1Router, createWebhooksRouter } from '@routes/index.js';
 import { buildApiPath } from '@utils/build-api-path.js';
 
 export async function createServer(): Promise<Express> {
@@ -41,19 +41,10 @@ export async function createServer(): Promise<Express> {
 
   app.use(ApiPrefix.API, RateLimiters.GLOBAL);
 
-  app.use(
-    express.json({
-      limit: RequestConfig.MAX_JSON_BODY_SIZE,
-      verify: (req, _res, buf) => {
-        const request = req as ExpressRequest;
+  const webhooksPath = buildApiPath(ApiPrefix.V1, ApiRoutes.WEBHOOKS);
+  app.use(webhooksPath, createWebhooksRouter());
 
-        if (request.originalUrl && request.originalUrl.includes(ApiRoutes.STRIPE_WEBHOOK)) {
-          request.rawBody = buf.toString();
-        }
-      },
-    }),
-  );
-
+  app.use(express.json({ limit: RequestConfig.MAX_JSON_BODY_SIZE }));
   app.use(express.urlencoded({ extended: true, limit: RequestConfig.MAX_JSON_BODY_SIZE }));
   app.use(hpp());
   app.use(requestLoggerMiddleware);

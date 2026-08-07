@@ -25,6 +25,14 @@ export const RateLimiters = {
       skipSuccessfulRequests: true,
     }),
   },
+  WEBHOOKS: {
+    STRIPE: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.WEBHOOKS.STRIPE.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.WEBHOOKS.STRIPE.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.WEBHOOK_STRIPE,
+    }),
+  },
   USERS: {
     UPDATE: rateLimitMiddleware({
       windowMs: RequestConfig.RATE_LIMIT.USERS.UPDATE.WINDOW_MS,
@@ -43,6 +51,12 @@ export const RateLimiters = {
       maxRequests: RequestConfig.RATE_LIMIT.USERS.DELETION.MAX_REQUESTS,
       errorCode: ErrorCodes.RATE_LIMIT.STRICT,
       message: ErrorMessages.RATE_LIMIT.USER_DELETION,
+    }),
+    ONBOARDING: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.USERS.ONBOARDING.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.USERS.ONBOARDING.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.USER_ONBOARDING,
     }),
   },
   PROPERTIES: {

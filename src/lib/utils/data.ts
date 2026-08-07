@@ -24,6 +24,24 @@ export function tryParseJSON<T = any>(input: string, defaults: Nullable<T> = nul
 }
 
 /**
+ * Safely converts an unknown request body or payload into a Node.js Buffer.
+ *
+ * @param payload - The input data (Buffer, string, or JSON object).
+ * @returns A guaranteed Node.js Buffer.
+ */
+export function toBuffer(payload: unknown): Buffer {
+  if (payload instanceof Buffer) {
+    return payload;
+  }
+
+  if (typeof payload === 'string') {
+    return Buffer.from(payload, 'utf-8');
+  }
+
+  return Buffer.from(JSON.stringify(payload), 'utf-8');
+}
+
+/**
  * Reads package.json from the project root (process.cwd()).
  *
  * @returns A promise that resolves to a typed object or a fallback value.

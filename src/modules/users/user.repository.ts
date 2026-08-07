@@ -110,6 +110,17 @@ export class UserRepository {
     return query;
   }
 
+  public async findByStripeAccountId(
+    stripeAccountId: string,
+    options: FindUserOptions = {},
+  ): Promise<Undefinable<User>> {
+    const query = UserModel.query().findOne({ stripeAccountId });
+
+    this._applyOptions(query, options);
+
+    return query;
+  }
+
   public async findByEmail(
     email: string,
     options: FindUserOptions = {},

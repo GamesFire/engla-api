@@ -52,7 +52,7 @@
   "dependencies": {
     "@bugsnag/js": "^8.10.0",
     "@bugsnag/plugin-express": "^8.8.0",
-    "auth0": "^5.11.0",
+    "auth0": "^6.1.0",
     "bullmq": "^5.81.2",
     "cloudinary": "^2.10.0",
     "commander": "^15.0.0",

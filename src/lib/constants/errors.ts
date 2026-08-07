@@ -7,6 +7,8 @@ export const ErrorCodes = {
   INTEGRATION: {
     IDENTITY_PROVIDER: 'IDENTITY_PROVIDER_ERROR',
     CLOUD_STORAGE: 'CLOUD_STORAGE_ERROR',
+    PAYMENT_PROVIDER: 'PAYMENT_PROVIDER_ERROR',
+    PAYMENT_WEBHOOK_INVALID: 'PAYMENT_WEBHOOK_INVALID_SIGNATURE',
   },
   HTTP: {
     BAD_REQUEST: 'HTTP_400',
@@ -32,6 +34,8 @@ export const ErrorCodes = {
   USERS: {
     NOT_FOUND: 'USER_NOT_FOUND',
     BLOCKED: 'USER_BLOCKED',
+    NOT_VERIFIED: 'USER_NOT_VERIFIED',
+    PROFILE_INCOMPLETE: 'USER_PROFILE_INCOMPLETE',
   },
   PROPERTIES: {
     NOT_FOUND: 'PROPERTY_NOT_FOUND',
@@ -65,8 +69,10 @@ export const ErrorMessages = {
     ROUTE_NOT_FOUND: 'Route not found',
   },
   INTEGRATION: {
-    IDENTITY_PROVIDER: 'Failed to synchronize with Identity Provider. Please try again later.',
-    CLOUD_STORAGE: 'Failed to communicate with cloud storage service. Please try again later.',
+    IDENTITY_PROVIDER: 'Failed to synchronize with Identity Provider. Please try again later',
+    CLOUD_STORAGE: 'Failed to communicate with cloud storage service. Please try again later',
+    PAYMENT_PROVIDER: 'Failed to communicate with payment service. Please try again later',
+    PAYMENT_WEBHOOK_INVALID: 'Invalid payment webhook signature',
   },
   UPLOAD: {
     GENERIC_ERROR: 'Upload error',
@@ -83,9 +89,11 @@ export const ErrorMessages = {
     GLOBAL: 'Too many requests, please try again later',
     ADMIN_MANAGEMENT: 'Too many admin management attempts. Please try again later',
     AUTH_LOGIN: 'Too many login attempts. Please try again later',
+    WEBHOOK_STRIPE: 'Too many Stripe webhook requests received. Rate limit exceeded',
     USER_UPDATE: 'Too many account update attempts. Please try again later',
     USER_AVATAR_UPLOAD: 'Too many avatar upload attempts. Please try again later',
     USER_DELETION: 'Too many account deletion attempts. Please try again later',
+    USER_ONBOARDING: 'Too many host onboarding attempts. Please try again later',
     PROPERTY_SEARCH: 'Too many search requests. Please slow down',
     PROPERTY_CREATION: 'Too many property creation attempts. Please try again later',
     PROPERTY_UPDATE: 'Too many property update attempts. Please try again later',
@@ -104,6 +112,8 @@ export const ErrorMessages = {
   USERS: {
     NOT_FOUND: 'User profile not found. Please complete registration',
     DEACTIVATED: 'User account is deactivated. Please contact support',
+    NOT_VERIFIED: 'You must verify your email address before becoming a host',
+    PROFILE_INCOMPLETE: 'Cannot initiate host onboarding. Missing required profile fields',
   },
   PROPERTIES: {
     NOT_FOUND: 'Property not found',

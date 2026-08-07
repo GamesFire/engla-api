@@ -16,6 +16,7 @@
 - [⚙ Environment Configuration](#-environment-configuration)
 - [💻 Database Management (CLI)](#-database-management-cli)
 - [🔌 Integrations](#-integrations)
+- [⚡ Webhooks & Asynchronous Event Architecture](#-webhooks--asynchronous-event-architecture)
 - [🧪 Testing](#-testing)
 - [📂 Project Structure](#-project-structure)
 - [📜 Scripts](#-scripts)
@@ -39,6 +40,7 @@
 - **Dependency Injection:** InversifyJS
 - **Validation:** Zod
 - **Logging:** Winston (JSON structure, rotation, dev/prod modes)
+- **Payments & KYC:** Stripe Connect Express (Destination Charges & Splitting)
 - **CLI:** Commander.js (Custom management tools)
 
 ---
@@ -166,6 +168,10 @@ npm run start
 | `CLOUDINARY_API_KEY` | Cloudinary API Key | - |
 | `CLOUDINARY_API_SECRET` | Cloudinary API Secret | - |
 | `CLOUDINARY_BASE_FOLDER`| Root folder for uploads | - |
+| `STRIPE_SECRET_KEY` | Stripe API Secret Key | - |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Webhook Signing Secret | - |
+| `STRIPE_RETURN_URL` | Frontend URL where hosts return after successful onboarding | - |
+| `STRIPE_REFRESH_URL` | Frontend URL where hosts return if the KYC link expires | - |
 | `LOG_LEVEL` | Logging level (`debug`, `info`, `error`, `warn`, `http`) | `info` |
 | `LOG_DIR` | Directory for log files | `logs` |
 | `DB_HOST` | PostgreSQL Host | `localhost` |
@@ -238,7 +244,30 @@ This project is designed to easily integrate with third-party providers. All ext
 
 * **[Auth0](https://auth0.com/):** Used for robust identity management, authentication, and authorization. We utilize the Auth0 Management API (via M2M App) for secure backend actions like synchronous user account deletion.
 * **[Cloudinary](https://cloudinary.com/):** Serves as our primary media asset management platform and CDN. It handles the storage, dynamic format conversion (e.g., to WebP), and on-the-fly optimization of user avatars and property gallery images.
-* *(More integrations like Stripe will be listed here as the project grows).*
+* **[Stripe Connect Express](https://stripe.com/connect):** Powers our financial Escrow/Marketplace infrastructure. It handles global KYC (Know Your Customer) verification, AML compliance, automated tax reporting (e.g., DAC7, 1099-K), and destination charge splits (routing guest payments to hosts while deducting platform commissions).
+
+---
+
+## ⚡ Webhooks & Asynchronous Event Architecture
+
+To build a reactive marketplace without polling or blocking client requests, EngLa relies on an asynchronous event-driven architecture powered by webhooks. When third-party services (e.g., Stripe) complete background operations, they push events directly to our specialized webhook ingestion layer.
+
+### Core Architectural Principles
+
+To guarantee system stability, data integrity, and protection against replay attacks, all webhook integrations across the platform must adhere to strict engineering rules:
+
+* **Raw Stream Interception:** Cryptographic signature verification requires the exact, unmodified byte stream sent by the provider. Our HTTP server dynamically isolates webhook routes (e.g., `/api/v1/webhooks/*`), bypassing standard JSON body parsers and capturing the payload as a raw `Buffer`.
+* **HMAC Signature Verification:** Every incoming webhook must include a valid cryptographic provider signature in its headers (e.g., `stripe-signature`). Requests failing verification are dropped immediately at the controller level with an HTTP `400 Bad Request`.
+* **Idempotency & Fast Acknowledgments:** External providers retry event delivery if they do not receive a prompt 20x HTTP status. Our controllers immediately acknowledge receipt (`200 OK`) before or during dispatch, while our domain services implement idempotent checks to gracefully ignore duplicate payloads without mutating the database twice.
+
+### Event Flow Example: Host Onboarding (Stripe Connect)
+
+We utilize this asynchronous pattern to handle complex user state transitions, such as upgrading a standard guest to a verified host:
+
+1. **Initiation:** The client triggers host onboarding via a protected API endpoint (e.g., `POST /v1/users/me/onboarding/host`). The service validates domain rules (e.g., verified email, completed basic profile).
+2. **Link Generation:** The API communicates with the payment provider to generate an Express account and returns a temporary, single-use KYC onboarding URL to the client.
+3. **External Verification:** The user completes identity and bank account verification directly on the provider's secure hosted pages. Our server never touches raw identity documents or banking numbers.
+4. **Asynchronous Upgrade:** Once KYC is verified, the provider fires an event (e.g., `account.updated`) to our webhook ingestion endpoint. The respective webhook service validates the required capabilities (e.g., `details_submitted`, `payouts_enabled`) and safely transitions the user's role to `HOST` in our system.
 
 ---
 
@@ -291,8 +320,8 @@ src/                    # Main source code
 │   ├── validations/    # Global and shared Zod validation schemas
 │   ├── bootstrap-infrastructure.ts # Core infrastructure initialization logic
 │   └── logger.ts       # Application logger configuration
-├── modules/            # Domain Modules / Business Logic (Services, Repositories)
-├── routes/             # API Routes, Controllers & Schemas (System, V1)
+├── modules/            # Domain Modules / Business Logic (Services, Repositories, Webhooks)
+├── routes/             # API Routes, Controllers & Schemas (System, V1, Webhooks)
 ├── server.ts           # HTTP Server setup (Express app, CORS, Middleware pipeline)
 └── entrypoint.ts       # Main application entry point
 ...                     # Standard ecosystem configs (ESLint, Prettier, TS, Semantic Release, etc.)

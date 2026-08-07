@@ -5,7 +5,7 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 
 import { appConfig } from './configs/app.config.js';
 import { getPackageInfo } from './utils/data.js';
-import { HttpContext } from './utils/http.context.js';
+import { HttpContext } from './utils/http-context.js';
 
 if (!appConfig.isTest && !fs.existsSync(appConfig.LOG_DIR)) {
   fs.mkdirSync(appConfig.LOG_DIR);

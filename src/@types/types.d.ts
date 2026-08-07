@@ -6,6 +6,19 @@ declare global {
   type NumberORString = number | string;
   type StringORDate = string | Date;
 
+  type WithNullable<T, K extends keyof T> = T & {
+    [P in K]: Nullable<T[P]>;
+  };
+  type WithNonNullable<T, K extends keyof T> = T & {
+    [P in K]: NonNullable<T[P]>;
+  };
+  type WithUndefinable<T, K extends keyof T> = T & {
+    [P in K]: Undefinable<T[P]>;
+  };
+  type WithUnknowable<T, K extends keyof T> = T & {
+    [P in K]: Unknowable<T[P]>;
+  };
+
   namespace Express {
     export interface Request {
       traceID: string;

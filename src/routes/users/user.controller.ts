@@ -21,6 +21,7 @@ export class UserController {
     this.updateMe = this.updateMe.bind(this);
     this.uploadMyAvatar = this.uploadMyAvatar.bind(this);
     this.deleteMe = this.deleteMe.bind(this);
+    this.initiateHostOnboarding = this.initiateHostOnboarding.bind(this);
 
     this.adminGetUserById = this.adminGetUserById.bind(this);
     this.adminGetUsers = this.adminGetUsers.bind(this);
@@ -77,6 +78,13 @@ export class UserController {
     await this._userService.deleteUserAccount(user.id);
 
     res.status(204).send();
+  }
+
+  public async initiateHostOnboarding(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const result = await this._userService.initiateHostOnboarding(user.id);
+
+    res.status(200).json(result);
   }
 
   // --- ADMIN ENDPOINTS ---

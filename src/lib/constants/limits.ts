@@ -19,6 +19,12 @@ export const RequestConfig = {
         MAX_REQUESTS: 10,
       },
     },
+    WEBHOOKS: {
+      STRIPE: {
+        WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
+        MAX_REQUESTS: 500,
+      },
+    },
     USERS: {
       UPDATE: {
         WINDOW_MS: TimeMs.ONE_HOUR,
@@ -31,6 +37,10 @@ export const RequestConfig = {
       DELETION: {
         WINDOW_MS: TimeMs.ONE_HOUR,
         MAX_REQUESTS: 3,
+      },
+      ONBOARDING: {
+        WINDOW_MS: TimeMs.ONE_HOUR,
+        MAX_REQUESTS: 5,
       },
     },
     PROPERTIES: {

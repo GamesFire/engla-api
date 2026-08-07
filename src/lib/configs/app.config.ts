@@ -23,6 +23,11 @@ export type AppConfig = {
   CLOUDINARY_API_KEY: string;
   CLOUDINARY_API_SECRET: string;
   CLOUDINARY_BASE_FOLDER: string;
+  // --- Stripe params ---
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  STRIPE_RETURN_URL: string;
+  STRIPE_REFRESH_URL: string;
   // --- Logger params ---
   LOG_LEVEL: LogLevel;
   LOG_DIR: string;
@@ -73,6 +78,10 @@ const envAppSchema = z.object({
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
   CLOUDINARY_BASE_FOLDER: z.string(),
+  STRIPE_SECRET_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
+  STRIPE_RETURN_URL: z.url(),
+  STRIPE_REFRESH_URL: z.url(),
   LOG_DIR: z.string().default('logs'),
   DB_HOST: z.string().default('localhost'),
   DB_PORT: z.coerce.number().default(5432),

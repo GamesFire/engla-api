@@ -6,9 +6,9 @@ export type ApiPrefix = (typeof ApiPrefix)[keyof typeof ApiPrefix];
 
 export const ApiRoutes = {
   ROOT: '/',
-  STRIPE_WEBHOOK: '/webhooks/stripe', // !Important for raw body
-  AUTH: '/auth',
   ADMIN: '/admin',
+  AUTH: '/auth',
+  WEBHOOKS: '/webhooks',
   USERS: '/users',
   PROPERTIES: '/properties',
   AMENITIES: '/amenities',

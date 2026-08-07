@@ -2,6 +2,8 @@ import type { User } from '@models/users/user.model.js';
 import type { UserModifierName } from '@models/users/user.modifiers.js';
 import type { AdminGetUsersQueryDto } from '@routes/users/user.validation.js';
 
+import type { UserRules } from './user.constants.js';
+
 export type UserQueryOptions = {
   /**
    * User modifiers to apply to the query result.
@@ -30,12 +32,6 @@ export type FindUserOptions = UserQueryOptions;
 
 export type GetUsersParams = AdminGetUsersQueryDto;
 
-export type UploadUserAvatarParams = {
-  userId: number;
-  auth0Id: string;
-  fileBuffer: Buffer;
-};
-
 export type CreateUserData = Pick<User, 'auth0Id' | 'email' | 'isVerified'> &
   Partial<Pick<User, 'firstName' | 'lastName' | 'avatarUrl' | 'language' | 'currency'>>;
 
@@ -63,4 +59,26 @@ export type UpdateUserSystemParams = {
   userId: number;
   data: UpdateSystemData;
   options?: UserQueryOptions;
+};
+
+/**
+ * Extracts the exact string literals required specifically for host onboarding
+ * (e.g., 'firstName' | 'lastName' | 'phone').
+ */
+export type HostOnboardingRequiredFields = (typeof UserRules.REQUIRED_FOR_ONBOARDING)[number];
+
+/**
+ * Represents a User whose profile has been validated for host onboarding.
+ * All fields required by Stripe/KYC are guaranteed to be present (no nulls).
+ */
+export type HostOnboardingReadyUser = WithNonNullable<User, HostOnboardingRequiredFields>;
+
+export type UploadUserAvatarParams = {
+  userId: number;
+  auth0Id: string;
+  fileBuffer: Buffer;
+};
+
+export type InitiateHostOnboardingResult = {
+  url: string;
 };

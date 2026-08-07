@@ -10,6 +10,7 @@ import { UserController } from './user.controller.js';
 const ProtectedUserRoutes = {
   ME: '/me',
   AVATAR: '/me/avatar',
+  ONBOARDING_HOST: '/me/onboarding/host',
 } as const;
 
 const AdminUserRoutes = {
@@ -33,6 +34,12 @@ export function createProtectedUserRouter(): Router {
   );
 
   router.delete(ProtectedUserRoutes.ME, RateLimiters.USERS.DELETION, userController.deleteMe);
+
+  router.post(
+    ProtectedUserRoutes.ONBOARDING_HOST,
+    RateLimiters.USERS.ONBOARDING,
+    userController.initiateHostOnboarding,
+  );
 
   return router;
 }

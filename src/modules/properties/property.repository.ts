@@ -242,4 +242,32 @@ export class PropertyRepository {
   public async hardDeleteById(propertyId: number): Promise<void> {
     await PropertyModel.query().deleteById(propertyId);
   }
+
+  // --- CLEANUP METHODS ---
+
+  public async getStaleDraftIds(daysOld: number): Promise<number[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+    const results = await PropertyModel.query()
+      .select('id')
+      .where('status', PropertyStatus.DRAFT)
+      .where('updatedAt', '<', cutoffDate)
+      .whereNull('deletedAt');
+
+    return results.map((r) => r.id);
+  }
+
+  public async getArchivedProperties(daysOld: number): Promise<number[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+    const results = await PropertyModel.query()
+      .select('id')
+      .where('status', PropertyStatus.ARCHIVED)
+      .whereNotNull('deletedAt')
+      .where('deletedAt', '<', cutoffDate);
+
+    return results.map((r) => r.id);
+  }
 }

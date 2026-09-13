@@ -44,6 +44,11 @@ export type AppConfig = {
   REDIS_PORT: number;
   REDIS_PASS: Undefinable<string>;
   REDIS_DB: number;
+  // --- Cron Jobs ---
+  CRON_CLEANUP_SCHEDULE: string;
+  CRON_CLEANUP_DRAFTS_DAYS: number;
+  CRON_CLEANUP_SOFT_DAYS: number;
+  CRON_CLEANUP_HARD_DAYS: number;
   // --- Seed Demo Data (Optional) ---
   SEED_ADMIN_AUTH0_ID: string;
   SEED_ADMIN_EMAIL: string;
@@ -94,6 +99,10 @@ const envAppSchema = z.object({
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASS: z.string(),
   REDIS_DB: z.coerce.number().default(0),
+  CRON_CLEANUP_SCHEDULE: z.string().default('0 2 * * *'),
+  CRON_CLEANUP_DRAFTS_DAYS: z.coerce.number().int().positive().default(30),
+  CRON_CLEANUP_SOFT_DAYS: z.coerce.number().int().positive().default(60),
+  CRON_CLEANUP_HARD_DAYS: z.coerce.number().int().positive().default(365),
   SEED_ADMIN_AUTH0_ID: z.string().default('auth0|admin123'),
   SEED_ADMIN_EMAIL: z.email().default('admin@engla.com'),
   SEED_HOST_AUTH0_ID: z.string().default('auth0|host123'),

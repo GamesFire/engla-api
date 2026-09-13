@@ -32,6 +32,8 @@ async function boot() {
        * (e.g., BullMQ queues, cron schedules, or event stream consumers).
        * It runs completely decoupled from the HTTP server.
        */
+      const { PropertyCleanupJob } = await import('@modules/jobs/property-cleanup.job.js');
+      PropertyCleanupJob.schedule();
 
       break;
     }

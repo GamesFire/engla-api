@@ -198,10 +198,14 @@ export class PropertyService {
     });
 
     const isUpdatingLocation = PropertyRules.LOCATION_FIELDS.some(
-      (field) => data[field] !== undefined,
+      (field) => data[field] !== undefined && data[field] !== property[field],
     );
 
-    if (isUpdatingLocation && property.status !== PropertyStatus.DRAFT) {
+    if (
+      isUpdatingLocation &&
+      property.status !== PropertyStatus.DRAFT &&
+      property.status !== PropertyStatus.REJECTED
+    ) {
       throw new HttpError({
         statusCode: 400,
         message: ErrorMessages.PROPERTIES.LOCATION_LOCKED,
@@ -225,7 +229,7 @@ export class PropertyService {
       options: { modifiers: null },
     });
 
-    if (property.status !== PropertyStatus.DRAFT) {
+    if (property.status !== PropertyStatus.DRAFT && property.status !== PropertyStatus.REJECTED) {
       throw new HttpError({
         statusCode: 400,
         message: ErrorMessages.PROPERTIES.NOT_DRAFT,
@@ -417,11 +421,11 @@ export class PropertyService {
 
     const image = await this._getExistingPropertyImage(imageId, propertyId);
 
+    await this._propertyImageRepository.deleteById(imageId);
+
     if (image.publicId) {
       this._cloudinaryService.deleteImage(image.publicId).catch(() => {});
     }
-
-    await this._propertyImageRepository.deleteById(imageId);
 
     const remainingImages = await this._propertyImageRepository.findAllByPropertyId(propertyId);
 

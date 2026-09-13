@@ -151,8 +151,10 @@ export class PropertyRepository {
 
     const query = PropertyModel.query().modify(PropertyModifier.PUBLIC_VIEW);
 
-    query.where('status', PropertyStatus.ACTIVE);
-    query.whereNull('deletedAt');
+    query.where('properties.status', PropertyStatus.ACTIVE);
+    query.whereNull('properties.deletedAt');
+
+    query.whereExists(PropertyModel.relatedQuery('host').whereNull('deletedAt'));
 
     this._applyFilters(query, params);
     query.orderBy(orderBy, orderDirection);

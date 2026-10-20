@@ -82,7 +82,7 @@
     "objection": "^3.1.5",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
-    "sanitize-html": "^2.17.7",
+    "sanitize-html": "^2.18.0",
     "stripe": "^22.6.1",
     "ulid": "^3.0.2",
     "winston": "^3.19.0",

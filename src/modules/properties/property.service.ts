@@ -7,6 +7,7 @@ import { RequestConfig } from '@lib/constants/limits.js';
 import { HttpError } from '@lib/errors/http.error.js';
 import { CloudinaryConfig } from '@lib/integrations/cloudinary/cloudinary.constants.js';
 import { CloudinaryService } from '@lib/integrations/cloudinary/cloudinary.service.js';
+import { logger } from '@lib/logger.js';
 import { type Property, PropertyStatus, PropertyType } from '@models/properties/property.model.js';
 import { PropertyModifier } from '@models/properties/property.modifiers.js';
 import type { PropertyImage } from '@models/property-image.model.js';
@@ -198,10 +199,14 @@ export class PropertyService {
     });
 
     const isUpdatingLocation = PropertyRules.LOCATION_FIELDS.some(
-      (field) => data[field] !== undefined,
+      (field) => data[field] !== undefined && data[field] !== property[field],
     );
 
-    if (isUpdatingLocation && property.status !== PropertyStatus.DRAFT) {
+    if (
+      isUpdatingLocation &&
+      property.status !== PropertyStatus.DRAFT &&
+      property.status !== PropertyStatus.REJECTED
+    ) {
       throw new HttpError({
         statusCode: 400,
         message: ErrorMessages.PROPERTIES.LOCATION_LOCKED,
@@ -225,7 +230,7 @@ export class PropertyService {
       options: { modifiers: null },
     });
 
-    if (property.status !== PropertyStatus.DRAFT) {
+    if (property.status !== PropertyStatus.DRAFT && property.status !== PropertyStatus.REJECTED) {
       throw new HttpError({
         statusCode: 400,
         message: ErrorMessages.PROPERTIES.NOT_DRAFT,
@@ -417,11 +422,11 @@ export class PropertyService {
 
     const image = await this._getExistingPropertyImage(imageId, propertyId);
 
+    await this._propertyImageRepository.deleteById(imageId);
+
     if (image.publicId) {
       this._cloudinaryService.deleteImage(image.publicId).catch(() => {});
     }
-
-    await this._propertyImageRepository.deleteById(imageId);
 
     const remainingImages = await this._propertyImageRepository.findAllByPropertyId(propertyId);
 
@@ -516,5 +521,85 @@ export class PropertyService {
     // TODO: Handle existing bookings (e.g., auto-cancel and refund guests if admin deletes the property).
 
     await this._executeSmartPropertyDeletion(property);
+  }
+
+  public async cleanupStaleDrafts(daysOld: number): Promise<void> {
+    const staleDraftIds = await this._propertyRepository.getStaleDraftIds(daysOld);
+
+    if (staleDraftIds.length === 0) return;
+
+    logger.info(`[PropertyService] Found ${staleDraftIds.length} stale drafts to delete.`);
+
+    for (const propertyId of staleDraftIds) {
+      const property = await this._getExistingProperty(propertyId, { modifiers: null });
+      await this._executeSmartPropertyDeletion(property);
+    }
+
+    logger.info(`[PropertyService] Successfully deleted ${staleDraftIds.length} stale drafts.`);
+  }
+
+  public async performSoftCleanup(daysOld: number): Promise<void> {
+    const propertyIds = await this._propertyRepository.getArchivedProperties(daysOld);
+
+    if (propertyIds.length === 0) return;
+
+    logger.info(
+      `[PropertyService] Performing soft cleanup for ${propertyIds.length} archived properties.`,
+    );
+
+    let deletedImagesCount = 0;
+
+    for (const propertyId of propertyIds) {
+      const images = await this._propertyImageRepository.findAllByPropertyId(propertyId);
+      const nonMainImages = images.filter((img) => !img.isMain);
+
+      if (nonMainImages.length === 0) continue;
+
+      const deletePromises = nonMainImages
+        .filter((img) => img.publicId)
+        .map((img) => this._cloudinaryService.deleteImage(img.publicId!).catch(() => {}));
+
+      await Promise.all(deletePromises);
+
+      for (const img of nonMainImages) {
+        await this._propertyImageRepository.deleteById(img.id);
+        deletedImagesCount++;
+      }
+    }
+
+    logger.info(
+      `[PropertyService] Soft cleanup finished. Deleted ${deletedImagesCount} secondary images.`,
+    );
+  }
+
+  public async performHardCleanup(daysOld: number): Promise<void> {
+    const propertyIds = await this._propertyRepository.getArchivedProperties(daysOld);
+
+    if (propertyIds.length === 0) return;
+
+    logger.info(
+      `[PropertyService] Performing hard cleanup for ${propertyIds.length} archived properties.`,
+    );
+
+    let deletedImagesCount = 0;
+
+    for (const propertyId of propertyIds) {
+      const images = await this._propertyImageRepository.findAllByPropertyId(propertyId);
+
+      if (images.length === 0) continue;
+
+      const deletePromises = images
+        .filter((img) => img.publicId)
+        .map((img) => this._cloudinaryService.deleteImage(img.publicId!).catch(() => {}));
+
+      await Promise.all(deletePromises);
+
+      for (const img of images) {
+        await this._propertyImageRepository.deleteById(img.id);
+        deletedImagesCount++;
+      }
+    }
+
+    logger.info(`[PropertyService] Hard cleanup finished. Deleted ${deletedImagesCount} images.`);
   }
 }

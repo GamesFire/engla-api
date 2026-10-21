@@ -23,6 +23,7 @@ export class AuthService {
           userId: existingUser.id,
           data: { isVerified: isEmailVerified },
         });
+        existingUser.isVerified = isEmailVerified;
       }
 
       const hasChanges =

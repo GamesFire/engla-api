@@ -151,8 +151,10 @@ export class PropertyRepository {
 
     const query = PropertyModel.query().modify(PropertyModifier.PUBLIC_VIEW);
 
-    query.where('status', PropertyStatus.ACTIVE);
-    query.whereNull('deletedAt');
+    query.where('properties.status', PropertyStatus.ACTIVE);
+    query.whereNull('properties.deletedAt');
+
+    query.whereExists(PropertyModel.relatedQuery('host').whereNull('deletedAt'));
 
     this._applyFilters(query, params);
     query.orderBy(orderBy, orderDirection);
@@ -239,5 +241,33 @@ export class PropertyRepository {
 
   public async hardDeleteById(propertyId: number): Promise<void> {
     await PropertyModel.query().deleteById(propertyId);
+  }
+
+  // --- CLEANUP METHODS ---
+
+  public async getStaleDraftIds(daysOld: number): Promise<number[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+    const results = await PropertyModel.query()
+      .select('id')
+      .where('status', PropertyStatus.DRAFT)
+      .where('updatedAt', '<', cutoffDate)
+      .whereNull('deletedAt');
+
+    return results.map((r) => r.id);
+  }
+
+  public async getArchivedProperties(daysOld: number): Promise<number[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+    const results = await PropertyModel.query()
+      .select('id')
+      .where('status', PropertyStatus.ARCHIVED)
+      .whereNotNull('deletedAt')
+      .where('deletedAt', '<', cutoffDate);
+
+    return results.map((r) => r.id);
   }
 }

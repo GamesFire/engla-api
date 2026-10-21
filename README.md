@@ -17,9 +17,10 @@
 - [💻 Database Management (CLI)](#-database-management-cli)
 - [🔌 Integrations](#-integrations)
 - [⚡ Webhooks & Asynchronous Event Architecture](#-webhooks--asynchronous-event-architecture)
+- [⚙️ Background Workers (Cron & Jobs)](#️-background-workers-cron--jobs)
 - [🧪 Testing](#-testing)
 - [📂 Project Structure](#-project-structure)
-- [📜 Scripts](#-scripts)
+- [📜 Scripts & Makefile](#-scripts--makefile)
 - [🏷 Versioning & Commits](#-versioning--commits)
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
@@ -140,13 +141,19 @@ npm run cli db:seed
 
 ### 6. Run the Application
 
+You can use the provided `Makefile` to run the API and Background Workers easily.
+
 ```bash
-# Development mode (watch mode)
-npm run dev
+# Run both API and Worker in parallel (development mode)
+make dev
+
+# Or run just the API
+make dev-api
 
 # Production build & start
-npm run build
-npm run start
+make build
+make start-api
+make start-worker
 ```
 
 ---
@@ -185,6 +192,10 @@ npm run start
 | `REDIS_PORT` | Redis Port | `6379` |
 | `REDIS_PASS` | Redis Password | - |
 | `REDIS_DB` | Redis Database | `0` |
+| `CRON_CLEANUP_SCHEDULE` | Cron expression for the background property cleanup job | `0 2 * * *` |
+| `CRON_CLEANUP_DRAFTS_DAYS` | Number of days after which an untouched draft property is hard-deleted | `30` |
+| `CRON_CLEANUP_SOFT_DAYS` | Number of days after which an archived property undergoes soft cleanup (keeps only main image) | `60` |
+| `CRON_CLEANUP_HARD_DAYS` | Number of days after which an archived property undergoes hard cleanup (deletes all images) | `365` |
 | `SEED_ADMIN_AUTH0_ID` | Mock Auth0 ID for the main Admin account | `auth0\|admin123` |
 | `SEED_ADMIN_EMAIL` | Mock email for the main Admin account | `admin@engla.com` |
 | `SEED_HOST_AUTH0_ID` | Mock Auth0 ID for the demo Host account | `auth0\|host123` |
@@ -271,6 +282,20 @@ We utilize this asynchronous pattern to handle complex user state transitions, s
 
 ---
 
+## ⚙️ Background Workers (Cron & Jobs)
+
+To maintain database hygiene and handle long-running background tasks without blocking the main API event loop, the system supports independent **Worker Processes**.
+
+Workers are instantiated by running the application with `APP_TYPE=worker`. They initialize the same core DI container and database connections but completely skip booting the Express HTTP server, instead scheduling background tasks (like `node-cron` schedules or future BullMQ processors).
+
+### Implemented Jobs
+* **PropertyCleanupJob:** Runs automatically on a schedule (configurable via `CRON_CLEANUP_SCHEDULE`) to perform DB hygiene:
+  * **Draft Abandonment:** Deletes `DRAFT` properties that haven't been updated for a specific number of days (default: 30 days, configurable via `CRON_CLEANUP_DRAFTS_DAYS`).
+  * **Soft Cleanup:** Removes secondary photos from Cloudinary and the database for properties archived past a specific threshold (default: > 60 days, configurable via `CRON_CLEANUP_SOFT_DAYS`), keeping only the main thumbnail for booking history.
+  * **Hard Cleanup:** Removes the main photo as well for properties archived past a long-term threshold (default: > 365 days, configurable via `CRON_CLEANUP_HARD_DAYS`).
+
+---
+
 ## 🧪 Testing
 
 We use **Vitest** and **Supertest** for unit and integration testing.
@@ -320,7 +345,7 @@ src/                    # Main source code
 │   ├── validations/    # Global and shared Zod validation schemas
 │   ├── bootstrap-infrastructure.ts # Core infrastructure initialization logic
 │   └── logger.ts       # Application logger configuration
-├── modules/            # Domain Modules / Business Logic (Services, Repositories, Webhooks)
+├── modules/            # Domain Modules / Business Logic (Services, Repositories, Webhooks, Jobs)
 ├── routes/             # API Routes, Controllers & Schemas (System, V1, Webhooks)
 ├── server.ts           # HTTP Server setup (Express app, CORS, Middleware pipeline)
 └── entrypoint.ts       # Main application entry point
@@ -329,19 +354,37 @@ src/                    # Main source code
 
 ---
 
-## 📜 Scripts
+## 📜 Scripts & Makefile
 
-- `npm run dev`: Starts the application in development mode with `nodemon`.
-- `npm run cli`: Runs the custom CLI tool (use `npm run cli -- --help` to see commands).
+For convenience, the project includes a `Makefile` to easily run and orchestrate the API and Background Workers.
+
+**Using Make:**
+- `make dev`: Starts both the API and the Worker in parallel (requires `concurrently`).
+- `make dev-api`: Starts only the API in development mode.
+- `make dev-worker`: Starts only the Worker in development mode.
+- `make build`: Compiles the project for production.
+- `make start-api`: Starts the compiled API.
+- `make start-worker`: Starts the compiled Worker.
+- `make verify`: Runs linter, type checks, and tests sequentially.
+- `make clean`: Removes the `dist` directory.
+
+**Direct NPM Scripts:**
+- `npm run dev`: Starts the default application using `nodemon`.
+- `npm run dev:api`: Starts the API application in development mode with `nodemon`.
+- `npm run dev:worker`: Starts the Background Worker in development mode with `nodemon`.
+- `npm run dev:all`: Runs both API and Worker processes simultaneously using `concurrently`.
 - `npm run prebuild`: Automatically cleans the build directory and compiler cache before building.
 - `npm run build`: Compiles TypeScript to JavaScript (`dist` folder).
-- `npm run start`: Runs the compiled application (Production mode).
+- `npm run start`: Runs the compiled default application.
+- `npm run start:api`: Runs the compiled API application.
+- `npm run start:worker`: Runs the compiled Worker application.
 - `npm run clean`: Removes the `dist` directory and `.tsbuildinfo` cache files.
+- `npm run cli`: Runs the custom CLI tool (use `npm run cli -- --help` to see commands).
 - `npm run lint`: Lint code with ESLint.
 - `npm run format`: Format code with Prettier.
 - `npm run test`: Run unit tests with Vitest.
 - `npm run typecheck`: Runs TypeScript type checking without emitting files.
-- `npm run verify`: Runs linter, typecheck, and tests sequentially (useful before pushing code).
+- `npm run verify`: Runs linter, typecheck, and tests sequentially.
 - `npm run prepare`: Sets up Husky git hooks.
 
 ---

@@ -286,7 +286,7 @@ export class UserService {
       userId: user.id,
       data: {
         stripeOnboardingCompleted: true,
-        role: UserRole.HOST,
+        ...(user.role === UserRole.CLIENT && { role: UserRole.HOST }),
       },
     });
 

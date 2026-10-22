@@ -39,7 +39,9 @@ export type InsertPropertyImageData = Pick<
   'propertyId' | 'url' | 'publicId' | 'isMain' | 'order'
 >;
 
-export type UpdatePropertyData = Partial<Property> & {
+export type UpdatePropertyData = Partial<
+  Omit<Property, 'id' | 'createdAt' | 'updatedAt' | 'host' | 'images' | 'amenities'>
+> & {
   amenityIds?: number[];
 };
 

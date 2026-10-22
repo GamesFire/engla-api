@@ -15,9 +15,17 @@ updates:
       - "chore"
 
     groups:
+      vitest:
+        patterns:
+          - "vitest*"
+          - "@vitest/*"
       safe-updates:
         patterns:
           - "*"
         update-types:
           - "minor"
           - "patch"
+
+    ignore:
+      - dependency-name: "typescript"
+        versions: [">= 7.0.0"]

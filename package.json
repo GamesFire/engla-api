@@ -8,8 +8,8 @@
     "dev": "nodemon",
     "dev:api": "APP_TYPE=api nodemon",
     "dev:worker": "APP_TYPE=worker nodemon",
-    "dev:all": "concurrently -c \"cyan,magenta\" -n \"API,WORKER\" \"npm run dev:api\" \"npm run dev:worker\"",
-    "prebuild": "npm run clean",
+    "dev:all": "concurrently -c \"cyan,magenta\" -n \"API,WORKER\" \"APP_TYPE=api nodemon\" \"APP_TYPE=worker nodemon\"",
+    "prebuild": "rm -rf dist *.tsbuildinfo",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/entrypoint.js",
     "start:api": "APP_TYPE=api node dist/entrypoint.js",
@@ -20,7 +20,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run lint && npm run typecheck && npm run test",
+    "verify": "eslint \"src/**/*.ts\" --fix && tsc --noEmit && vitest run",
     "prepare": "husky"
   },
   "repository": {
@@ -110,6 +110,7 @@
     "@types/sanitize-html": "^2.16.2",
     "@types/supertest": "^7.2.1",
     "@vitest/coverage-v8": "^5.0.0",
+    "concurrently": "^10.0.5",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-unused-imports": "^4.3.0",

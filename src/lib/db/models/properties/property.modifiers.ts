@@ -21,6 +21,12 @@ export const PropertyModifier = {
    * - INCLUDES: Everything + deep relations (e.g., full host details).
    */
   ADMIN_VIEW: 'adminView',
+
+  /**
+   * View embedded inside booking details.
+   * - INCLUDES: Key property info, exact address (filtered by booking status in BookingModel), images, and host short profile.
+   */
+  BOOKING_VIEW: 'bookingView',
 } as const;
 
 export type PropertyModifierName = (typeof PropertyModifier)[keyof typeof PropertyModifier];
@@ -65,5 +71,36 @@ export const PropertyModifiers: Modifiers<QueryBuilder<PropertyModel>> = {
 
   [PropertyModifier.ADMIN_VIEW](builder) {
     builder.withGraphFetched('[host, images, amenities]');
+  },
+
+  [PropertyModifier.BOOKING_VIEW](builder) {
+    builder
+      .select(
+        'id',
+        'hostId',
+        'status',
+        'propertyType',
+        'roomType',
+        'title',
+        'addressLine1',
+        'addressLine2',
+        'city',
+        'county',
+        'postcode',
+        'latitude',
+        'longitude',
+        'maxGuests',
+        'bedrooms',
+        'beds',
+        'bathrooms',
+        'checkInTime',
+        'checkOutTime',
+        'houseRules',
+        'cancellationPolicy',
+        'isPetsAllowed',
+        'pricePerNight',
+        'cleaningFee',
+      )
+      .withGraphFetched('[host(shortProfile), images]');
   },
 };

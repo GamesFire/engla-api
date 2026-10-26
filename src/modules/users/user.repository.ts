@@ -141,7 +141,9 @@ export class UserRepository {
     query.orderBy(orderBy, orderDirection);
 
     const { results, total } = await query.page(page - 1, limit);
-    return { results, total };
+    const paginatedUsers = { results, total };
+
+    return paginatedUsers;
   }
 
   /**
@@ -161,7 +163,8 @@ export class UserRepository {
       return [];
     }
 
-    return user.permissions.map((perm) => extractPermissionAction(perm));
+    const userPermissions = user.permissions.map((perm) => extractPermissionAction(perm));
+    return userPermissions;
   }
 
   // --- WRITE METHODS ---
@@ -200,7 +203,7 @@ export class UserRepository {
 
   public async softDeleteAndFetchById(userId: number): Promise<User> {
     const timestamp = Date.now();
-    const anonymizedString = `deleted_${userId}_${timestamp}`;
+    const anonymizedString = `${UserAnonymization.PREFIX}${userId}_${timestamp}`;
 
     await UserModel.query()
       .findById(userId)

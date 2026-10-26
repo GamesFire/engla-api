@@ -19,14 +19,13 @@ export async function up(knex: Knex): Promise<void> {
       .nullable()
       .references('id')
       .inTable('amenity_categories')
-      .onDelete('RESTRICT') // If it has associated amenities, do not delete the category
-      .comment('Grouping category for the UI');
+      .onDelete('RESTRICT'); // If category has associated amenities, prevent deleting it
 
     table.string('name').notNullable().unique();
     table.string('icon_key').nullable().comment('Frontend icon identifier');
 
-    table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now());
-    table.timestamp('updated_at', { useTz: true }).defaultTo(knex.fn.now());
+    table.timestamp('created_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
+    table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
 
     table.index(['scope'], 'idx_amenities_scope');
     table.index(['category_id'], 'idx_amenities_category_id');

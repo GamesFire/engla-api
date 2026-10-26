@@ -7,10 +7,10 @@ export async function up(knex: Knex): Promise<void> {
     table.increments('id').primary();
     table.string('name').notNullable().unique();
     table.string('description').nullable();
-    table.integer('order').unsigned().defaultTo(0).comment('UI sorting order');
+    table.integer('order').unsigned().notNullable().defaultTo(0).comment('UI sorting order');
 
-    table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now());
-    table.timestamp('updated_at', { useTz: true }).defaultTo(knex.fn.now());
+    table.timestamp('created_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
+    table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
   });
 }
 

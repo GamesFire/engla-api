@@ -8,14 +8,14 @@ export async function up(knex: Knex): Promise<void> {
 
     table
       .string('action')
-      .unique()
       .notNullable()
-      .comment('E.g., "users:delete", "properties:manage"');
+      .unique()
+      .comment('Format: "resource:action" (e.g., "users:delete", "properties:update")');
 
-    table.string('description').nullable().comment('Human-readable explanation of the permission');
+    table.string('description').nullable();
 
-    table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now());
-    table.timestamp('updated_at', { useTz: true }).defaultTo(knex.fn.now());
+    table.timestamp('created_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
+    table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
   });
 }
 

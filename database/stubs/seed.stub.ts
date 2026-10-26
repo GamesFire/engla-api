@@ -1,12 +1,14 @@
 import type { Knex } from 'knex';
 
+import { logger } from '@lib/logger.js';
+
 export async function seed(knex: Knex): Promise<void> {
-  // Deletes ALL existing entries
   await knex('table_name').del();
 
-  // Inserts seed entries
   await knex('table_name').insert([
-    { id: 1, colName: 'rowValue1' },
-    { id: 2, colName: 'rowValue2' },
+    { id: 1, col_name: 'value_1' },
+    { id: 2, col_name: 'value_2' },
   ]);
+
+  logger.info('[Seed] table_name seeded successfully');
 }

@@ -11,6 +11,7 @@
 - [📖 Introduction](#-introduction)
 - [🛠 Tech Stack](#-tech-stack)
 - [🏗 Architecture & Design Patterns](#-architecture--design-patterns)
+- [📐 Code Style & Engineering Standards](#-code-style--engineering-standards)
 - [✅ Prerequisites](#-prerequisites)
 - [🚀 Getting Started](#-getting-started)
 - [⚙ Environment Configuration](#-environment-configuration)
@@ -82,6 +83,72 @@ The system utilizes an **Attribute-Based Access Control (ABAC)** model for admin
 
 ---
 
+## 📐 Code Style & Engineering Standards
+
+To keep the codebase scalable, consistent, and easy to maintain across all modules, every contribution must follow these strict engineering conventions:
+
+### 1. Models (e.g., `src/lib/db/models/`)
+* **Unified Section Headers:** Model properties and methods must be grouped using standardized section comments where applicable (e.g., `// --- System & Relations ---`, domain-specific sections such as `// --- Stay Details ---`, `// --- Timestamps ---`, `// --- Relations ---`, `// --- Relation Mappings (For Objection) ---`, `// --- Modifiers for JSON (Data Hiding) ---`).
+* **Inline Annotations:** Annotate foreign keys (e.g., `// FK to UserModel (id)`), default values (e.g., `// Default false`), and database driver type nuances (e.g., `// !Important: pg returns decimal as string`).
+* **Domain Value Sets:** Database-backed value sets (e.g., `PropertyStatus`, `BookingStatus`, `UserRole`) are declared as `as const` objects alongside their derived union type inside their respective model file.
+
+### 2. Constants vs. Environment Variables (`*.constants.ts` vs. `.env`)
+* **Pure Constants Only:** Files ending in `.constants.ts` must contain **only** `as const` constant objects or arrays — never TypeScript `enum` declarations. Derived union types belong in the module's `.types.ts` file.
+* **`.env` vs. `.constants.ts` Separation:**
+  * Use **`.env`** (parsed via config schemas, e.g., `appConfig`) for infrastructure settings, secrets, and operational thresholds that vary by environment or may be tuned without code changes (e.g., `STRIPE_PLATFORM_FEE_PERCENT`, `CRON_BOOKING_SCHEDULE`, `CRON_BOOKING_EXPIRATION_MINUTES`).
+  * Use **`*.constants.ts`** for structured, multi-tier domain rules (e.g., `BookingCancellationConfig`, `PropertyRules`, `ValidationLimits`).
+* **Data-Driven Scalability:** Avoid hardcoding rigid business assumptions (such as actor-specific refund percentages or policy switch-cases) directly inside service methods. Define them as declarative configuration maps (e.g., `ACTOR_REFUND_RATIOS` and `POLICY_TIERS` inside `BookingCancellationConfig`) so business rule updates require only a single config change.
+* **No Magic Numbers or Inline Templates:** Never hardcode magic numbers (e.g., pagination defaults, guest-to-bed ratios, availability windows) or string templates inside services or validators; extract them into constants or formatting utilities (e.g., `src/lib/utils/format.ts`).
+
+### 3. Strict Typing & Parameter Objects (`*.types.ts`)
+* **Max 2 Parameters Rule:** Any function or method that requires **more than 2 parameters** must accept a single typed parameter object (e.g., `params: *Params`) to prevent positional argument mistakes and allow effortless extension.
+* **Named Parameter & Return Types:** Never use inline object types or utility compositions (e.g., `Pick<Booking, ...>[]` or `{ from?: string; to?: string }`) directly in method signatures. Always extract them into descriptive, named types in `*.types.ts`.
+* **Top-to-Bottom Type Ordering in `*.types.ts`:**
+  1. Derived constant value types (e.g., `*Value`)
+  2. Query & Find options (e.g., `*QueryOptions`, `Find*Options`)
+  3. Query DTO aliases (e.g., `Get*Params`)
+  4. Repository data & parameter types (e.g., `Create*Data`, `Update*Data`, `Update*Params`, `Check*Params`)
+  5. Service helper & action parameter types (e.g., `*ByHostParams`, `*ByActorParams`, `*ByAdminParams`)
+  6. Service result & response types (e.g., `*Result`, `*Quote`)
+
+### 4. Class Organization, Section Dividers & Return Style
+* **Private Methods at the Top:** All `private` helper methods must be placed at the very top of the class (immediately after the `constructor`), before any `public` methods.
+* **Section Dividers Across Layers:**
+  * **Repositories (`*.repository.ts`):** Must use standard read/write dividers (e.g., `// --- READ METHODS ---` and `// --- WRITE METHODS ---`) after private helpers.
+  * **Controllers (`*.controller.ts`):** Must use access-tier dividers (e.g., `// --- PUBLIC ENDPOINTS ---`, `// --- PROTECTED ENDPOINTS ---`, `// --- ADMIN ENDPOINTS ---`).
+  * **Services (`*.service.ts`):** Do not use section divider comments inside service classes.
+* **Explicit Variable Before Return:** When returning a constructed object literal in services, repositories, integrations, or utilities, assign it to a typed variable first (e.g., `const result: ResultType = { ... }; return result;`) to improve debugger inspection and type safety.
+
+### 5. Routing, Controller, Service & Validation Ordering
+* **Express Route Precedence (Critical):**
+  * Static paths (e.g., `/`, `/me`, `/hosting`, `/categories`) **must** be registered before parameterized paths (e.g., `/:id`) so dynamic `GET` routes never intercept static endpoints or trigger unintended middlewares.
+  * Public parameterized routes that share a base prefix with protected routers must include a numeric parameter guard middleware (e.g., `skipIfParamNotNumericMiddleware('id')`).
+* **Logical Resource Grouping & HTTP Method Order:**
+  * Group routes, controller methods, and service methods by access level (`Public` -> `Protected` -> `Admin`) and resource/sub-resource hierarchy (e.g., Core Property -> Property Images -> Property Blocked Dates).
+  * Within each resource group, place read operations (`GET`) before write operations (`POST`, `PATCH`, `PUT`, `DELETE`), unless Express route matching or middleware execution order requires a specific exception (e.g., `POST /` registered alongside static root routes before `GET /:id`).
+* **Validation Files (`*.validation.ts`):**
+  * All reusable validation helper functions (e.g., `validateStayDateRange`, `refinePropertySearchDates`) and their helper types must be placed at the **very top** of the file (e.g., under `// --- VALIDATION HELPERS ---`) so they are immediately visible.
+  * Schema sections follow a consistent top-to-bottom order (e.g., `SHARED SCHEMAS` -> `PROTECTED SCHEMAS` -> `PUBLIC SCHEMAS` -> `ADMIN SCHEMAS` -> `EXPORT TYPES`).
+
+### 6. JSDoc, Comments & Punctuation
+* **Unified JSDoc Structure:** Add JSDoc to methods where architectural or business context is valuable. Every JSDoc block must follow the same format:
+  1. Summary description (full sentences ending with a period `.`).
+  2. Blank `*` line.
+  3. `@param <name> - ...` for every parameter (ending with `.`).
+  4. `@returns ...` (including `@returns A Promise that resolves when ...` for documented `Promise<void>` methods).
+  5. `@throws ...` when the method explicitly throws an HTTP error (e.g., `HttpError`).
+* **No Narrative Inline Comments:** Do not leave step-by-step narrative comments (e.g., `// Case 1...`, `// Step 2...`) inside method bodies. Document the behavior in the method's JSDoc instead; keep only actionable `// TODO` markers inside method bodies.
+* **Error & Validation Message Punctuation:** All error messages (e.g., `ErrorMessages` in `src/lib/constants/errors.ts`) and validation messages must **not** end with a trailing period (internal sentences in multi-sentence messages are separated by `. `).
+
+### 7. Database Migrations & Seeds (e.g., `database/migrations/`, `database/seeds/`)
+* **Table-Level Descriptions:** Every table creation migration must begin with a concise `table.comment('...')` describing the table's role in the schema.
+* **Cross-Table Column & Chaining Consistency:** Equivalent domain columns across different tables (e.g., `currency`, `order`, `created_at`, `updated_at`) must use identical column types and constraints unless a specific domain rule requires otherwise (e.g., nullable fields on draft listings vs. non-nullable snapshots on confirmed bookings). Always chain Knex column modifiers in a consistent order: type modifier (e.g., `.unsigned()`) -> nullability (`.notNullable()` or `.nullable()`) -> uniqueness (`.unique()`) -> default value (`.defaultTo(...)`) -> comment (`.comment(...)`).
+* **Foreign Key Annotations:** Place an association comment above foreign key definitions (e.g., `// Associate <entity> with a <target>`) and an inline comment on `.onDelete(...)` explaining the referential integrity rule (e.g., cascading cleanup vs. restricting deletion when history exists).
+* **Non-Obvious Column Comments Only:** Attach `.comment('...')` to columns **only** when the column has non-obvious domain or technical semantics (e.g., monetary amounts stored in lowest currency units such as pence, denormalized/snapshot fields, inclusive vs. exclusive date bounds, state transition flags, or specific string formats). Never add redundant `.comment('...')` calls to self-explanatory columns (e.g., `first_name`, `email`, `description`, `url`, `check_in_date`).
+* **Consistent Section Dividers:** Use standard single-line section dividers (e.g., `// --- Dates & Capacity ---`, `// --- Financial Snapshot (in pence) ---`) in large, multi-domain tables and seed arrays, and omit section headers in small, single-purpose tables. Avoid verbose multi-line banner comments or leftover boilerplate comments from CLI stubs.
+
+---
+
 ## ✅ Prerequisites
 
 Before you begin, ensure you have met the following requirements:
@@ -90,6 +157,7 @@ Before you begin, ensure you have met the following requirements:
 - **npm**: v10.0.0 or higher
 - **PostgreSQL**: v14.0 or higher
 - **Docker** (Recommended for running local infrastructure)
+- **[Stripe CLI](https://docs.stripe.com/stripe-cli)** (Optional, required for forwarding Stripe webhooks to `localhost` during local development)
 
 ---
 
@@ -179,6 +247,9 @@ make start-worker
 | `STRIPE_WEBHOOK_SECRET` | Stripe Webhook Signing Secret | - |
 | `STRIPE_RETURN_URL` | Frontend URL where hosts return after successful onboarding | - |
 | `STRIPE_REFRESH_URL` | Frontend URL where hosts return if the KYC link expires | - |
+| `STRIPE_CHECKOUT_SUCCESS_URL` | Frontend URL where guests return after completing booking payment | - |
+| `STRIPE_CHECKOUT_CANCEL_URL` | Frontend URL where guests return if they cancel checkout | - |
+| `STRIPE_PLATFORM_FEE_PERCENT` | Platform commission percentage deducted from bookings | `10` |
 | `LOG_LEVEL` | Logging level (`debug`, `info`, `error`, `warn`, `http`) | `info` |
 | `LOG_DIR` | Directory for log files | `logs` |
 | `DB_HOST` | PostgreSQL Host | `localhost` |
@@ -196,6 +267,8 @@ make start-worker
 | `CRON_CLEANUP_DRAFTS_DAYS` | Number of days after which an untouched draft property is hard-deleted | `30` |
 | `CRON_CLEANUP_SOFT_DAYS` | Number of days after which an archived property undergoes soft cleanup (keeps only main image) | `60` |
 | `CRON_CLEANUP_HARD_DAYS` | Number of days after which an archived property undergoes hard cleanup (deletes all images) | `365` |
+| `CRON_BOOKING_SCHEDULE` | Cron expression for the background booking lifecycle job | `*/5 * * * *` |
+| `CRON_BOOKING_EXPIRATION_MINUTES` | Minutes before an unpaid pending booking expires | `30` |
 | `SEED_ADMIN_AUTH0_ID` | Mock Auth0 ID for the main Admin account | `auth0\|admin123` |
 | `SEED_ADMIN_EMAIL` | Mock email for the main Admin account | `admin@engla.com` |
 | `SEED_HOST_AUTH0_ID` | Mock Auth0 ID for the demo Host account | `auth0\|host123` |
@@ -214,6 +287,32 @@ By default, the seed script creates mock users with fake Auth0 IDs and emails. S
 5. Run `npm run cli db:seed`.
 
 Now you can successfully log in and test the system with full Admin or Host privileges!
+
+### 🔑 Generating Access Tokens for Multiple Test Users (Auth0 + Postman)
+
+The **Test** tab inside an Auth0 API dashboard issues Machine-to-Machine (`client_credentials`) tokens tied to an application rather than a human user. To test multi-actor workflows (e.g., a guest booking a property owned by another host) directly from Postman without a frontend:
+
+1. **Create Test Users in Auth0:**
+   - Go to **User Management → Users → Create User**, set an email and password (using the `Username-Password-Authentication` connection), and set **Email Verified** to `true`.
+2. **Configure Auth0 Tenant & Application Settings:**
+   - In **Settings (Tenant Settings) → General → API Authorization Settings**, set **Default Directory** to `Username-Password-Authentication` and save.
+   - In **Applications → Applications**, select your application, scroll to **Advanced Settings → Grant Types**, enable **Password**, and save.
+   - In the same application, open the **APIs** tab and toggle your backend API (e.g., `https://api.engla.com`) to **Authorized**.
+3. **Request a User Access Token in Postman:**
+   - Send a `POST` request to `https://<your-auth0-domain>/oauth/token` with `Content-Type: application/json`:
+     ```json
+     {
+       "grant_type": "password",
+       "username": "client1@example.com",
+       "password": "YourPassword123!",
+       "audience": "https://api.engla.com",
+       "client_id": "<YOUR_AUTH0_CLIENT_ID>",
+       "client_secret": "<YOUR_AUTH0_CLIENT_SECRET>",
+       "scope": "openid profile email"
+     }
+     ```
+4. **Synchronize the User with the Local Database:**
+   - On the first login with a newly created Auth0 user, call the authentication sync endpoint (e.g., `POST /api/v1/auth/login`) with `Authorization: Bearer <access_token>` and a JSON body containing (e.g., `{ "email", "firstName", "lastName" }`) so the user record is created in PostgreSQL.
 
 ---
 
@@ -280,6 +379,39 @@ We utilize this asynchronous pattern to handle complex user state transitions, s
 3. **External Verification:** The user completes identity and bank account verification directly on the provider's secure hosted pages. Our server never touches raw identity documents or banking numbers.
 4. **Asynchronous Upgrade:** Once KYC is verified, the provider fires an event (e.g., `account.updated`) to our webhook ingestion endpoint. The respective webhook service validates the required capabilities (e.g., `details_submitted`, `payouts_enabled`) and safely transitions the user's role to `HOST` in our system.
 
+### Local Webhook Forwarding (e.g., Stripe CLI)
+
+Because external payment providers cannot send HTTP requests directly to `localhost`, local development and testing of webhook-driven flows (e.g., host KYC onboarding, booking checkout confirmation, asynchronous refund updates) require forwarding events through a local tunnel or provider CLI:
+
+1. Install the [Stripe CLI](https://docs.stripe.com/stripe-cli) on your machine and authenticate your account (`stripe login`). If your Stripe organization uses Sandboxes, run `stripe switch` after logging in and select the active Sandbox matching your `.env` credentials.
+2. Start forwarding webhook events to your local webhook ingestion endpoint:
+   ```bash
+   stripe listen --all-snapshot --forward-to localhost:4000/api/v1/webhooks/stripe
+   ```
+3. Copy the temporary webhook signing secret printed in the terminal output (e.g., `whsec_...`) and set it in your local `.env` file (e.g., `STRIPE_WEBHOOK_SECRET=whsec_...`).
+4. Restart the local API server (`make dev` or `make dev-api`) so the updated signing secret is loaded into memory.
+
+### Test Host Onboarding (Stripe Connect Test Mode / Sandbox)
+
+When testing host KYC onboarding (e.g., via `POST /api/v1/users/me/onboarding/host`) in a Stripe Test / Sandbox environment, open the returned `url` in your browser and use Stripe's built-in test helpers instead of real personal or banking data:
+
+* **Phone Verification:** Click **Use test phone number** and enter the test SMS code `000 000` (or click **Use test code**).
+* **Personal Details:** Any valid-looking address and date of birth (e.g., `01/01/1990`) are accepted in test mode.
+* **Payout Bank Account:** Click **Use test account** (or enter Stripe's standard UK test bank details, e.g., Sort Code `10-88-00` and Account Number `00012345`).
+* **Submission:** Click **Agree and submit**. Once submitted, Stripe sends the `account.updated` webhook event with `details_submitted: true` and `payouts_enabled: true`, which automatically completes onboarding and upgrades a client account to `host`.
+
+### Test Payments (Stripe Test Mode / Sandbox)
+
+Stripe Checkout in test mode never charges real money. Use one of Stripe's [official test cards](https://docs.stripe.com/testing#cards) on the hosted Checkout page:
+
+* **Card number:** a successful-payment test card (e.g., `4242 4242 4242 4242`), or a decline test card to simulate failed payments (e.g., `4000 0000 0000 0002`).
+* **Expiry date:** any future date (e.g., `12/34`).
+* **CVC:** any 3 digits (e.g., `123`).
+* **Remaining fields** (e.g., cardholder name, country, postal code): any valid-looking values. The exact set of fields is controlled by Stripe and may vary by selected country.
+
+> [!NOTE]
+> In test mode, the guest card, the platform balance, and the connected host account all live inside the same Stripe Sandbox. The platform's **Balance → Transactions** view therefore shows the full gross charge together with the transfer to the host and the collected application fee as separate ledger lines. The host's net payout is visible on the connected account itself (e.g., **Connect → Connected accounts → select the host**).
+
 ---
 
 ## ⚙️ Background Workers (Cron & Jobs)
@@ -293,6 +425,9 @@ Workers are instantiated by running the application with `APP_TYPE=worker`. They
   * **Draft Abandonment:** Deletes `DRAFT` properties that haven't been updated for a specific number of days (default: 30 days, configurable via `CRON_CLEANUP_DRAFTS_DAYS`).
   * **Soft Cleanup:** Removes secondary photos from Cloudinary and the database for properties archived past a specific threshold (default: > 60 days, configurable via `CRON_CLEANUP_SOFT_DAYS`), keeping only the main thumbnail for booking history.
   * **Hard Cleanup:** Removes the main photo as well for properties archived past a long-term threshold (default: > 365 days, configurable via `CRON_CLEANUP_HARD_DAYS`).
+* **BookingLifecycleJob:** Runs automatically on a configurable schedule (e.g., via `CRON_BOOKING_SCHEDULE`) to maintain booking state consistency:
+  * **Pending Expiration:** Automatically expires unpaid pending bookings past the configured threshold (e.g., default: 30 minutes, configurable via `CRON_BOOKING_EXPIRATION_MINUTES`) and closes their open payment sessions to free up property dates.
+  * **Stay Completion:** Transitions confirmed bookings whose check-out date has passed into the completed state.
 
 ---
 

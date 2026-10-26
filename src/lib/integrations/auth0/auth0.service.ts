@@ -26,6 +26,7 @@ export class Auth0Service {
    *
    * @param auth0Id - User ID in Auth0.
    * @param avatarUrl - The new Cloudinary secure URL.
+   * @returns A Promise that resolves when the avatar metadata is updated in Auth0.
    * @throws Will throw an HTTP 502 error if the update fails.
    */
   public async updateUserAvatar(auth0Id: string, avatarUrl: string): Promise<void> {

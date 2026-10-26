@@ -55,7 +55,7 @@
     ]
   },
   "dependencies": {
-    "@bugsnag/js": "^8.10.0",
+    "@bugsnag/js": "^9.1.0",
     "@bugsnag/plugin-express": "^9.1.0",
     "auth0": "^7.5.0",
     "bullmq": "^6.3.17",

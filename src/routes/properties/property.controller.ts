@@ -4,14 +4,19 @@ import { inject } from 'inversify';
 import { provide } from '@ioc/decorators.js';
 import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
+import { BookingService } from '@modules/bookings/booking.service.js';
 import { PropertyService } from '@modules/properties/property.service.js';
 
 import {
   adminGetPropertiesQuerySchema,
   adminRejectPropertyBodySchema,
   adminUpdatePropertyBodySchema,
+  createPropertyBlockedDateBodySchema,
   createPropertyBodySchema,
   getPropertiesQuerySchema,
+  getPropertyAvailabilityQuerySchema,
+  getPropertyQuoteQuerySchema,
+  propertyBlockedDateIdParamSchema,
   propertyIdParamSchema,
   propertyImageIdParamSchema,
   publishPropertyBodySchema,
@@ -21,9 +26,14 @@ import {
 
 @provide()
 export class PropertyController {
-  constructor(@inject(PropertyService) private readonly _propertyService: PropertyService) {
-    this.getPublicPropertyById = this.getPublicPropertyById.bind(this);
+  constructor(
+    @inject(PropertyService) private readonly _propertyService: PropertyService,
+    @inject(BookingService) private readonly _bookingService: BookingService,
+  ) {
     this.getPublicProperties = this.getPublicProperties.bind(this);
+    this.getPublicPropertyById = this.getPublicPropertyById.bind(this);
+    this.getPublicPropertyAvailability = this.getPublicPropertyAvailability.bind(this);
+    this.getPublicPropertyQuote = this.getPublicPropertyQuote.bind(this);
 
     this.getMyProperties = this.getMyProperties.bind(this);
     this.createMyProperty = this.createMyProperty.bind(this);
@@ -34,8 +44,11 @@ export class PropertyController {
     this.deleteMyProperty = this.deleteMyProperty.bind(this);
     this.uploadMyPropertyImages = this.uploadMyPropertyImages.bind(this);
     this.reorderMyPropertyImages = this.reorderMyPropertyImages.bind(this);
-    this.deleteMyPropertyImage = this.deleteMyPropertyImage.bind(this);
     this.setMainMyPropertyImage = this.setMainMyPropertyImage.bind(this);
+    this.deleteMyPropertyImage = this.deleteMyPropertyImage.bind(this);
+    this.getMyPropertyBlockedDates = this.getMyPropertyBlockedDates.bind(this);
+    this.createMyPropertyBlockedDate = this.createMyPropertyBlockedDate.bind(this);
+    this.deleteMyPropertyBlockedDate = this.deleteMyPropertyBlockedDate.bind(this);
 
     this.adminGetProperties = this.adminGetProperties.bind(this);
     this.adminUpdateProperty = this.adminUpdateProperty.bind(this);
@@ -46,6 +59,13 @@ export class PropertyController {
 
   // --- PUBLIC ENDPOINTS ---
 
+  public async getPublicProperties(req: Request, res: Response) {
+    const getPropertiesQueryDto = getPropertiesQuerySchema.parse(req.query);
+    const properties = await this._propertyService.getPublicProperties(getPropertiesQueryDto);
+
+    res.status(200).json(properties);
+  }
+
   public async getPublicPropertyById(req: Request, res: Response) {
     const { id: propertyId } = propertyIdParamSchema.parse(req.params);
     const property = await this._propertyService.getPublicPropertyById(propertyId);
@@ -53,11 +73,28 @@ export class PropertyController {
     res.status(200).json(property);
   }
 
-  public async getPublicProperties(req: Request, res: Response) {
-    const getPropertiesQueryDto = getPropertiesQuerySchema.parse(req.query);
-    const properties = await this._propertyService.getPublicProperties(getPropertiesQueryDto);
+  public async getPublicPropertyAvailability(req: Request, res: Response) {
+    const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const queryDto = getPropertyAvailabilityQuerySchema.parse(req.query);
 
-    res.status(200).json(properties);
+    const availability = await this._bookingService.getPropertyAvailability({
+      propertyId,
+      query: queryDto,
+    });
+
+    res.status(200).json(availability);
+  }
+
+  public async getPublicPropertyQuote(req: Request, res: Response) {
+    const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const queryDto = getPropertyQuoteQuerySchema.parse(req.query);
+
+    const quote = await this._bookingService.getBookingPriceQuote({
+      propertyId,
+      query: queryDto,
+    });
+
+    res.status(200).json(quote);
   }
 
   // --- HOST ENDPOINTS ---
@@ -175,6 +212,19 @@ export class PropertyController {
     res.status(204).send();
   }
 
+  public async setMainMyPropertyImage(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
+
+    await this._propertyService.setMainPropertyImageByHost({
+      hostId: user.id,
+      propertyId,
+      imageId,
+    });
+
+    res.status(204).send();
+  }
+
   public async deleteMyPropertyImage(req: Request, res: Response) {
     const user = req.currentUser!;
     const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
@@ -188,14 +238,42 @@ export class PropertyController {
     res.status(204).send();
   }
 
-  public async setMainMyPropertyImage(req: Request, res: Response) {
+  public async getMyPropertyBlockedDates(req: Request, res: Response) {
     const user = req.currentUser!;
-    const { id: propertyId, imageId } = propertyImageIdParamSchema.parse(req.params);
+    const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const queryDto = getPropertyAvailabilityQuerySchema.parse(req.query);
 
-    await this._propertyService.setMainPropertyImageByHost({
+    const blockedDates = await this._propertyService.getPropertyBlockedDatesByHost({
       hostId: user.id,
       propertyId,
-      imageId,
+      query: queryDto,
+    });
+
+    res.status(200).json(blockedDates);
+  }
+
+  public async createMyPropertyBlockedDate(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const { id: propertyId } = propertyIdParamSchema.parse(req.params);
+    const bodyDto = createPropertyBlockedDateBodySchema.parse(req.body);
+
+    const blockedDate = await this._propertyService.createPropertyBlockedDateByHost({
+      hostId: user.id,
+      propertyId,
+      data: bodyDto,
+    });
+
+    res.status(201).json(blockedDate);
+  }
+
+  public async deleteMyPropertyBlockedDate(req: Request, res: Response) {
+    const user = req.currentUser!;
+    const { id: propertyId, blockId } = propertyBlockedDateIdParamSchema.parse(req.params);
+
+    await this._propertyService.deletePropertyBlockedDateByHost({
+      hostId: user.id,
+      propertyId,
+      blockId,
     });
 
     res.status(204).send();

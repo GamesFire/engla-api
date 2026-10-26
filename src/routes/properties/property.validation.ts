@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { z } from 'zod';
 
 import { EnglandCounties } from '@lib/constants/geography.js';
@@ -11,7 +12,44 @@ import {
   RoomType,
 } from '@models/properties/property.model.js';
 import { PropertySortFields } from '@modules/properties/property.constants.js';
+import {
+  type StayDateRangeFields,
+  isoDateStringSchema,
+  validateStayDateRange,
+} from '@routes/bookings/booking.validation.js';
 import { sanitizeText } from '@utils/sanitizer.js';
+
+// --- VALIDATION HELPERS ---
+
+/**
+ * Validates that property search date filters include both boundaries and a valid stay range.
+ *
+ * @param data - The check-in and check-out date filter fields.
+ * @param ctx - The Zod refinement context.
+ */
+function refinePropertySearchDates(data: StayDateRangeFields, ctx: z.RefinementCtx): void {
+  if (data.checkInDate && !data.checkOutDate) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'checkOutDate is required when checkInDate is provided',
+      path: ['checkOutDate'],
+    });
+    return;
+  }
+
+  if (!data.checkInDate && data.checkOutDate) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'checkInDate is required when checkOutDate is provided',
+      path: ['checkInDate'],
+    });
+    return;
+  }
+
+  if (data.checkInDate && data.checkOutDate) {
+    validateStayDateRange({ data, ctx });
+  }
+}
 
 // --- PROPERTY SHARED SCHEMAS ---
 
@@ -21,6 +59,13 @@ export const propertyImageIdParamSchema = z
   .object({
     id: idSchema,
     imageId: idSchema,
+  })
+  .strict();
+
+export const propertyBlockedDateIdParamSchema = z
+  .object({
+    id: idSchema,
+    blockId: idSchema,
   })
   .strict();
 
@@ -157,17 +202,17 @@ export const updatePropertyBodySchema = basePropertyFieldsSchema
     if (
       data.roomType === RoomType.SHARED_ROOM &&
       data.bedrooms !== undefined &&
-      data.bedrooms > 1
+      data.bedrooms > ValidationLimits.PROPERTY.SHARED_ROOM_MAX_BEDROOMS
     ) {
       ctx.addIssue({
         code: 'custom',
-        message: 'A shared room cannot have more than 1 bedroom',
+        message: `A shared room cannot have more than ${ValidationLimits.PROPERTY.SHARED_ROOM_MAX_BEDROOMS} bedroom`,
         path: ['bedrooms'],
       });
     }
 
     if (data.maxGuests !== undefined && data.beds !== undefined && data.beds > 0) {
-      if (data.maxGuests > data.beds * 3) {
+      if (data.maxGuests > data.beds * ValidationLimits.PROPERTY.MAX_GUESTS_PER_BED_RATIO) {
         ctx.addIssue({
           code: 'custom',
           message: 'The maximum number of guests exceeds a reasonable capacity for the given beds',
@@ -209,9 +254,93 @@ export const publishPropertyBodySchema = z
   })
   .strict();
 
-// --- PROPERTY PUBLIC SCHEMAS (Search) ---
+export const createPropertyBlockedDateBodySchema = z
+  .object({
+    startDate: isoDateStringSchema,
+    endDate: isoDateStringSchema,
+    reason: z
+      .string()
+      .trim()
+      .min(1)
+      .max(ValidationLimits.BOOKING.BLOCK_REASON_MAX)
+      .transform((val) => sanitizeText(val))
+      .optional(),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    const start = dayjs(data.startDate).startOf('day');
+    const end = dayjs(data.endDate).startOf('day');
+    const today = dayjs().startOf('day');
 
-export const getPropertiesQuerySchema = basePaginationSchema.extend({
+    if (start.isBefore(today)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Start date cannot be in the past',
+        path: ['startDate'],
+      });
+    }
+
+    if (end.isSame(start) || end.isBefore(start)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'End date must be after start date',
+        path: ['endDate'],
+      });
+    }
+
+    if (end.diff(today, 'day') > ValidationLimits.BOOKING.MAX_ADVANCE_DAYS) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Cannot block dates more than ${ValidationLimits.BOOKING.MAX_ADVANCE_DAYS} days in advance`,
+        path: ['endDate'],
+      });
+    }
+  });
+
+// --- PROPERTY PUBLIC SCHEMAS (Search, Availability & Quote) ---
+
+export const getPropertyAvailabilityQuerySchema = z
+  .object({
+    from: isoDateStringSchema.optional(),
+    to: isoDateStringSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.from && data.to) {
+      const from = dayjs(data.from).startOf('day');
+      const to = dayjs(data.to).startOf('day');
+
+      if (to.isSame(from) || to.isBefore(from)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: "'to' date must be after 'from' date",
+          path: ['to'],
+        });
+      }
+
+      if (to.diff(from, 'day') > ValidationLimits.BOOKING.MAX_ADVANCE_DAYS) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Date range cannot exceed ${ValidationLimits.BOOKING.MAX_ADVANCE_DAYS} days`,
+          path: ['to'],
+        });
+      }
+    }
+  });
+
+export const getPropertyQuoteQuerySchema = z
+  .object({
+    checkInDate: isoDateStringSchema,
+    checkOutDate: isoDateStringSchema,
+    guestsCount: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(ValidationLimits.PROPERTY.MAX_GUESTS)
+      .default(1),
+  })
+  .superRefine((data, ctx) => validateStayDateRange({ data, ctx }));
+
+const baseGetPropertiesQuerySchema = basePaginationSchema.extend({
   orderBy: z
     .enum(PropertySortFields, {
       message: 'Invalid orderBy field for properties',
@@ -232,6 +361,9 @@ export const getPropertiesQuerySchema = basePaginationSchema.extend({
   cancellationPolicy: z
     .enum(CancellationPolicy, { message: 'Invalid cancellation policy' })
     .optional(),
+
+  checkInDate: isoDateStringSchema.optional(),
+  checkOutDate: isoDateStringSchema.optional(),
 
   minPrice: z.coerce.number().int().nonnegative().optional(),
 
@@ -308,14 +440,22 @@ export const getPropertiesQuerySchema = basePaginationSchema.extend({
     }),
 });
 
+export const getPropertiesQuerySchema = baseGetPropertiesQuerySchema.superRefine((data, ctx) =>
+  refinePropertySearchDates(data, ctx),
+);
+
 // --- PROPERTY ADMIN SCHEMAS ---
 
-export const adminGetPropertiesQuerySchema = getPropertiesQuerySchema.extend({
-  status: z.enum(PropertyStatus, { message: 'Invalid property status' }).optional(),
-  hostId: z.coerce.number().int().positive().optional(),
-  licenseNumber: z.string().trim().max(ValidationLimits.PROPERTY.LICENSE_MAX).optional(),
-  includeDeleted: z.coerce.boolean({ message: 'includeDeleted must be a boolean' }).default(false),
-});
+export const adminGetPropertiesQuerySchema = baseGetPropertiesQuerySchema
+  .extend({
+    status: z.enum(PropertyStatus, { message: 'Invalid property status' }).optional(),
+    hostId: z.coerce.number().int().positive().optional(),
+    licenseNumber: z.string().trim().max(ValidationLimits.PROPERTY.LICENSE_MAX).optional(),
+    includeDeleted: z.coerce
+      .boolean({ message: 'includeDeleted must be a boolean' })
+      .default(false),
+  })
+  .superRefine((data, ctx) => refinePropertySearchDates(data, ctx));
 
 export const adminUpdatePropertyBodySchema = updatePropertyBodySchema
   .extend({
@@ -338,13 +478,17 @@ export const adminRejectPropertyBodySchema = z
 
 export type PropertyIdParamDto = z.infer<typeof propertyIdParamSchema>;
 export type PropertyImageIdParamDto = z.infer<typeof propertyImageIdParamSchema>;
+export type PropertyBlockedDateIdParamDto = z.infer<typeof propertyBlockedDateIdParamSchema>;
 
 export type CreatePropertyBodyDto = z.infer<typeof createPropertyBodySchema>;
 export type UpdatePropertyBodyDto = z.infer<typeof updatePropertyBodySchema>;
 export type ReorderPropertyImagesBodyDto = z.infer<typeof reorderPropertyImagesBodySchema>;
 export type PublishPropertyBodyDto = z.infer<typeof publishPropertyBodySchema>;
+export type CreatePropertyBlockedDateBodyDto = z.infer<typeof createPropertyBlockedDateBodySchema>;
 
 export type GetPropertiesQueryDto = z.infer<typeof getPropertiesQuerySchema>;
+export type GetPropertyAvailabilityQueryDto = z.infer<typeof getPropertyAvailabilityQuerySchema>;
+export type GetPropertyQuoteQueryDto = z.infer<typeof getPropertyQuoteQuerySchema>;
 
 export type AdminGetPropertiesQueryDto = z.infer<typeof adminGetPropertiesQuerySchema>;
 export type AdminUpdatePropertyBodyDto = z.infer<typeof adminUpdatePropertyBodySchema>;

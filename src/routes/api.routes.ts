@@ -8,6 +8,7 @@ import { UserRole } from '@models/users/user.model.js';
 import { createAdminRouter } from './admin.routes.js';
 import { createPublicAmenityRouter } from './amenities/amenity.routes.js';
 import { createPublicAuthRouter } from './auth/auth.routes.js';
+import { createProtectedBookingRouter } from './bookings/booking.routes.js';
 import {
   createProtectedPropertyRouter,
   createPublicPropertyRouter,
@@ -27,6 +28,7 @@ export function createV1Router(): Router {
 
   // --- PROTECTED ROUTES ---
   router.use(ApiRoutes.USERS, createProtectedUserRouter());
+  router.use(ApiRoutes.BOOKINGS, createProtectedBookingRouter());
   router.use(
     ApiRoutes.PROPERTIES,
     roleMiddleware([UserRole.HOST, UserRole.ADMIN]),

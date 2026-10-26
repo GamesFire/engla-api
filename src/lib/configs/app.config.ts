@@ -28,6 +28,9 @@ export type AppConfig = {
   STRIPE_WEBHOOK_SECRET: string;
   STRIPE_RETURN_URL: string;
   STRIPE_REFRESH_URL: string;
+  STRIPE_CHECKOUT_SUCCESS_URL: string;
+  STRIPE_CHECKOUT_CANCEL_URL: string;
+  STRIPE_PLATFORM_FEE_PERCENT: number;
   // --- Logger params ---
   LOG_LEVEL: LogLevel;
   LOG_DIR: string;
@@ -49,6 +52,8 @@ export type AppConfig = {
   CRON_CLEANUP_DRAFTS_DAYS: number;
   CRON_CLEANUP_SOFT_DAYS: number;
   CRON_CLEANUP_HARD_DAYS: number;
+  CRON_BOOKING_SCHEDULE: string;
+  CRON_BOOKING_EXPIRATION_MINUTES: number;
   // --- Seed Demo Data (Optional) ---
   SEED_ADMIN_AUTH0_ID: string;
   SEED_ADMIN_EMAIL: string;
@@ -87,6 +92,9 @@ const envAppSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string(),
   STRIPE_RETURN_URL: z.url(),
   STRIPE_REFRESH_URL: z.url(),
+  STRIPE_CHECKOUT_SUCCESS_URL: z.url(),
+  STRIPE_CHECKOUT_CANCEL_URL: z.url(),
+  STRIPE_PLATFORM_FEE_PERCENT: z.coerce.number().min(0).max(100).default(10),
   LOG_DIR: z.string().default('logs'),
   DB_HOST: z.string().default('localhost'),
   DB_PORT: z.coerce.number().default(5432),
@@ -103,6 +111,8 @@ const envAppSchema = z.object({
   CRON_CLEANUP_DRAFTS_DAYS: z.coerce.number().int().positive().default(30),
   CRON_CLEANUP_SOFT_DAYS: z.coerce.number().int().positive().default(60),
   CRON_CLEANUP_HARD_DAYS: z.coerce.number().int().positive().default(365),
+  CRON_BOOKING_SCHEDULE: z.string().default('*/5 * * * *'),
+  CRON_BOOKING_EXPIRATION_MINUTES: z.coerce.number().int().min(30).max(1440).default(30),
   SEED_ADMIN_AUTH0_ID: z.string().default('auth0|admin123'),
   SEED_ADMIN_EMAIL: z.email().default('admin@engla.com'),
   SEED_HOST_AUTH0_ID: z.string().default('auth0|host123'),

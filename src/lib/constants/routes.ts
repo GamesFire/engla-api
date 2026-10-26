@@ -11,6 +11,7 @@ export const ApiRoutes = {
   WEBHOOKS: '/webhooks',
   USERS: '/users',
   PROPERTIES: '/properties',
+  BOOKINGS: '/bookings',
   AMENITIES: '/amenities',
   PERMISSIONS: '/permissions',
 } as const;

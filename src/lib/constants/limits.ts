@@ -3,6 +3,10 @@ import { TimeMs } from './time.js';
 
 export const RequestConfig = {
   RATE_LIMIT: {
+    KEY_PREFIX: {
+      USER: 'user',
+      AUTH_SUBJECT: 'auth_sub',
+    },
     GLOBAL: {
       WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
       MAX_REQUESTS: 100,
@@ -72,6 +76,28 @@ export const RequestConfig = {
         WINDOW_MS: TimeMs.ONE_MINUTE,
         MAX_REQUESTS: 60,
       },
+      BLOCK_DATES: {
+        WINDOW_MS: TimeMs.ONE_MINUTE,
+        MAX_REQUESTS: 30,
+      },
+    },
+    BOOKINGS: {
+      SEARCH: {
+        WINDOW_MS: TimeMs.ONE_MINUTE,
+        MAX_REQUESTS: 60,
+      },
+      CREATION: {
+        WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
+        MAX_REQUESTS: 15,
+      },
+      PAYMENT: {
+        WINDOW_MS: TimeMs.FIFTEEN_MINUTES,
+        MAX_REQUESTS: 15,
+      },
+      CANCELLATION: {
+        WINDOW_MS: TimeMs.ONE_HOUR,
+        MAX_REQUESTS: 10,
+      },
     },
     AMENITIES: {
       SEARCH: {
@@ -93,5 +119,6 @@ export const RequestConfig = {
   BUSINESS: {
     MAX_PROPERTIES_PER_HOST: 20,
     MAX_PENDING_PROPERTIES: 3,
+    MAX_PENDING_BOOKINGS_PER_GUEST: 3,
   },
 } as const;

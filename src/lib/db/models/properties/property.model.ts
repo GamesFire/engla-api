@@ -2,6 +2,7 @@ import { Model, type Pojo, type RelationMappings } from 'objection';
 
 import { AmenityModel } from '../amenities/amenity.model.js';
 import { BaseSystemModel } from '../base-system.model.js';
+import { PropertyBlockedDateModel } from '../property-blocked-date.model.js';
 import { PropertyImageModel } from '../property-image.model.js';
 import { UserModel } from '../users/user.model.js';
 import { PropertyModifiers } from './property.modifiers.js';
@@ -89,6 +90,7 @@ export interface Property {
   host?: UserModel;
   images?: PropertyImageModel[];
   amenities?: AmenityModel[];
+  blockedDates?: PropertyBlockedDateModel[];
 }
 
 export class PropertyModel extends BaseSystemModel implements Property {
@@ -129,6 +131,7 @@ export class PropertyModel extends BaseSystemModel implements Property {
   host?: UserModel;
   images?: PropertyImageModel[];
   amenities?: AmenityModel[];
+  blockedDates?: PropertyBlockedDateModel[];
 
   // --- Relation Mappings (For Objection) ---
   static get relationMappings(): RelationMappings {
@@ -161,6 +164,15 @@ export class PropertyModel extends BaseSystemModel implements Property {
             to: 'properties_amenities.amenityId',
           },
           to: 'amenities.id',
+        },
+      },
+
+      blockedDates: {
+        relation: Model.HasManyRelation,
+        modelClass: PropertyBlockedDateModel,
+        join: {
+          from: 'properties.id',
+          to: 'property_blocked_dates.propertyId',
         },
       },
     };

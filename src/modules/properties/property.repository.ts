@@ -2,8 +2,10 @@ import { type QueryBuilder } from 'objection';
 
 import type { PaginatedResponse } from '@app/interfaces/pagination.interface.js';
 import { provide } from '@ioc/decorators.js';
+import { BookingModel, BookingStatus } from '@models/bookings/booking.model.js';
 import { type Property, PropertyModel, PropertyStatus } from '@models/properties/property.model.js';
 import { PropertyModifier } from '@models/properties/property.modifiers.js';
+import { PropertyBlockedDateModel } from '@models/property-blocked-date.model.js';
 import { skipUndefinedFields } from '@utils/data.js';
 
 import type {
@@ -55,6 +57,8 @@ export class PropertyRepository {
       propertyType,
       roomType,
       cancellationPolicy,
+      checkInDate,
+      checkOutDate,
       minPrice,
       maxPrice,
       minGuests,
@@ -71,6 +75,33 @@ export class PropertyRepository {
     if (propertyType) query.where('propertyType', propertyType);
     if (roomType) query.where('roomType', roomType);
     if (cancellationPolicy) query.where('cancellationPolicy', cancellationPolicy);
+
+    if (checkInDate && checkOutDate) {
+      const now = new Date();
+
+      query.whereNotExists(
+        BookingModel.query()
+          .select('bookings.id')
+          .whereRaw('bookings.property_id = properties.id')
+          .where('bookings.checkInDate', '<', checkOutDate)
+          .where('bookings.checkOutDate', '>', checkInDate)
+          .where((sub) => {
+            sub.where('bookings.status', BookingStatus.CONFIRMED).orWhere((pendingSub) => {
+              pendingSub
+                .where('bookings.status', BookingStatus.PENDING)
+                .where('bookings.expiresAt', '>', now);
+            });
+          }),
+      );
+
+      query.whereNotExists(
+        PropertyBlockedDateModel.query()
+          .select('property_blocked_dates.id')
+          .whereRaw('property_blocked_dates.property_id = properties.id')
+          .where('property_blocked_dates.startDate', '<', checkOutDate)
+          .where('property_blocked_dates.endDate', '>', checkInDate),
+      );
+    }
 
     if (minPrice !== undefined) query.where('pricePerNight', '>=', minPrice);
     if (maxPrice !== undefined) query.where('pricePerNight', '<=', maxPrice);
@@ -160,7 +191,9 @@ export class PropertyRepository {
     query.orderBy(orderBy, orderDirection);
 
     const { results, total } = await query.page(page - 1, limit);
-    return { results, total };
+    const paginatedProperties = { results, total };
+
+    return paginatedProperties;
   }
 
   public async getPropertiesByHostId(
@@ -178,7 +211,9 @@ export class PropertyRepository {
     query.orderBy(orderBy, orderDirection);
 
     const { results, total } = await query.page(page - 1, limit);
-    return { results, total };
+    const paginatedProperties = { results, total };
+
+    return paginatedProperties;
   }
 
   public async getPropertiesByAdmin(
@@ -192,7 +227,9 @@ export class PropertyRepository {
     query.orderBy(orderBy, orderDirection);
 
     const { results, total } = await query.page(page - 1, limit);
-    return { results, total };
+    const paginatedProperties = { results, total };
+
+    return paginatedProperties;
   }
 
   // --- WRITE METHODS ---
@@ -255,7 +292,8 @@ export class PropertyRepository {
       .where('updatedAt', '<', cutoffDate)
       .whereNull('deletedAt');
 
-    return results.map((r) => r.id);
+    const staleDraftIds = results.map((r) => r.id);
+    return staleDraftIds;
   }
 
   public async getArchivedProperties(daysOld: number): Promise<number[]> {
@@ -268,6 +306,7 @@ export class PropertyRepository {
       .whereNotNull('deletedAt')
       .where('deletedAt', '<', cutoffDate);
 
-    return results.map((r) => r.id);
+    const archivedPropertyIds = results.map((r) => r.id);
+    return archivedPropertyIds;
   }
 }

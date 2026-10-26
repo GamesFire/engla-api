@@ -6,6 +6,9 @@ export const StripeConfig = {
   COUNTRY: 'GB',
   ACCOUNT_TYPE: 'express' as const,
   BUSINESS_TYPE: 'individual' as const,
+  CHECKOUT_MODE: 'payment' as const,
+  CLEANING_FEE_PRODUCT_NAME: 'Cleaning Fee',
+  DEFAULT_FLAT_FEE_QUANTITY: 1,
   CAPABILITIES: {
     card_payments: { requested: true },
     transfers: { requested: true },
@@ -15,5 +18,8 @@ export const StripeConfig = {
   },
   WEBHOOK_EVENTS: {
     ACCOUNT_UPDATED: 'account.updated',
+    CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed',
+    CHECKOUT_SESSION_EXPIRED: 'checkout.session.expired',
+    PAYMENT_INTENT_PAYMENT_FAILED: 'payment_intent.payment_failed',
   },
 } as const;

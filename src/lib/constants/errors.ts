@@ -36,6 +36,7 @@ export const ErrorCodes = {
     BLOCKED: 'USER_BLOCKED',
     NOT_VERIFIED: 'USER_NOT_VERIFIED',
     PROFILE_INCOMPLETE: 'USER_PROFILE_INCOMPLETE',
+    HAS_ACTIVE_BOOKINGS: 'USER_HAS_ACTIVE_BOOKINGS',
   },
   PROPERTIES: {
     NOT_FOUND: 'PROPERTY_NOT_FOUND',
@@ -51,6 +52,21 @@ export const ErrorCodes = {
     NOT_PENDING: 'PROPERTY_NOT_PENDING',
     NOT_ACTIVE: 'PROPERTY_NOT_ACTIVE',
     NOT_INACTIVE: 'PROPERTY_NOT_INACTIVE',
+    BLOCKED_DATE_NOT_FOUND: 'PROPERTY_BLOCKED_DATE_NOT_FOUND',
+    DATES_HAVE_ACTIVE_BOOKINGS: 'PROPERTY_DATES_HAVE_ACTIVE_BOOKINGS',
+    DATES_ALREADY_BLOCKED: 'PROPERTY_DATES_ALREADY_BLOCKED',
+  },
+  BOOKINGS: {
+    NOT_FOUND: 'BOOKING_NOT_FOUND',
+    PROPERTY_NOT_AVAILABLE: 'BOOKING_PROPERTY_NOT_AVAILABLE',
+    CANNOT_BOOK_OWN_PROPERTY: 'BOOKING_CANNOT_BOOK_OWN_PROPERTY',
+    GUEST_CAPACITY_EXCEEDED: 'BOOKING_GUEST_CAPACITY_EXCEEDED',
+    HOST_PAYOUTS_NOT_READY: 'BOOKING_HOST_PAYOUTS_NOT_READY',
+    NOT_PENDING: 'BOOKING_NOT_PENDING',
+    EXPIRED: 'BOOKING_EXPIRED',
+    ALREADY_TERMINATED: 'BOOKING_ALREADY_TERMINATED',
+    STAY_ALREADY_STARTED: 'BOOKING_STAY_ALREADY_STARTED',
+    TOO_MANY_PENDING: 'BOOKING_TOO_MANY_PENDING',
   },
   AMENITIES: {
     NOT_FOUND: 'AMENITY_NOT_FOUND',
@@ -101,6 +117,11 @@ export const ErrorMessages = {
     PROPERTY_STATUS_CHANGE: 'Too many status change attempts. Please wait before trying again',
     PROPERTY_IMAGE_UPLOAD: 'Too many image upload attempts. Please try again later',
     PROPERTY_IMAGE_MANAGE: 'Too many image management attempts. Please try again later',
+    PROPERTY_BLOCK_DATES: 'Too many calendar block attempts. Please try again later',
+    BOOKING_SEARCH: 'Too many booking search requests. Please slow down',
+    BOOKING_CREATION: 'Too many booking creation attempts. Please try again later',
+    BOOKING_PAYMENT: 'Too many payment session attempts. Please try again later',
+    BOOKING_CANCELLATION: 'Too many booking cancellation attempts. Please try again later',
     AMENITY_SEARCH: 'Too many amenity or amenity category search requests. Please slow down',
   },
   AUTH: {
@@ -114,6 +135,7 @@ export const ErrorMessages = {
     DEACTIVATED: 'User account is deactivated. Please contact support',
     NOT_VERIFIED: 'You must verify your email address before becoming a host',
     PROFILE_INCOMPLETE: 'Cannot initiate host onboarding. Missing required profile fields',
+    HAS_ACTIVE_BOOKINGS: 'Cannot delete account while you have active or upcoming bookings',
   },
   PROPERTIES: {
     NOT_FOUND: 'Property not found',
@@ -134,6 +156,24 @@ export const ErrorMessages = {
     NOT_PENDING: 'This action requires the property to be in a pending review state',
     NOT_ACTIVE: 'Only active properties can be paused',
     NOT_INACTIVE: 'Only inactive properties can be unpaused',
+    BLOCKED_DATE_NOT_FOUND: 'Blocked date range not found',
+    DATES_HAVE_ACTIVE_BOOKINGS:
+      'Cannot block these dates because there are existing bookings during this period',
+    DATES_ALREADY_BLOCKED: 'Selected dates overlap with an existing blocked period',
+  },
+  BOOKINGS: {
+    NOT_FOUND: 'Booking not found',
+    PROPERTY_NOT_AVAILABLE: 'This property is not available for the selected dates',
+    CANNOT_BOOK_OWN_PROPERTY: 'You cannot book your own property',
+    GUEST_CAPACITY_EXCEEDED: 'The number of guests exceeds the maximum capacity of this property',
+    HOST_PAYOUTS_NOT_READY:
+      'This property cannot accept bookings at the moment because host payouts are not configured',
+    NOT_PENDING: 'Only pending bookings awaiting payment can be paid',
+    EXPIRED: 'This booking has expired and can no longer be paid',
+    ALREADY_TERMINATED: 'This booking is already cancelled, completed, or expired',
+    STAY_ALREADY_STARTED: 'Cannot cancel a booking after the check-in date has already started',
+    TOO_MANY_PENDING:
+      'You have too many unpaid bookings. Please complete or cancel an existing booking before creating a new one',
   },
   AMENITIES: {
     NOT_FOUND: 'Amenity not found',

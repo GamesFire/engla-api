@@ -17,19 +17,26 @@ export enum Locale {
 }
 
 export interface User {
+  // --- System & Identity ---
   id: number;
   auth0Id: string;
   email: string;
+  role: UserRole; // Default 'client'
+  isVerified: boolean; // Default false
+
+  // --- Profile Info ---
   firstName: Nullable<string>;
   lastName: Nullable<string>;
   avatarUrl: Nullable<string>;
   phone: Nullable<string>;
-  role: UserRole; // Default 'client'
-  isVerified: boolean; // Default false
+
+  // --- Preferences & Payments ---
   language: Locale; // Default 'en'
   currency: string; // Default 'GBP'
   stripeAccountId: Nullable<string>;
   stripeOnboardingCompleted: boolean; // Default false
+
+  // --- Timestamps ---
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Nullable<Date>;
@@ -45,12 +52,12 @@ export class UserModel extends BaseSystemModel implements User {
   id!: number;
   auth0Id!: string;
   email!: string;
+  role!: UserRole;
+  isVerified!: boolean;
   firstName!: Nullable<string>;
   lastName!: Nullable<string>;
   avatarUrl!: Nullable<string>;
   phone!: Nullable<string>;
-  role!: UserRole;
-  isVerified!: boolean;
   language!: Locale;
   currency!: string;
   stripeAccountId!: Nullable<string>;

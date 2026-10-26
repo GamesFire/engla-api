@@ -1,9 +1,14 @@
+import type { Transaction } from 'objection';
+
 import type { Property } from '@models/properties/property.model.js';
 import type { PropertyModifierName } from '@models/properties/property.modifiers.js';
+import type { PropertyBlockedDate } from '@models/property-blocked-date.model.js';
 import type { PropertyImage } from '@models/property-image.model.js';
 import type {
   AdminGetPropertiesQueryDto,
+  CreatePropertyBlockedDateBodyDto,
   GetPropertiesQueryDto,
+  GetPropertyAvailabilityQueryDto,
   PublishPropertyBodyDto,
   ReorderPropertyImagesBodyDto,
   UpdatePropertyBodyDto,
@@ -34,13 +39,11 @@ export type GetPropertiesByAdminParams = AdminGetPropertiesQueryDto;
 
 export type CreatePropertyData = Pick<Property, 'hostId' | 'propertyType' | 'status'>;
 
-export type InsertPropertyImageData = Pick<
-  PropertyImage,
-  'propertyId' | 'url' | 'publicId' | 'isMain' | 'order'
->;
-
 export type UpdatePropertyData = Partial<
-  Omit<Property, 'id' | 'createdAt' | 'updatedAt' | 'host' | 'images' | 'amenities'>
+  Omit<
+    Property,
+    'id' | 'createdAt' | 'updatedAt' | 'host' | 'images' | 'amenities' | 'blockedDates'
+  >
 > & {
   amenityIds?: number[];
 };
@@ -49,6 +52,23 @@ export type UpdatePropertyParams = {
   propertyId: number;
   data: UpdatePropertyData;
   options?: PropertyQueryOptions;
+};
+
+export type InsertPropertyImageData = Pick<
+  PropertyImage,
+  'propertyId' | 'url' | 'publicId' | 'isMain' | 'order'
+>;
+
+export type CreatePropertyBlockedDateData = Pick<
+  PropertyBlockedDate,
+  'propertyId' | 'startDate' | 'endDate' | 'reason'
+>;
+
+export type CheckBlockedDatesOverlapParams = {
+  propertyId: number;
+  startDate: string;
+  endDate: string;
+  trx?: Transaction;
 };
 
 export type GetExistingPropertyForHostParams = {
@@ -85,4 +105,22 @@ export type PropertyImageByHostParams = {
   hostId: number;
   propertyId: number;
   imageId: number;
+};
+
+export type GetPropertyBlockedDatesByHostParams = {
+  hostId: number;
+  propertyId: number;
+  query: GetPropertyAvailabilityQueryDto;
+};
+
+export type CreatePropertyBlockedDateByHostParams = {
+  hostId: number;
+  propertyId: number;
+  data: CreatePropertyBlockedDateBodyDto;
+};
+
+export type DeletePropertyBlockedDateByHostParams = {
+  hostId: number;
+  propertyId: number;
+  blockId: number;
 };

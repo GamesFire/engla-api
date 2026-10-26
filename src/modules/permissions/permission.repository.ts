@@ -5,6 +5,8 @@ import type { GetAllPermissionsParams } from './permission.types.js';
 
 @provide()
 export class PermissionRepository {
+  // --- READ METHODS ---
+
   public async getAllPermissions(params: GetAllPermissionsParams): Promise<PermissionModel[]> {
     const { orderBy, orderDirection } = params;
 

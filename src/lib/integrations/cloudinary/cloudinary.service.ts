@@ -64,10 +64,12 @@ export class CloudinaryService {
 
         logger.info(`[CloudinaryService] Image successfully uploaded: ${result.public_id}`);
 
-        resolve({
+        const uploadResult: CloudinaryUploadResult = {
           url: result.secure_url,
           publicId: result.public_id,
-        });
+        };
+
+        resolve(uploadResult);
       });
 
       Readable.from(fileBuffer).pipe(uploadStream);
@@ -81,7 +83,7 @@ export class CloudinaryService {
    * when entities are updated or deleted.
    *
    * @param publicId - The unique Cloudinary identifier of the image to delete.
-   * @returns Resolves when the image is successfully destroyed.
+   * @returns A Promise that resolves when the image is successfully destroyed.
    * @throws Will throw an HTTP 502 error if the deletion process fails.
    */
   public async deleteImage(publicId: string): Promise<void> {

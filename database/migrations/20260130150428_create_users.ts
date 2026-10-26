@@ -6,33 +6,38 @@ export async function up(knex: Knex): Promise<void> {
 
     table.increments('id').primary();
 
-    table.string('auth0_id').unique().notNullable().index().comment('Unique identifier from Auth0');
-    table.string('email').notNullable().unique().comment('User email, used as primary contact');
+    // --- Identity & Profile ---
+    table
+      .string('auth0_id')
+      .notNullable()
+      .unique()
+      .comment('External identity provider subject ID (Auth0 sub)');
 
+    table.string('email').notNullable().unique();
     table.string('first_name').nullable();
     table.string('last_name').nullable();
     table.string('avatar_url').nullable();
     table.string('phone').nullable();
 
-    table.enum('role', ['client', 'host', 'admin']).defaultTo('client').notNullable();
-    table.boolean('is_verified').defaultTo(false).comment('Whether email/identity is verified');
+    // --- Access & Preferences ---
+    table.enum('role', ['client', 'host', 'admin']).notNullable().defaultTo('client');
+    table.boolean('is_verified').notNullable().defaultTo(false);
 
-    table.string('language').defaultTo('en').notNullable();
-    table.string('currency').defaultTo('GBP').notNullable();
+    table.string('language').notNullable().defaultTo('en');
+    table.string('currency').notNullable().defaultTo('GBP');
 
+    // --- Stripe Connect Integration ---
     table
       .string('stripe_account_id')
       .nullable()
       .unique()
-      .comment('Stripe Connect account ID for hosts');
+      .comment('Stripe Connect Express account ID for host payouts');
 
-    table
-      .boolean('stripe_onboarding_completed')
-      .defaultTo(false)
-      .comment('Whether host completed Stripe onboarding');
+    table.boolean('stripe_onboarding_completed').notNullable().defaultTo(false);
 
-    table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now());
-    table.timestamp('updated_at', { useTz: true }).defaultTo(knex.fn.now());
+    // --- Lifecycle & Audit ---
+    table.timestamp('created_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
+    table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
     table.timestamp('deleted_at', { useTz: true }).nullable();
 
     table.index(['role'], 'idx_users_role');

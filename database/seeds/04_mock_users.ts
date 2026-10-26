@@ -9,14 +9,10 @@ export async function seed(knex: Knex): Promise<void> {
     return;
   }
 
-  // Deletes ALL existing entries safely
   await knex.raw('TRUNCATE TABLE users RESTART IDENTITY CASCADE');
 
-  // Inserts seed entries
   await knex('users').insert([
-    // ==========================================
-    // REAL ACCOUNTS (RESERVED)
-    // ==========================================
+    // --- Real Accounts (Reserved) ---
     {
       // ID: 1 (Main Admin)
       auth0_id: appConfig.SEED_ADMIN_AUTH0_ID,
@@ -41,9 +37,7 @@ export async function seed(knex: Knex): Promise<void> {
         'https://res.cloudinary.com/dgsghju4q/image/upload/v1778154966/demo_host_be38rr.jpg',
     },
 
-    // ==========================================
-    // PLATFORM TEAM (STAFF ACCOUNTS)
-    // ==========================================
+    // --- Platform Team (Staff Accounts) ---
     {
       // ID: 3
       auth0_id: 'auth0|staff_1',
@@ -67,9 +61,7 @@ export async function seed(knex: Knex): Promise<void> {
         'https://res.cloudinary.com/dgsghju4q/image/upload/v1778154979/admin2_avatar_rlwz68.jpg',
     },
 
-    // ==========================================
-    // ADDITIONAL HOSTS
-    // ==========================================
+    // --- Additional Hosts ---
     {
       // ID: 5
       auth0_id: 'auth0|fake_host_1',
@@ -95,9 +87,7 @@ export async function seed(knex: Knex): Promise<void> {
         'https://res.cloudinary.com/dgsghju4q/image/upload/v1778154992/host2_avatar_php04y.jpg',
     },
 
-    // ==========================================
-    // MOCK CLIENTS
-    // ==========================================
+    // --- Mock Clients ---
     {
       // ID: 7
       auth0_id: 'auth0|cl_1',
@@ -206,9 +196,7 @@ export async function seed(knex: Knex): Promise<void> {
         'https://res.cloudinary.com/dgsghju4q/image/upload/v1778155042/client7_avatar_tdmo3l.jpg',
     },
 
-    // ==========================================
-    // DELETED / ANONYMIZED USERS
-    // ==========================================
+    // --- Deleted / Anonymized Users ---
     {
       // ID: 17
       auth0_id: `deleted_17_${Date.now()}`,

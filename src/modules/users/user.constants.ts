@@ -3,6 +3,7 @@ import type { User } from '@models/users/user.model.js';
 export const UserSortFields = ['createdAt', 'email', 'firstName', 'lastName', 'role'] as const;
 
 export const UserAnonymization = {
+  PREFIX: 'deleted_',
   FIRST_NAME: 'Deleted',
   LAST_NAME: 'User',
   EMAIL_DOMAIN: '@deleted.engla.local',

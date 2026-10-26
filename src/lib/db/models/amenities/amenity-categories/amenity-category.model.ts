@@ -5,10 +5,13 @@ import { AmenityModel } from '../amenity.model.js';
 import { AmenityCategoryModifiers } from './amenity-category.modifiers.js';
 
 export interface AmenityCategory {
+  // --- System & Basic Info ---
   id: number;
   name: string;
   description: Nullable<string>;
   order: number; // Default 0
+
+  // --- Timestamps ---
   createdAt: Date;
   updatedAt: Date;
 

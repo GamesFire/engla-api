@@ -11,11 +11,16 @@ export enum AmenityScope {
 }
 
 export interface Amenity {
+  // --- System & Relations ---
   id: number;
-  scope: AmenityScope; // Default 'property'
   categoryId: Nullable<number>; // FK to AmenityCategoryModel (id)
+  scope: AmenityScope; // Default 'property'
+
+  // --- Basic Info ---
   name: string;
   iconKey: Nullable<string>;
+
+  // --- Timestamps ---
   createdAt: Date;
   updatedAt: Date;
 
@@ -28,8 +33,8 @@ export class AmenityModel extends BaseSystemModel implements Amenity {
   static modifiers = AmenityModifiers;
 
   id!: number;
-  scope!: AmenityScope;
   categoryId!: Nullable<number>;
+  scope!: AmenityScope;
   name!: string;
   iconKey!: Nullable<string>;
 

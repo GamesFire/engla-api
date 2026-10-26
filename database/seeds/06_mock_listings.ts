@@ -9,16 +9,11 @@ export async function seed(knex: Knex): Promise<void> {
     return;
   }
 
-  // Deletes ALL existing entries safely
   await knex.raw('TRUNCATE TABLE properties RESTART IDENTITY CASCADE');
 
-  // Inserts seed entries (properties)
+  // --- Properties (15 Items) ---
   await knex('properties').insert([
-    // --- PROPERTIES (15 Items) ---
-
-    // ==========================================
-    // LONDON & EDINBURGH (Demo Host - ID 2)
-    // ==========================================
+    // --- London & Edinburgh (Demo Host - ID 2) ---
     {
       // 1. ACTIVE
       host_id: 2,
@@ -237,9 +232,7 @@ export async function seed(knex: Knex): Promise<void> {
       rejection_reason: null,
     },
 
-    // ==========================================
-    // COTSWOLDS & MANCHESTER (David - Host 5)
-    // ==========================================
+    // --- Cotswolds & Manchester (David - Host 5) ---
     {
       // 8. ACTIVE
       host_id: 5,
@@ -392,9 +385,7 @@ export async function seed(knex: Knex): Promise<void> {
       rejection_reason: null,
     },
 
-    // ==========================================
-    // CORNWALL (Emma - Host 6)
-    // ==========================================
+    // --- Cornwall (Emma - Host 6) ---
     {
       // 13. ACTIVE
       host_id: 6,
@@ -488,7 +479,7 @@ export async function seed(knex: Knex): Promise<void> {
     },
   ]);
 
-  // --- PROPERTY IMAGES (58 Images) ---
+  // --- Property Images (58 Images) ---
   const propertiesImagesData = [
     // 1. London Penthouse (5 images: Luxury, views, modern)
     [
@@ -791,16 +782,15 @@ export async function seed(knex: Knex): Promise<void> {
     });
   });
 
-  // Inserts seed entries (property images)
   await knex('property_images').insert(imagesToInsert);
 
-  // --- PROPERTIES AMENITIES ---
+  // --- Property Amenities ---
   const propertyAmenities: {
     property_id: number;
     amenity_id: number;
   }[] = [];
 
-  // Add basic amenities to every properties (Wifi: 1, Towels: 3)
+  // Add basic amenities to every property (Wifi: 1, Towels: 3)
   for (let i = 1; i <= 15; i++) {
     propertyAmenities.push({ property_id: i, amenity_id: 1 }, { property_id: i, amenity_id: 3 });
   }
@@ -830,7 +820,6 @@ export async function seed(knex: Knex): Promise<void> {
     });
   });
 
-  // Inserts seed entries (properties amenities)
   await knex('properties_amenities').insert(propertyAmenities);
 
   logger.info(

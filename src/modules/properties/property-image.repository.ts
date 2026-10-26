@@ -7,6 +7,8 @@ import type { InsertPropertyImageData } from './property.types.js';
 
 @provide()
 export class PropertyImageRepository {
+  // --- READ METHODS ---
+
   public async findByIdAndPropertyId(
     imageId: number,
     propertyId: number,
@@ -26,6 +28,8 @@ export class PropertyImageRepository {
 
     return Number((result as unknown as { count: string | number })?.count || 0);
   }
+
+  // --- WRITE METHODS ---
 
   public async insertMany(images: InsertPropertyImageData[]): Promise<PropertyImage[]> {
     return PropertyImageModel.query().insertGraph(images);

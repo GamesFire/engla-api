@@ -9,20 +9,27 @@ export async function seed(knex: Knex): Promise<void> {
   // without breaking existing relations in production.
 
   const permissions = [
-    // --- SYSTEM ---
+    // --- System ---
     { action: 'system:permissions', description: 'Grant or revoke permissions for other admins' },
 
-    // --- USERS ---
+    // --- Users ---
     { action: 'users:read', description: 'View all users and their details' },
     { action: 'users:update', description: 'Modify user profiles, statuses, and roles' },
     { action: 'users:delete', description: 'Perform soft or hard deletion of user accounts' },
 
-    // --- PROPERTIES ---
+    // --- Properties ---
     { action: 'properties:read', description: 'View all properties, including drafts and pending' },
     { action: 'properties:update', description: 'Modify properties (e.g., approve or reject)' },
     { action: 'properties:delete', description: 'Archive or delete properties' },
 
-    // --- DICTIONARIES ---
+    // --- Bookings ---
+    { action: 'bookings:read', description: 'View all bookings and financial details' },
+    {
+      action: 'bookings:update',
+      description: 'Manage bookings (e.g., force-cancel and issue refunds)',
+    },
+
+    // --- Dictionaries ---
     {
       action: 'dictionaries:manage',
       description: 'Create, update, or delete global amenities and amenity categories',

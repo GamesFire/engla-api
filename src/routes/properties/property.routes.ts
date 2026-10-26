@@ -11,6 +11,8 @@ import { PropertyController } from './property.controller.js';
 const PublicPropertyRoutes = {
   ROOT: '/',
   BY_ID: '/:id',
+  AVAILABILITY: '/:id/availability',
+  QUOTE: '/:id/quote',
 } as const;
 
 const ProtectedPropertyRoutes = {
@@ -24,6 +26,8 @@ const ProtectedPropertyRoutes = {
   IMAGES_REORDER: '/:id/images/reorder',
   IMAGE_BY_ID: '/:id/images/:imageId',
   MAKE_IMAGE_MAIN: '/:id/images/:imageId/main',
+  BLOCKED_DATES: '/:id/blocked-dates',
+  BLOCKED_DATE_BY_ID: '/:id/blocked-dates/:blockId',
 } as const;
 
 const AdminPropertyRoutes = {
@@ -49,6 +53,20 @@ export function createPublicPropertyRouter(): Router {
     propertyController.getPublicPropertyById,
   );
 
+  router.get(
+    PublicPropertyRoutes.AVAILABILITY,
+    skipIfParamNotNumericMiddleware('id'),
+    RateLimiters.PROPERTIES.SEARCH,
+    propertyController.getPublicPropertyAvailability,
+  );
+
+  router.get(
+    PublicPropertyRoutes.QUOTE,
+    skipIfParamNotNumericMiddleware('id'),
+    RateLimiters.PROPERTIES.SEARCH,
+    propertyController.getPublicPropertyQuote,
+  );
+
   return router;
 }
 
@@ -56,13 +74,13 @@ export function createProtectedPropertyRouter(): Router {
   const router = Router({ mergeParams: true });
   const propertyController = ioc.get(PropertyController);
 
+  router.get(ProtectedPropertyRoutes.ME, propertyController.getMyProperties);
+
   router.post(
     ProtectedPropertyRoutes.ROOT,
     RateLimiters.PROPERTIES.CREATION,
     propertyController.createMyProperty,
   );
-
-  router.get(ProtectedPropertyRoutes.ME, propertyController.getMyProperties);
 
   router.patch(
     ProtectedPropertyRoutes.BY_ID,
@@ -103,16 +121,30 @@ export function createProtectedPropertyRouter(): Router {
     propertyController.reorderMyPropertyImages,
   );
 
+  router.put(
+    ProtectedPropertyRoutes.MAKE_IMAGE_MAIN,
+    RateLimiters.PROPERTIES.MANAGE_IMAGES,
+    propertyController.setMainMyPropertyImage,
+  );
+
   router.delete(
     ProtectedPropertyRoutes.IMAGE_BY_ID,
     RateLimiters.PROPERTIES.MANAGE_IMAGES,
     propertyController.deleteMyPropertyImage,
   );
 
-  router.put(
-    ProtectedPropertyRoutes.MAKE_IMAGE_MAIN,
-    RateLimiters.PROPERTIES.MANAGE_IMAGES,
-    propertyController.setMainMyPropertyImage,
+  router.get(ProtectedPropertyRoutes.BLOCKED_DATES, propertyController.getMyPropertyBlockedDates);
+
+  router.post(
+    ProtectedPropertyRoutes.BLOCKED_DATES,
+    RateLimiters.PROPERTIES.BLOCK_DATES,
+    propertyController.createMyPropertyBlockedDate,
+  );
+
+  router.delete(
+    ProtectedPropertyRoutes.BLOCKED_DATE_BY_ID,
+    RateLimiters.PROPERTIES.BLOCK_DATES,
+    propertyController.deleteMyPropertyBlockedDate,
   );
 
   return router;

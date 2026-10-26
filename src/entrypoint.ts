@@ -33,7 +33,10 @@ async function boot() {
        * It runs completely decoupled from the HTTP server.
        */
       const { PropertyCleanupJob } = await import('@modules/jobs/property-cleanup.job.js');
+      const { BookingLifecycleJob } = await import('@modules/jobs/booking-lifecycle.job.js');
+
       PropertyCleanupJob.schedule();
+      BookingLifecycleJob.schedule();
 
       break;
     }

@@ -1,4 +1,12 @@
 export const ValidationLimits = {
+  PAGINATION: {
+    MIN_PAGE: 1,
+    DEFAULT_PAGE: 1,
+    MIN_LIMIT: 1,
+    DEFAULT_LIMIT: 10,
+    MAX_LIMIT: 100,
+    DEFAULT_ORDER_DIRECTION: 'desc',
+  },
   USER: {
     EMAIL_MAX: 255, // DB standard for VARCHAR(255)
     NAME_MIN: 1,
@@ -28,6 +36,8 @@ export const ValidationLimits = {
     MAX_PRICE_PENCE: 1_000_000,
     MAX_CLEANING_FEE_PENCE: 50_000,
     MAX_GUESTS: 30,
+    MAX_GUESTS_PER_BED_RATIO: 3,
+    SHARED_ROOM_MAX_BEDROOMS: 1,
     MAX_ROOMS: 20,
     MAX_AREA_SQM: 5000,
     MAX_IMAGES: 20,
@@ -45,6 +55,15 @@ export const ValidationLimits = {
     NAME_MAX: 50,
     DESC_MAX: 255,
     ICON_MAX: 50,
+  },
+  BOOKING: {
+    MIN_NIGHTS: 1,
+    MAX_NIGHTS: 31,
+    MAX_ADVANCE_DAYS: 365,
+    SPECIAL_REQUESTS_MAX: 1000,
+    CANCELLATION_REASON_MIN: 5,
+    CANCELLATION_REASON_MAX: 500,
+    BLOCK_REASON_MAX: 255,
   },
 } as const;
 
@@ -97,4 +116,9 @@ export const ValidationPatterns = {
    * Matches strings that contain ONLY digits (e.g., "123", "45", not "12a").
    */
   NUMERIC_STRING: /^\d+$/,
+
+  /**
+   * ISO 8601 Calendar Date Format (YYYY-MM-DD).
+   */
+  DATE_YYYY_MM_DD: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
 } as const;

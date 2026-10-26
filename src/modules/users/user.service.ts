@@ -11,6 +11,7 @@ import { CloudinaryService } from '@lib/integrations/cloudinary/cloudinary.servi
 import { StripeService } from '@lib/integrations/stripe/stripe.service.js';
 import { logger } from '@lib/logger.js';
 import { type User, UserRole } from '@models/users/user.model.js';
+import { BookingRepository } from '@modules/bookings/booking.repository.js';
 import { UserRepository } from '@modules/users/user.repository.js';
 import type {
   AdminSyncPermissionsBodyDto,
@@ -31,6 +32,7 @@ import type {
 export class UserService {
   constructor(
     @inject(UserRepository) private readonly _userRepository: UserRepository,
+    @inject(BookingRepository) private readonly _bookingRepository: BookingRepository,
     @inject(Auth0Service) private readonly _auth0Service: Auth0Service,
     @inject(CloudinaryService) private readonly _cloudinaryService: CloudinaryService,
     @inject(StripeService) private readonly _stripeService: StripeService,
@@ -116,6 +118,26 @@ export class UserService {
     return user;
   }
 
+  /**
+   * Ensures the user does not have any active or upcoming bookings as a guest or host
+   * before allowing account deletion.
+   *
+   * @param userId - The ID of the user to check.
+   * @returns A Promise that resolves if the user has no active bookings.
+   * @throws Will throw an HTTP 409 error if active or future bookings exist.
+   */
+  private async _assertNoActiveBookings(userId: number): Promise<void> {
+    const hasActiveBookings = await this._bookingRepository.hasActiveBookingsForUser(userId);
+
+    if (hasActiveBookings) {
+      throw new HttpError({
+        statusCode: 409,
+        message: ErrorMessages.USERS.HAS_ACTIVE_BOOKINGS,
+        internalPayload: { code: ErrorCodes.USERS.HAS_ACTIVE_BOOKINGS },
+      });
+    }
+  }
+
   public async getUserProfileById(userId: number): Promise<User> {
     return this._getExistingUser(userId);
   }
@@ -188,7 +210,7 @@ export class UserService {
   public async deleteUserAccount(userId: number): Promise<void> {
     const user = await this._getExistingUser(userId, { modifiers: null });
 
-    // TODO: Before deleting the account, verify that the user has no active bookings.
+    await this._assertNoActiveBookings(userId);
 
     await this._auth0Service.deleteUser(user.auth0Id);
     await this._silentlyDeleteAvatar(user);
@@ -197,6 +219,8 @@ export class UserService {
 
   public async deleteUserByAdmin(userId: number): Promise<void> {
     const user = await this._getExistingUser(userId, { modifiers: null });
+
+    await this._assertNoActiveBookings(userId);
 
     await this._auth0Service.deleteUser(user.auth0Id);
     await this._silentlyDeleteAvatar(user);
@@ -252,8 +276,9 @@ export class UserService {
     }
 
     const url = await this._stripeService.createOnboardingLink(accountId);
+    const onboardingResult: InitiateHostOnboardingResult = { url };
 
-    return { url };
+    return onboardingResult;
   }
 
   /**
@@ -290,6 +315,8 @@ export class UserService {
       },
     });
 
-    logger.info(`[UserService] User ${user.id} (${user.email}) successfully upgraded to HOST!`);
+    logger.info(
+      `[UserService] User ${user.id} (Stripe account: ${stripeAccountId}) successfully upgraded to HOST!`,
+    );
   }
 }

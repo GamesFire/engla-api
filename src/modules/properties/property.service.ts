@@ -10,20 +10,26 @@ import { CloudinaryService } from '@lib/integrations/cloudinary/cloudinary.servi
 import { logger } from '@lib/logger.js';
 import { type Property, PropertyStatus, PropertyType } from '@models/properties/property.model.js';
 import { PropertyModifier } from '@models/properties/property.modifiers.js';
+import type { PropertyBlockedDate } from '@models/property-blocked-date.model.js';
 import type { PropertyImage } from '@models/property-image.model.js';
+import { BookingRepository } from '@modules/bookings/booking.repository.js';
 import type {
   AdminRejectPropertyBodyDto,
   AdminUpdatePropertyBodyDto,
   CreatePropertyBodyDto,
 } from '@routes/properties/property.validation.js';
 
+import { PropertyBlockedDateRepository } from './property-blocked-date.repository.js';
 import { PropertyImageRepository } from './property-image.repository.js';
 import { PropertyRules } from './property.constants.js';
 import { PropertyRepository } from './property.repository.js';
 import type {
+  CreatePropertyBlockedDateByHostParams,
+  DeletePropertyBlockedDateByHostParams,
   FindPropertyOptions,
   GetExistingPropertyForHostParams,
   GetPropertiesByAdminParams,
+  GetPropertyBlockedDatesByHostParams,
   GetPublicPropertiesParams,
   PropertyImageByHostParams,
   PublishPropertyByHostParams,
@@ -38,6 +44,9 @@ export class PropertyService {
     @inject(PropertyRepository) private readonly _propertyRepository: PropertyRepository,
     @inject(PropertyImageRepository)
     private readonly _propertyImageRepository: PropertyImageRepository,
+    @inject(PropertyBlockedDateRepository)
+    private readonly _propertyBlockedDateRepository: PropertyBlockedDateRepository,
+    @inject(BookingRepository) private readonly _bookingRepository: BookingRepository,
     @inject(CloudinaryService) private readonly _cloudinaryService: CloudinaryService,
   ) {}
 
@@ -92,10 +101,14 @@ export class PropertyService {
   }
 
   /**
-   * Helper method for safely deleting a property.
+   * Safely deletes a property based on its lifecycle state:
+   * - Draft properties are permanently hard-deleted along with their Cloudinary images.
+   * - Published/archived properties are checked for active bookings and soft-deleted (archived)
+   *   to preserve historical booking and financial records.
    *
    * @param property - The property to be deleted.
    * @returns A promise that resolves when the deletion is complete.
+   * @throws Will throw an HTTP 409 error if the property has active or future bookings.
    */
   private async _executeSmartPropertyDeletion(property: Property): Promise<void> {
     if (property.status === PropertyStatus.DRAFT) {
@@ -111,23 +124,27 @@ export class PropertyService {
       return;
     }
 
-    // CASE B: The property was already public (ACTIVE, INACTIVE, PENDING).
-    // It may be linked to financial transactions (bookings), so a hard delete is prohibited!
+    const hasActiveBookings = await this._bookingRepository.hasActiveBookingsForProperty(
+      property.id,
+    );
 
-    // TODO (Bookings): Check if there are any ACTIVE (future or current) bookings.
-    // If hasActiveBookings === true -> throw HttpError (409 Conflict).
-    // The user/admin must first cancel the booking before archiving the listing.
+    if (hasActiveBookings) {
+      throw new HttpError({
+        statusCode: 409,
+        message: ErrorMessages.PROPERTIES.HAS_ACTIVE_BOOKINGS,
+        internalPayload: { code: ErrorCodes.PROPERTIES.HAS_ACTIVE_BOOKINGS },
+      });
+    }
 
-    // If there are no active bookings (only past ones) -> Archive (Soft Delete).
-    // All images and reviews remain in the database and on Cloudinary for the sake of history.
     await this._propertyRepository.softDeleteAndFetchById(property.id);
   }
 
   /**
-   * Helper method to fetch a property and ensure it is currently pending moderation.
+   * Fetches a property and ensures it is currently pending moderation.
    *
    * @param propertyId - The ID of the property to fetch.
    * @returns A promise that resolves to the fetched property.
+   * @throws Will throw an HTTP 400 error if the property is not in the PENDING state.
    */
   private async _getPendingPropertyForAdmin(propertyId: number): Promise<Property> {
     const property = await this._getExistingProperty(propertyId, { modifiers: null });
@@ -143,6 +160,12 @@ export class PropertyService {
     return property;
   }
 
+  public async getPublicProperties(
+    params: GetPublicPropertiesParams,
+  ): Promise<PaginatedResponse<Property>> {
+    return this._propertyRepository.getPublicProperties(params);
+  }
+
   public async getPublicPropertyById(propertyId: number): Promise<Property> {
     const property = await this._getExistingProperty(propertyId, {
       modifiers: PropertyModifier.PUBLIC_VIEW,
@@ -153,12 +176,6 @@ export class PropertyService {
     }
 
     return property;
-  }
-
-  public async getPublicProperties(
-    params: GetPublicPropertiesParams,
-  ): Promise<PaginatedResponse<Property>> {
-    return this._propertyRepository.getPublicProperties(params);
   }
 
   public async getPropertiesByHostId(
@@ -415,6 +432,24 @@ export class PropertyService {
     }
   }
 
+  public async setMainPropertyImageByHost(params: PropertyImageByHostParams): Promise<void> {
+    const { hostId, propertyId, imageId } = params;
+
+    await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
+    await this._getExistingPropertyImage(imageId, propertyId);
+
+    await this._propertyImageRepository.setMainImage(imageId, propertyId);
+
+    const allImages = await this._propertyImageRepository.findAllByPropertyId(propertyId);
+
+    const reorderedIds = [
+      imageId,
+      ...allImages.map((img) => img.id).filter((id) => id !== imageId),
+    ];
+
+    await this._propertyImageRepository.reorderImages(reorderedIds, propertyId);
+  }
+
   public async deletePropertyImageByHost(params: PropertyImageByHostParams): Promise<void> {
     const { hostId, propertyId, imageId } = params;
 
@@ -441,22 +476,81 @@ export class PropertyService {
     }
   }
 
-  public async setMainPropertyImageByHost(params: PropertyImageByHostParams): Promise<void> {
-    const { hostId, propertyId, imageId } = params;
+  public async getPropertyBlockedDatesByHost(
+    params: GetPropertyBlockedDatesByHostParams,
+  ): Promise<PropertyBlockedDate[]> {
+    const { hostId, propertyId, query } = params;
 
     await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
-    await this._getExistingPropertyImage(imageId, propertyId);
 
-    await this._propertyImageRepository.setMainImage(imageId, propertyId);
+    return this._propertyBlockedDateRepository.findAllByPropertyId(propertyId, query);
+  }
 
-    const allImages = await this._propertyImageRepository.findAllByPropertyId(propertyId);
+  public async createPropertyBlockedDateByHost(
+    params: CreatePropertyBlockedDateByHostParams,
+  ): Promise<PropertyBlockedDate> {
+    const { hostId, propertyId, data } = params;
 
-    const reorderedIds = [
-      imageId,
-      ...allImages.map((img) => img.id).filter((id) => id !== imageId),
-    ];
+    await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
 
-    await this._propertyImageRepository.reorderImages(reorderedIds, propertyId);
+    const hasActiveBookings = await this._bookingRepository.hasOverlappingActiveBookings({
+      propertyId,
+      checkInDate: data.startDate,
+      checkOutDate: data.endDate,
+    });
+
+    if (hasActiveBookings) {
+      throw new HttpError({
+        statusCode: 409,
+        message: ErrorMessages.PROPERTIES.DATES_HAVE_ACTIVE_BOOKINGS,
+        internalPayload: { code: ErrorCodes.PROPERTIES.DATES_HAVE_ACTIVE_BOOKINGS },
+      });
+    }
+
+    const hasOverlappingBlock =
+      await this._propertyBlockedDateRepository.hasOverlappingBlockedDates({
+        propertyId,
+        startDate: data.startDate,
+        endDate: data.endDate,
+      });
+
+    if (hasOverlappingBlock) {
+      throw new HttpError({
+        statusCode: 409,
+        message: ErrorMessages.PROPERTIES.DATES_ALREADY_BLOCKED,
+        internalPayload: { code: ErrorCodes.PROPERTIES.DATES_ALREADY_BLOCKED },
+      });
+    }
+
+    return this._propertyBlockedDateRepository.createAndFetch({
+      propertyId,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      reason: data.reason ?? null,
+    });
+  }
+
+  public async deletePropertyBlockedDateByHost(
+    params: DeletePropertyBlockedDateByHostParams,
+  ): Promise<void> {
+    const { hostId, propertyId, blockId } = params;
+
+    await this._getExistingPropertyForHost({ propertyId, hostId, options: { modifiers: null } });
+
+    const blockedDate = await this._propertyBlockedDateRepository.findByIdAndPropertyId(
+      blockId,
+      propertyId,
+    );
+
+    if (!blockedDate) {
+      throw new HttpError({
+        statusCode: 404,
+        message: ErrorMessages.PROPERTIES.BLOCKED_DATE_NOT_FOUND,
+        internalPayload: { code: ErrorCodes.PROPERTIES.BLOCKED_DATE_NOT_FOUND },
+      });
+    }
+
+    await this._propertyBlockedDateRepository.deleteById(blockId);
   }
 
   public async getPropertiesByAdmin(

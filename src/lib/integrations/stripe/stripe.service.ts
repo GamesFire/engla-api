@@ -5,9 +5,15 @@ import { appConfig } from '@lib/configs/app.config.js';
 import { ErrorCodes, ErrorMessages } from '@lib/constants/errors.js';
 import { HttpError } from '@lib/errors/http.error.js';
 import { logger } from '@lib/logger.js';
+import { formatBookingStayDescription } from '@utils/format.js';
 
 import { StripeConfig } from './stripe.constants.js';
-import type { CreateExpressAccountParams } from './stripe.types.js';
+import type {
+  CreateBookingCheckoutSessionParams,
+  CreateBookingCheckoutSessionResult,
+  CreateExpressAccountParams,
+  CreateRefundParams,
+} from './stripe.types.js';
 
 @provide()
 export class StripeService {
@@ -40,15 +46,13 @@ export class StripeService {
         capabilities: StripeConfig.CAPABILITIES,
       });
 
-      logger.info(
-        `[StripeService] Created Express account: ${account.id} for email: ${params.email}`,
-      );
+      logger.info(`[StripeService] Created Express account: ${account.id}`);
 
       return account.id;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
       logger.error(
-        `[StripeService] Failed to create Express account for ${params.email}: ${errorMessage || 'Unknown error'}`,
+        `[StripeService] Failed to create Express account: ${errorMessage || 'Unknown error'}`,
       );
 
       throw new HttpError({
@@ -81,6 +85,163 @@ export class StripeService {
       const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
       logger.error(
         `[StripeService] Failed to create Account Link for ${accountId}: ${errorMessage || 'Unknown error'}`,
+      );
+
+      throw new HttpError({
+        statusCode: 502,
+        message: ErrorMessages.INTEGRATION.PAYMENT_PROVIDER,
+        internalPayload: { code: ErrorCodes.INTEGRATION.PAYMENT_PROVIDER },
+      });
+    }
+  }
+
+  /**
+   * Creates a Stripe Checkout Session for a booking using Destination Charges.
+   * Automatically routes the net payout to the host's connected Express account
+   * while retaining the platform's commission (`application_fee_amount`).
+   *
+   * @param params - Booking, pricing, and Stripe Connect details.
+   * @returns A Promise resolving to the Checkout Session ID and hosted URL.
+   * @throws Will throw an HTTP 502 error if Checkout Session creation fails.
+   */
+  public async createBookingCheckoutSession(
+    params: CreateBookingCheckoutSessionParams,
+  ): Promise<CreateBookingCheckoutSessionResult> {
+    try {
+      const metadata = {
+        bookingId: String(params.bookingId),
+        propertyId: String(params.propertyId),
+        guestId: String(params.guestId),
+        hostId: String(params.hostId),
+      };
+
+      const stayDescription = formatBookingStayDescription({
+        nightsCount: params.nights,
+        checkInDate: params.checkInDate,
+        checkOutDate: params.checkOutDate,
+      });
+
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+        {
+          price_data: {
+            currency: StripeConfig.CURRENCY,
+            unit_amount: params.pricePerNight,
+            product_data: {
+              name: params.propertyTitle,
+              description: stayDescription,
+            },
+          },
+          quantity: params.nights,
+        },
+      ];
+
+      if (params.cleaningFee > 0) {
+        lineItems.push({
+          price_data: {
+            currency: StripeConfig.CURRENCY,
+            unit_amount: params.cleaningFee,
+            product_data: {
+              name: StripeConfig.CLEANING_FEE_PRODUCT_NAME,
+            },
+          },
+          quantity: StripeConfig.DEFAULT_FLAT_FEE_QUANTITY,
+        });
+      }
+
+      const session = await this._stripe.checkout.sessions.create({
+        mode: StripeConfig.CHECKOUT_MODE,
+        customer_email: params.guestEmail,
+        client_reference_id: String(params.bookingId),
+        expires_at: Math.floor(params.expiresAt.getTime() / 1000),
+        line_items: lineItems,
+        payment_intent_data: {
+          application_fee_amount: params.platformFee,
+          transfer_data: {
+            destination: params.hostStripeAccountId,
+          },
+          metadata,
+        },
+        metadata,
+        success_url: appConfig.STRIPE_CHECKOUT_SUCCESS_URL,
+        cancel_url: appConfig.STRIPE_CHECKOUT_CANCEL_URL,
+      });
+
+      if (!session.url) {
+        throw new Error('Stripe did not return a checkout session URL');
+      }
+
+      logger.info(
+        `[StripeService] Created Checkout Session ${session.id} for booking #${params.bookingId}`,
+      );
+
+      const sessionResult: CreateBookingCheckoutSessionResult = {
+        sessionId: session.id,
+        checkoutUrl: session.url,
+      };
+
+      return sessionResult;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+      logger.error(
+        `[StripeService] Failed to create Checkout Session for booking #${params.bookingId}: ${errorMessage || 'Unknown error'}`,
+      );
+
+      throw new HttpError({
+        statusCode: 502,
+        message: ErrorMessages.INTEGRATION.PAYMENT_PROVIDER,
+        internalPayload: { code: ErrorCodes.INTEGRATION.PAYMENT_PROVIDER },
+      });
+    }
+  }
+
+  /**
+   * Safely expires an open Stripe Checkout Session when a pending booking is cancelled or expired.
+   * Non-fatal if the session is already expired or completed.
+   *
+   * @param sessionId - The Stripe Checkout Session ID (`cs_...`).
+   * @returns A Promise that resolves when the Checkout Session expiration attempt finishes.
+   */
+  public async expireCheckoutSession(sessionId: string): Promise<void> {
+    try {
+      await this._stripe.checkout.sessions.expire(sessionId);
+      logger.info(`[StripeService] Expired Checkout Session: ${sessionId}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+      logger.debug(
+        `[StripeService] Could not expire Checkout Session ${sessionId} (likely already closed): ${errorMessage}`,
+      );
+    }
+  }
+
+  /**
+   * Issues a full or partial refund for a paid booking via Stripe Connect.
+   * Reverses the proportional transfer from the host's connected account.
+   *
+   * @param params - The PaymentIntent ID, refund amount in pence, and full-refund flag.
+   * @returns A Promise resolving to the Stripe Refund ID (`re_...`).
+   * @throws Will throw an HTTP 502 error if the refund request fails.
+   */
+  public async refundPayment(params: CreateRefundParams): Promise<string> {
+    try {
+      const refund = await this._stripe.refunds.create({
+        payment_intent: params.paymentIntentId,
+        amount: params.amount,
+        reverse_transfer: true,
+        refund_application_fee: params.isFullRefund,
+        metadata: {
+          bookingId: String(params.bookingId),
+        },
+      });
+
+      logger.info(
+        `[StripeService] Issued refund ${refund.id} (${params.amount}p) for booking #${params.bookingId}`,
+      );
+
+      return refund.id;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+      logger.error(
+        `[StripeService] Failed to issue refund for booking #${params.bookingId}: ${errorMessage || 'Unknown error'}`,
       );
 
       throw new HttpError({

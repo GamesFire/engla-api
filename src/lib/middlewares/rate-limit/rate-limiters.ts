@@ -103,6 +103,39 @@ export const RateLimiters = {
       errorCode: ErrorCodes.RATE_LIMIT.STRICT,
       message: ErrorMessages.RATE_LIMIT.PROPERTY_IMAGE_MANAGE,
     }),
+    BLOCK_DATES: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.PROPERTIES.BLOCK_DATES.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.PROPERTIES.BLOCK_DATES.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.PROPERTY_BLOCK_DATES,
+    }),
+  },
+  BOOKINGS: {
+    SEARCH: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.BOOKINGS.SEARCH.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.BOOKINGS.SEARCH.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.BOOKING_SEARCH,
+    }),
+    CREATION: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.BOOKINGS.CREATION.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.BOOKINGS.CREATION.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.BOOKING_CREATION,
+      skipFailedRequests: true,
+    }),
+    PAYMENT: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.BOOKINGS.PAYMENT.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.BOOKINGS.PAYMENT.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.BOOKING_PAYMENT,
+    }),
+    CANCELLATION: rateLimitMiddleware({
+      windowMs: RequestConfig.RATE_LIMIT.BOOKINGS.CANCELLATION.WINDOW_MS,
+      maxRequests: RequestConfig.RATE_LIMIT.BOOKINGS.CANCELLATION.MAX_REQUESTS,
+      errorCode: ErrorCodes.RATE_LIMIT.STRICT,
+      message: ErrorMessages.RATE_LIMIT.BOOKING_CANCELLATION,
+    }),
   },
   AMENITIES: {
     SEARCH: rateLimitMiddleware({

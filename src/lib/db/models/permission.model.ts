@@ -11,13 +11,19 @@ export enum SystemPermission {
   PROPERTIES_UPDATE = 'properties:update',
   PROPERTIES_DELETE = 'properties:delete',
 
+  BOOKINGS_READ = 'bookings:read',
+  BOOKINGS_UPDATE = 'bookings:update',
+
   DICTIONARIES_MANAGE = 'dictionaries:manage',
 }
 
 export interface Permission {
+  // --- System & Info ---
   id: number;
   action: SystemPermission;
   description: Nullable<string>;
+
+  // --- Timestamps ---
   createdAt: Date;
   updatedAt: Date;
 }

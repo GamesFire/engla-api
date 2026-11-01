@@ -34,10 +34,17 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App Token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          token: ${{ steps.generate_token.outputs.token }}
           fetch-depth: 0
           persist-credentials: true
 
@@ -52,17 +59,18 @@ jobs:
 
       - name: Semantic Release
         env:
-          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: npx semantic-release
 
-      - name: Back-merge to develop via PR
+      - name: Direct Back-merge to develop
         if: success()
-        env:
-          GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
         run: |
-          gh pr create \
-            --base develop \
-            --head main \
-            --title "chore: sync main to develop [skip ci]" \
-            --body "🤖 Automated back-merge from main to develop after a new release." \
-            --label "automated-pr" || echo "PR already exists or no changes to merge"
+          git config --global user.name "engla-api-release-bot[bot]"
+          git config --global user.email "engla-api-release-bot[bot]@users.noreply.github.com"
+          
+          git fetch origin develop
+          git checkout develop
+          
+          git merge main --no-edit
+          
+          git push origin develop

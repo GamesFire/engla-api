@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "09:00"
+      timezone: "Europe/Kyiv"
 
     commit-message:
       prefix: "chore"
@@ -12,20 +14,24 @@ updates:
 
     labels:
       - "dependencies"
-      - "chore"
+      - "javascript" 
 
     groups:
-      vitest:
+      vitest-ecosystem:
         patterns:
           - "vitest*"
           - "@vitest/*"
-      safe-updates:
+      
+      safe-minor-patch-updates:
         patterns:
           - "*"
         update-types:
           - "minor"
           - "patch"
+        exclude-patterns:
+          - "vitest*"
+          - "@vitest/*" 
 
     ignore:
       - dependency-name: "typescript"
-        versions: [">= 7.0.0"]
+        update-types: ["version-update:semver-major"]
